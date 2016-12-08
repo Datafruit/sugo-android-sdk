@@ -41,15 +41,15 @@ import java.util.concurrent.Future;
 
 /**
  * Core class for interacting with Mixpanel Analytics.
- *
+ * <p>
  * <p>Call {@link #getInstance(Context, String)} with
  * your main application activity and your Mixpanel API token as arguments
  * an to get an instance you can use to report how users are using your
  * application.
- *
+ * <p>
  * <p>Once you have an instance, you can send events to Mixpanel
  * using {@link #track(String, JSONObject)}
- *
+ * <p>
  * <p>The Mixpanel library will periodically send information to
  * Mixpanel servers, so your application will need to have
  * <tt>android.permission.INTERNET</tt>. In addition, to preserve
@@ -59,9 +59,9 @@ import java.util.concurrent.Future;
  * of your application, but you will need to call {@link #flush()}
  * before your application is completely shutdown to ensure all of your
  * events are sent.
- *
+ * <p>
  * <p>A typical use-case for the library might look like this:
- *
+ * <p>
  * <pre>
  * {@code
  * public class MainActivity extends Activity {
@@ -86,10 +86,10 @@ import java.util.concurrent.Future;
  * }
  * }
  * </pre>
- *
+ * <p>
  * <p>In addition to this documentation, you may wish to take a look at
  * <a href="https://github.com/mixpanel/sample-android-mixpanel-integration">the Mixpanel sample Android application</a>.
- *
+ * <p>
  * <p>There are also <a href="https://mixpanel.com/docs/">step-by-step getting started documents</a>
  * available at mixpanel.com
  *
@@ -182,19 +182,20 @@ public class MixpanelAPI {
      * You shouldn't instantiate MixpanelAPI objects directly.
      * Use MixpanelAPI.getInstance to get an instance.
      */
-    MixpanelAPI(Context context, Future<SharedPreferences> referrerPreferences, String token) {
-        this(context, referrerPreferences, token, MPConfig.getInstance(context));
+    MixpanelAPI(Context context, Future<SharedPreferences> referrerPreferences) {
+        this(context, referrerPreferences, MPConfig.getInstance(context));
     }
 
     /**
      * You shouldn't instantiate MixpanelAPI objects directly.
      * Use MixpanelAPI.getInstance to get an instance.
      */
-    MixpanelAPI(Context context, Future<SharedPreferences> referrerPreferences, String token, MPConfig config) {
-        Context appContext =  context.getApplicationContext();
+    MixpanelAPI(Context context, Future<SharedPreferences> referrerPreferences, MPConfig config) {
+        Context appContext = context.getApplicationContext();
         mContext = appContext;
-        mToken = token;
         mConfig = config;
+        mToken = config.getToken();
+        String token = mToken;
 
         final Map<String, String> deviceInfo = new HashMap<String, String>();
         deviceInfo.put("$android_lib_version", MPConfig.VERSION);
@@ -261,7 +262,7 @@ public class MixpanelAPI {
 
     /**
      * Get the instance of MixpanelAPI associated with your Mixpanel project token.
-     *
+     * <p>
      * <p>Use getInstance to get a reference to a shared
      * instance of MixpanelAPI you can use to send events
      * and People Analytics updates to Mixpanel.</p>
@@ -281,12 +282,12 @@ public class MixpanelAPI {
      * </pre>
      *
      * @param context The application context you are tracking
-     * @param token Your Mixpanel project token. You can get your project token on the Mixpanel web site,
-     *     in the settings dialog.
+     * @param token   Your Mixpanel project token. You can get your project token on the Mixpanel web site,
+     *                in the settings dialog.
      * @return an instance of MixpanelAPI associated with your project
      */
-    public static MixpanelAPI getInstance(Context context, String token) {
-        if (null == token || null == context) {
+    public static MixpanelAPI getInstance(Context context) {
+        if (null == context) {
             return null;
         }
         synchronized (sInstanceMap) {
@@ -296,17 +297,11 @@ public class MixpanelAPI {
                 sReferrerPrefs = sPrefsLoader.loadPreferences(context, MPConfig.REFERRER_PREFS_NAME, null);
             }
 
-            Map <Context, MixpanelAPI> instances = sInstanceMap.get(token);
-            if (null == instances) {
-                instances = new HashMap<Context, MixpanelAPI>();
-                sInstanceMap.put(token, instances);
-            }
-
-            MixpanelAPI instance = instances.get(appContext);
+            MixpanelAPI instance = sInstanceMap.get(appContext);
             if (null == instance && ConfigurationChecker.checkBasicConfiguration(appContext)) {
-                instance = new MixpanelAPI(context, sReferrerPrefs, token);
+                instance = new MixpanelAPI(context, sReferrerPrefs);
                 registerAppLinksListeners(context, instance);
-                instances.put(appContext, instance);
+                sInstanceMap.put(appContext, instance);
             }
 
             checkIntentForInboundAppLink(context);
@@ -323,11 +318,11 @@ public class MixpanelAPI {
     @Deprecated
     public static void setFlushInterval(Context context, long milliseconds) {
         Log.i(
-            LOGTAG,
-            "MixpanelAPI.setFlushInterval is deprecated. Calling is now a no-op.\n" +
-            "    To set a custom Mixpanel flush interval for your application, add\n" +
-            "    <meta-data android:name=\"com.mixpanel.android.MPConfig.FlushInterval\" android:value=\"YOUR_INTERVAL\" />\n" +
-            "    to the <application> section of your AndroidManifest.xml."
+                LOGTAG,
+                "MixpanelAPI.setFlushInterval is deprecated. Calling is now a no-op.\n" +
+                        "    To set a custom Mixpanel flush interval for your application, add\n" +
+                        "    <meta-data android:name=\"com.mixpanel.android.MPConfig.FlushInterval\" android:value=\"YOUR_INTERVAL\" />\n" +
+                        "    to the <application> section of your AndroidManifest.xml."
         );
     }
 
@@ -339,11 +334,11 @@ public class MixpanelAPI {
     @Deprecated
     public static void enableFallbackServer(Context context, boolean enableIfTrue) {
         Log.i(
-            LOGTAG,
-            "MixpanelAPI.enableFallbackServer is deprecated. This call is a no-op.\n" +
-            "    To enable fallback in your application, add\n" +
-            "    <meta-data android:name=\"com.mixpanel.android.MPConfig.DisableFallback\" android:value=\"false\" />\n" +
-            "    to the <application> section of your AndroidManifest.xml."
+                LOGTAG,
+                "MixpanelAPI.enableFallbackServer is deprecated. This call is a no-op.\n" +
+                        "    To enable fallback in your application, add\n" +
+                        "    <meta-data android:name=\"com.mixpanel.android.MPConfig.DisableFallback\" android:value=\"false\" />\n" +
+                        "    to the <application> section of your AndroidManifest.xml."
         );
     }
 
@@ -351,10 +346,10 @@ public class MixpanelAPI {
      * This function creates a distinct_id alias from alias to original. If original is null, then it will create an alias
      * to the current events distinct_id, which may be the distinct_id randomly generated by the Mixpanel library
      * before {@link #identify(String)} is called.
-     *
+     * <p>
      * <p>This call does not identify the user after. You must still call both {@link #identify(String)} and
      *
-     * @param alias the new distinct_id that should represent original.
+     * @param alias    the new distinct_id that should represent original.
      * @param original the old distinct_id that alias will be mapped to.
      */
     public void alias(String alias, String original) {
@@ -380,22 +375,21 @@ public class MixpanelAPI {
     /**
      * Associate all future calls to {@link #track(String, JSONObject)} with the user identified by
      * the given distinct id.
-     *
-     *
+     * <p>
+     * <p>
      * <p>Calls to {@link #track(String, JSONObject)} made before corresponding calls to
      * identify will use an internally generated distinct id, which means it is best
      * to call identify early to ensure that your Mixpanel funnels and retention
      * analytics can continue to track the user throughout their lifetime. We recommend
      * calling identify as early as you can.
-     *
+     * <p>
      * <p>Once identify is called, the given distinct id persists across restarts of your
      * application.
      *
      * @param distinctId a string uniquely identifying this user. Events sent to
-     *     Mixpanel using the same disinct_id will be considered associated with the
-     *     same visitor/customer for retention and funnel reporting, so be sure that the given
-     *     value is globally unique for each individual user you intend to track.
-     *
+     *                   Mixpanel using the same disinct_id will be considered associated with the
+     *                   same visitor/customer for retention and funnel reporting, so be sure that the given
+     *                   value is globally unique for each individual user you intend to track.
      */
     public void identify(String distinctId) {
         synchronized (mPersistentIdentity) {
@@ -425,17 +419,17 @@ public class MixpanelAPI {
 
     /**
      * Track an event.
-     *
+     * <p>
      * <p>Every call to track eventually results in a data point sent to Mixpanel. These data points
      * are what are measured, counted, and broken down to create your Mixpanel reports. Events
      * have a string name, and an optional set of name/value pairs that describe the properties of
      * that event.
      *
-     * @param eventName The name of the event to send
+     * @param eventName  The name of the event to send
      * @param properties A Map containing the key value pairs of the properties to include in this event.
      *                   Pass null if no extra properties exist.
-     *
-     * See also {@link #track(String, org.json.JSONObject)}
+     *                   <p>
+     *                   See also {@link #track(String, org.json.JSONObject)}
      */
     public void trackMap(String eventName, Map<String, Object> properties) {
         if (null == properties) {
@@ -452,15 +446,16 @@ public class MixpanelAPI {
     public void track(String eventName, JSONObject properties) {
         track(null, eventName, properties);
     }
+
     /**
      * Track an event.
-     *
+     * <p>
      * <p>Every call to track eventually results in a data point sent to Mixpanel. These data points
      * are what are measured, counted, and broken down to create your Mixpanel reports. Events
      * have a string name, and an optional set of name/value pairs that describe the properties of
      * that event.
      *
-     * @param eventName The name of the event to send
+     * @param eventName  The name of the event to send
      * @param properties A JSONObject containing the key value pairs of the properties to include in this event.
      *                   Pass null if no extra properties exist.
      */
@@ -527,6 +522,7 @@ public class MixpanelAPI {
     /**
      * Equivalent to {@link #track(String, JSONObject)} with a null argument for properties.
      * Consider adding properties to your tracking to get the best insights and experience from Mixpanel.
+     *
      * @param eventName the name of the event to send
      */
     public void track(String eventName) {
@@ -535,7 +531,7 @@ public class MixpanelAPI {
 
     /**
      * Push all queued Mixpanel events and People Analytics changes to Mixpanel servers.
-     *
+     * <p>
      * <p>Events and People messages are pushed gradually throughout
      * the lifetime of your application. This means that to ensure that all messages
      * are sent to Mixpanel when your application is shut down, you will
@@ -550,46 +546,44 @@ public class MixpanelAPI {
 
     /**
      * Returns a json object of the user's current super properties
-     *
-     *<p>SuperProperties are a collection of properties that will be sent with every event to Mixpanel,
+     * <p>
+     * <p>SuperProperties are a collection of properties that will be sent with every event to Mixpanel,
      * and persist beyond the lifetime of your application.
      */
-      public JSONObject getSuperProperties() {
-          JSONObject ret = new JSONObject();
-          mPersistentIdentity.addSuperPropertiesToObject(ret);
-          return ret;
-      }
+    public JSONObject getSuperProperties() {
+        JSONObject ret = new JSONObject();
+        mPersistentIdentity.addSuperPropertiesToObject(ret);
+        return ret;
+    }
 
     /**
      * Returns the string id currently being used to uniquely identify the user associated
      * with events sent using {@link #track(String, JSONObject)}. Before any calls to
      * {@link #identify(String)}, this will be an id automatically generated by the library.
      *
-     *
      * @return The distinct id associated with event tracking
-     *
      * @see #identify(String)
      */
     public String getDistinctId() {
         return mPersistentIdentity.getEventsDistinctId();
-     }
+    }
 
     /**
      * Register properties that will be sent with every subsequent call to {@link #track(String, JSONObject)}.
-     *
+     * <p>
      * <p>SuperProperties are a collection of properties that will be sent with every event to Mixpanel,
      * and persist beyond the lifetime of your application.
-     *
+     * <p>
      * <p>Setting a superProperty with registerSuperProperties will store a new superProperty,
      * possibly overwriting any existing superProperty with the same name (to set a
      * superProperty only if it is currently unset, use {@link #registerSuperPropertiesOnce(JSONObject)})
-     *
+     * <p>
      * <p>SuperProperties will persist even if your application is taken completely out of memory.
      * to remove a superProperty, call {@link #unregisterSuperProperty(String)} or {@link #clearSuperProperties()}
      *
-     * @param superProperties    A Map containing super properties to register
-     *
-     * See also {@link #registerSuperProperties(org.json.JSONObject)}
+     * @param superProperties A Map containing super properties to register
+     *                        <p>
+     *                        See also {@link #registerSuperProperties(org.json.JSONObject)}
      */
     public void registerSuperPropertiesMap(Map<String, Object> superProperties) {
         if (null == superProperties) {
@@ -606,18 +600,18 @@ public class MixpanelAPI {
 
     /**
      * Register properties that will be sent with every subsequent call to {@link #track(String, JSONObject)}.
-     *
+     * <p>
      * <p>SuperProperties are a collection of properties that will be sent with every event to Mixpanel,
      * and persist beyond the lifetime of your application.
-     *
+     * <p>
      * <p>Setting a superProperty with registerSuperProperties will store a new superProperty,
      * possibly overwriting any existing superProperty with the same name (to set a
      * superProperty only if it is currently unset, use {@link #registerSuperPropertiesOnce(JSONObject)})
-     *
+     * <p>
      * <p>SuperProperties will persist even if your application is taken completely out of memory.
      * to remove a superProperty, call {@link #unregisterSuperProperty(String)} or {@link #clearSuperProperties()}
      *
-     * @param superProperties    A JSONObject containing super properties to register
+     * @param superProperties A JSONObject containing super properties to register
      * @see #registerSuperPropertiesOnce(JSONObject)
      * @see #unregisterSuperProperty(String)
      * @see #clearSuperProperties()
@@ -628,7 +622,7 @@ public class MixpanelAPI {
 
     /**
      * Remove a single superProperty, so that it will not be sent with future calls to {@link #track(String, JSONObject)}.
-     *
+     * <p>
      * <p>If there is a superProperty registered with the given name, it will be permanently
      * removed from the existing superProperties.
      * To clear all superProperties, use {@link #clearSuperProperties()}
@@ -643,12 +637,12 @@ public class MixpanelAPI {
     /**
      * Register super properties for events, only if no other super property with the
      * same names has already been registered.
-     *
+     * <p>
      * <p>Calling registerSuperPropertiesOnce will never overwrite existing properties.
      *
      * @param superProperties A Map containing the super properties to register.
-     *
-     * See also {@link #registerSuperPropertiesOnce(org.json.JSONObject)}
+     *                        <p>
+     *                        See also {@link #registerSuperPropertiesOnce(org.json.JSONObject)}
      */
     public void registerSuperPropertiesOnceMap(Map<String, Object> superProperties) {
         if (null == superProperties) {
@@ -666,7 +660,7 @@ public class MixpanelAPI {
     /**
      * Register super properties for events, only if no other super property with the
      * same names has already been registered.
-     *
+     * <p>
      * <p>Calling registerSuperPropertiesOnce will never overwrite existing properties.
      *
      * @param superProperties A JSONObject containing the super properties to register.
@@ -678,10 +672,10 @@ public class MixpanelAPI {
 
     /**
      * Erase all currently registered superProperties.
-     *
+     * <p>
      * <p>Future tracking calls to Mixpanel will not contain the specific
      * superProperties registered before the clearSuperProperties method was called.
-     *
+     * <p>
      * <p>To remove a single superProperty, use {@link #unregisterSuperProperty(String)}
      *
      * @see #registerSuperProperties(JSONObject)
@@ -728,15 +722,14 @@ public class MixpanelAPI {
     }
 
 
-
     /**
      * This method is a no-op, kept for compatibility purposes.
-     *
+     * <p>
      * To enable verbose logging about communication with Mixpanel, add
      * {@code
      * <meta-data android:name="com.mixpanel.android.MPConfig.EnableDebugLogging" />
      * }
-     *
+     * <p>
      * To the {@code <application>} tag of your AndroidManifest.xml file.
      *
      * @deprecated in 4.1.0, use Manifest meta-data instead
@@ -756,10 +749,10 @@ public class MixpanelAPI {
      * Attempt to register MixpanelActivityLifecycleCallbacks to the application's event lifecycle.
      * Once registered, we can automatically check for and show surveys and in-app notifications
      * when any Activity is opened.
-     *
+     * <p>
      * This is only available if the android version is >= 16. You can disable livecycle callbacks by setting
      * com.mixpanel.android.MPConfig.AutoShowMixpanelUpdates to false in your AndroidManifest.xml
-     *
+     * <p>
      * This function is automatically called when the library is initialized unless you explicitly
      * set com.mixpanel.android.MPConfig.AutoShowMixpanelUpdates to false in your AndroidManifest.xml
      */
@@ -782,12 +775,12 @@ public class MixpanelAPI {
         public void process(MixpanelAPI m);
     }
 
-    /* package */ static void allInstances(InstanceProcessor processor) {
+    /* package */
+    static void allInstances(InstanceProcessor processor) {
         synchronized (sInstanceMap) {
-            for (final Map<Context, MixpanelAPI> contextInstances : sInstanceMap.values()) {
-                for (final MixpanelAPI instance : contextInstances.values()) {
-                    processor.process(instance);
-                }
+            for (final MixpanelAPI instance : sInstanceMap.values()) {
+                processor.process(instance);
+
             }
         }
     }
@@ -862,6 +855,7 @@ public class MixpanelAPI {
 
     private interface UpdatesListener extends DecideMessages.OnNewResultsListener {
         public void addOnMixpanelUpdatesReceivedListener(OnMixpanelUpdatesReceivedListener listener);
+
         public void removeOnMixpanelUpdatesReceivedListener(OnMixpanelUpdatesReceivedListener listener);
     }
 
@@ -962,9 +956,9 @@ public class MixpanelAPI {
 
     private void recordPeopleMessage(JSONObject message) {
         if (message.has("$distinct_id")) {
-           mMessages.peopleMessage(message);
+            mMessages.peopleMessage(message);
         } else {
-           mPersistentIdentity.storeWaitingPeopleRecord(message);
+            mPersistentIdentity.storeWaitingPeopleRecord(message);
         }
     }
 
@@ -1047,11 +1041,12 @@ public class MixpanelAPI {
         }
     }
 
-    public static void handleWebView(WebView webView, String token) {
-        handleWebView(webView, token, null);
+    public void handleWebView(WebView webView) {
+
+        handleWebView(webView, mConfig.getToken(), null);
     }
 
-    public static void handleWebView(WebView webView, String token, SugoWebViewClient webViewClient) {
+    public void handleWebView(WebView webView, String token, SugoWebViewClient webViewClient) {
         webView.setVisibility(View.VISIBLE);
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -1060,8 +1055,7 @@ public class MixpanelAPI {
         }
         webViewClient.setmToken(token);
         webView.setWebViewClient(webViewClient);
-        MixpanelAPI mixpanelAPI = MixpanelAPI.getInstance(webView.getContext(), token);
-        webView.addJavascriptInterface(new SugoWebEventListener(mixpanelAPI), "sugoEventListener");
+        webView.addJavascriptInterface(new SugoWebEventListener(this), "sugoEventListener");
         webView.addJavascriptInterface(new SugoWebNodeReporter(), "sugoWebNodeReporter");
     }
 
@@ -1078,7 +1072,7 @@ public class MixpanelAPI {
     private final Map<String, Long> mEventTimings;
 
     // Maps each token to a singleton MixpanelAPI instance
-    private static final Map<String, Map<Context, MixpanelAPI>> sInstanceMap = new HashMap<String, Map<Context, MixpanelAPI>>();
+    private static final Map<Context, MixpanelAPI> sInstanceMap = new HashMap<Context, MixpanelAPI>();
     private static final SharedPreferencesLoader sPrefsLoader = new SharedPreferencesLoader();
     private static final Tweaks sSharedTweaks = new Tweaks();
     private static Future<SharedPreferences> sReferrerPrefs;

@@ -215,7 +215,7 @@ public class MPConfig {
         mDisableViewCrawler = metaData.getBoolean("com.mixpanel.android.MPConfig.DisableViewCrawler", false);
         mDisableDecideChecker = metaData.getBoolean("com.mixpanel.android.MPConfig.DisableDecideChecker", false);
         mImageCacheMaxMemoryFactor = metaData.getInt("com.mixpanel.android.MPConfig.ImageCacheMaxMemoryFactor", 10);
-
+        mToken = metaData.getString("com.mixpanel.android.MPConfig.token");
         // Disable if EITHER of these is present and false, otherwise enable
         final boolean surveysAutoCheck = metaData.getBoolean("com.mixpanel.android.MPConfig.AutoCheckForSurveys", true);
         final boolean mixpanelUpdatesAutoShow = metaData.getBoolean("com.mixpanel.android.MPConfig.AutoShowMixpanelUpdates", true);
@@ -379,6 +379,9 @@ public class MPConfig {
     public String getDecideEndpoint() {
         return mDecideEndpoint;
     }
+    public String getToken() {
+        return mToken;
+    }
 
     // Fallback URL for tracking events if post to preferred URL fails
     public String getEventsFallbackEndpoint() {
@@ -479,7 +482,7 @@ public class MPConfig {
     private final String mResourcePackageName;
     private final boolean mDisableDecideChecker;
     private final int mImageCacheMaxMemoryFactor;
-
+    private final String mToken;
     // Mutable, with synchronized accessor and mutator
     private SSLSocketFactory mSSLSocketFactory;
     private OfflineMode mOfflineMode;
