@@ -189,7 +189,7 @@ public class HttpService implements RemoteService {
 
 
     @Override
-    public byte[] performRequest(String endpointUrl, String data, SSLSocketFactory socketFactory) throws ServiceUnavailableException, IOException {
+    public byte[] performRawRequest(String endpointUrl, String data, SSLSocketFactory socketFactory) throws ServiceUnavailableException, IOException {
         if (MPConfig.DEBUG) {
             Log.v(LOGTAG, "Attempting request to " + endpointUrl);
         }

@@ -310,7 +310,7 @@ import javax.net.ssl.SSLSocketFactory;
         for (String url : urls) {
             try {
                 final SSLSocketFactory socketFactory = config.getSSLSocketFactory();
-                response = poster.performRequest(url, "", socketFactory);
+                response = poster.performRequest(url, null, socketFactory);
                 break;
             } catch (final MalformedURLException e) {
                 Log.e(LOGTAG, "Cannot interpret " + url + " as a URL.", e);

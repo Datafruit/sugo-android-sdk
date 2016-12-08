@@ -382,7 +382,7 @@ import javax.net.ssl.SSLSocketFactory;
                     for (String url : urls) {
                         try {
                             final SSLSocketFactory socketFactory = mConfig.getSSLSocketFactory();
-                            response = poster.performRequest(url, encodedData, socketFactory);
+                            response = poster.performRawRequest(url, encodedData, socketFactory);
                             if (null == response) {
                                 deleteEvents = false;
                                 logAboutMessageToMixpanel("Response was null, unexpected failure posting to " + url + ".");
