@@ -507,13 +507,22 @@ public class MixpanelAPI {
                 }
             }
 
-            final AnalyticsMessages.EventDescription eventDescription =
-                    new AnalyticsMessages.EventDescription(eventId, eventName, messageProps, mToken);
-            mMessages.eventsMessage(eventDescription);
-
-            if (null != mTrackingDebug) {
-                mTrackingDebug.reportTrack(eventName);
+            if(MixpanelAPI.developmentMode){
+                JSONArray events = new JSONArray();
+                JSONObject event = new JSONObject();
+                event.put("event_id", eventId);
+                event.put("event_name", eventName);
+                event.put("properties", messageProps);
+                events.put(event);
+                mUpdatesFromMixpanel.sendTestEvent(events);
+            }else {
+                final AnalyticsMessages.EventDescription eventDescription =
+                        new AnalyticsMessages.EventDescription(eventId, eventName, messageProps, mToken);
+                mMessages.eventsMessage(eventDescription);
             }
+//            if (null != mTrackingDebug) {
+//                mTrackingDebug.reportTrack(eventName);
+//            }
         } catch (final JSONException e) {
             Log.e(LOGTAG, "Exception tracking event " + eventName, e);
         }
@@ -917,6 +926,11 @@ public class MixpanelAPI {
         @Override
         public void startUpdates() {
             // No op
+        }
+
+        @Override
+        public void sendTestEvent(JSONArray events) {
+
         }
 
         @Override
