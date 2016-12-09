@@ -102,7 +102,7 @@ public class SugoAPI {
     /**
      * String version of the library.
      */
-    public static final String VERSION = MPConfig.VERSION;
+    public static final String VERSION = SGConfig.VERSION;
 
     public static boolean developmentMode = false;
 
@@ -183,14 +183,14 @@ public class SugoAPI {
      * Use SugoAPI.getInstance to get an instance.
      */
     SugoAPI(Context context, Future<SharedPreferences> referrerPreferences) {
-        this(context, referrerPreferences, MPConfig.getInstance(context));
+        this(context, referrerPreferences, SGConfig.getInstance(context));
     }
 
     /**
      * You shouldn't instantiate SugoAPI objects directly.
      * Use SugoAPI.getInstance to get an instance.
      */
-    SugoAPI(Context context, Future<SharedPreferences> referrerPreferences, MPConfig config) {
+    SugoAPI(Context context, Future<SharedPreferences> referrerPreferences, SGConfig config) {
         Context appContext = context.getApplicationContext();
         mContext = appContext;
         mConfig = config;
@@ -198,7 +198,7 @@ public class SugoAPI {
         String token = mToken;
 
         final Map<String, String> deviceInfo = new HashMap<String, String>();
-        deviceInfo.put("$android_lib_version", MPConfig.VERSION);
+        deviceInfo.put("$android_lib_version", SGConfig.VERSION);
         deviceInfo.put("$android_os", "Android");
         deviceInfo.put("$android_os_version", Build.VERSION.RELEASE == null ? "UNKNOWN" : Build.VERSION.RELEASE);
         deviceInfo.put("$android_manufacturer", Build.MANUFACTURER == null ? "UNKNOWN" : Build.MANUFACTURER);
@@ -294,7 +294,7 @@ public class SugoAPI {
             final Context appContext = context.getApplicationContext();
 
             if (null == sReferrerPrefs) {
-                sReferrerPrefs = sPrefsLoader.loadPreferences(context, MPConfig.REFERRER_PREFS_NAME, null);
+                sReferrerPrefs = sPrefsLoader.loadPreferences(context, SGConfig.REFERRER_PREFS_NAME, null);
             }
 
             SugoAPI instance = sInstanceMap.get(appContext);
@@ -313,7 +313,7 @@ public class SugoAPI {
     /**
      * This call is a no-op, and will be removed in future versions.
      *
-     * @deprecated in 4.0.0, use com.mixpanel.android.MPConfig.FlushInterval application metadata instead
+     * @deprecated in 4.0.0, use io.sugo.android.SGConfig.FlushInterval application metadata instead
      */
     @Deprecated
     public static void setFlushInterval(Context context, long milliseconds) {
@@ -321,7 +321,7 @@ public class SugoAPI {
                 LOGTAG,
                 "SugoAPI.setFlushInterval is deprecated. Calling is now a no-op.\n" +
                         "    To set a custom Mixpanel flush interval for your application, add\n" +
-                        "    <meta-data android:name=\"com.mixpanel.android.MPConfig.FlushInterval\" android:value=\"YOUR_INTERVAL\" />\n" +
+                        "    <meta-data android:name=\"io.sugo.android.SGConfig.FlushInterval\" android:value=\"YOUR_INTERVAL\" />\n" +
                         "    to the <application> section of your AndroidManifest.xml."
         );
     }
@@ -329,7 +329,7 @@ public class SugoAPI {
     /**
      * This call is a no-op, and will be removed in future versions of the library.
      *
-     * @deprecated in 4.0.0, use com.mixpanel.android.MPConfig.EventsFallbackEndpoint, com.mixpanel.android.MPConfig.PeopleFallbackEndpoint, or com.mixpanel.android.MPConfig.DecideFallbackEndpoint instead
+     * @deprecated in 4.0.0, use io.sugo.android.SGConfig.EventsFallbackEndpoint, io.sugo.android.SGConfig.PeopleFallbackEndpoint, or io.sugo.android.SGConfig.DecideFallbackEndpoint instead
      */
     @Deprecated
     public static void enableFallbackServer(Context context, boolean enableIfTrue) {
@@ -337,7 +337,7 @@ public class SugoAPI {
                 LOGTAG,
                 "SugoAPI.enableFallbackServer is deprecated. This call is a no-op.\n" +
                         "    To enable fallback in your application, add\n" +
-                        "    <meta-data android:name=\"com.mixpanel.android.MPConfig.DisableFallback\" android:value=\"false\" />\n" +
+                        "    <meta-data android:name=\"io.sugo.android.SGConfig.DisableFallback\" android:value=\"false\" />\n" +
                         "    to the <application> section of your AndroidManifest.xml."
         );
     }
@@ -736,7 +736,7 @@ public class SugoAPI {
      * <p>
      * To enable verbose logging about communication with Mixpanel, add
      * {@code
-     * <meta-data android:name="com.mixpanel.android.MPConfig.EnableDebugLogging" />
+     * <meta-data android:name="io.sugo.android.SGConfig.EnableDebugLogging" />
      * }
      * <p>
      * To the {@code <application>} tag of your AndroidManifest.xml file.
@@ -749,7 +749,7 @@ public class SugoAPI {
                 LOGTAG,
                 "SugoAPI.logPosts() is deprecated.\n" +
                         "    To get verbose debug level logging, add\n" +
-                        "    <meta-data android:name=\"com.mixpanel.android.MPConfig.EnableDebugLogging\" value=\"true\" />\n" +
+                        "    <meta-data android:name=\"io.sugo.android.SGConfig.EnableDebugLogging\" value=\"true\" />\n" +
                         "    to the <application> section of your AndroidManifest.xml."
         );
     }
@@ -760,10 +760,10 @@ public class SugoAPI {
      * when any Activity is opened.
      * <p>
      * This is only available if the android version is >= 16. You can disable livecycle callbacks by setting
-     * com.mixpanel.android.MPConfig.AutoShowMixpanelUpdates to false in your AndroidManifest.xml
+     * io.sugo.android.SGConfig.AutoShowMixpanelUpdates to false in your AndroidManifest.xml
      * <p>
      * This function is automatically called when the library is initialized unless you explicitly
-     * set com.mixpanel.android.MPConfig.AutoShowMixpanelUpdates to false in your AndroidManifest.xml
+     * set io.sugo.android.SGConfig.AutoShowMixpanelUpdates to false in your AndroidManifest.xml
      */
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     /* package */ void registerMixpanelActivityLifecycleCallbacks() {
@@ -813,7 +813,7 @@ public class SugoAPI {
             }
         };
 
-        final String prefsName = "com.mixpanel.android.mpmetrics.MixpanelAPI_" + token;
+        final String prefsName = "io.sugo.android.mpmetrics.MixpanelAPI_" + token;
         final Future<SharedPreferences> storedPreferences = sPrefsLoader.loadPreferences(context, prefsName, listener);
 
         final String timeEventsPrefsName = "SugoAPI.TimeEvents_" + token;
@@ -827,7 +827,7 @@ public class SugoAPI {
     }
 
     /* package */ UpdatesListener constructUpdatesListener() {
-        if (Build.VERSION.SDK_INT < MPConfig.UI_FEATURES_MIN_API) {
+        if (Build.VERSION.SDK_INT < SGConfig.UI_FEATURES_MIN_API) {
             Log.i(LOGTAG, "Surveys and Notifications are not supported on this Android OS Version");
             return new UnsupportedUpdatesListener();
         } else {
@@ -836,8 +836,8 @@ public class SugoAPI {
     }
 
     /* package */ UpdatesFromMixpanel constructUpdatesFromMixpanel(final Context context, final String token) {
-        if (Build.VERSION.SDK_INT < MPConfig.UI_FEATURES_MIN_API) {
-            Log.i(LOGTAG, "SDK version is lower than " + MPConfig.UI_FEATURES_MIN_API + ". Web Configuration, A/B Testing, and Dynamic Tweaks are disabled.");
+        if (Build.VERSION.SDK_INT < SGConfig.UI_FEATURES_MIN_API) {
+            Log.i(LOGTAG, "SDK version is lower than " + SGConfig.UI_FEATURES_MIN_API + ". Web Configuration, A/B Testing, and Dynamic Tweaks are disabled.");
             return new NoOpUpdatesFromMixpanel(sSharedTweaks);
         } else if (mConfig.getDisableViewCrawler() || Arrays.asList(mConfig.getDisableViewCrawlerForProjects()).contains(token)) {
             Log.i(LOGTAG, "DisableViewCrawler is set to true. Web Configuration, A/B Testing, and Dynamic Tweaks are disabled.");
@@ -1075,7 +1075,7 @@ public class SugoAPI {
 
     private final Context mContext;
     private final AnalyticsMessages mMessages;
-    private final MPConfig mConfig;
+    private final SGConfig mConfig;
     private final String mToken;
     private final UpdatesFromMixpanel mUpdatesFromMixpanel;
     private final PersistentIdentity mPersistentIdentity;

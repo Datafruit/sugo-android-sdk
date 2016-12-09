@@ -8,7 +8,7 @@ import io.sugo.android.java_websocket.exceptions.NotSendableException;
 import io.sugo.android.java_websocket.exceptions.WebsocketNotConnectedException;
 import io.sugo.android.java_websocket.framing.Framedata;
 import io.sugo.android.java_websocket.handshake.ServerHandshake;
-import io.sugo.android.mpmetrics.MPConfig;
+import io.sugo.android.mpmetrics.SGConfig;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -72,14 +72,14 @@ import java.nio.ByteBuffer;
 
         @Override
         public void onOpen(ServerHandshake handshakedata) {
-            if (MPConfig.DEBUG) {
+            if (SGConfig.DEBUG) {
                 Log.v(LOGTAG, "Websocket connected");
             }
         }
 
         @Override
         public void onMessage(String message) {
-            if (MPConfig.DEBUG) {
+            if (SGConfig.DEBUG) {
                 Log.v(LOGTAG, "Received message from editor:\n" + message);
             }
             try {
@@ -105,7 +105,7 @@ import java.nio.ByteBuffer;
 
         @Override
         public void onClose(int code, String reason, boolean remote) {
-            if (MPConfig.DEBUG) {
+            if (SGConfig.DEBUG) {
                 Log.v(LOGTAG, "WebSocket closed. Code: " + code + ", reason: " + reason + "\nURI: " + mURI);
             }
             mService.cleanup();

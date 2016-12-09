@@ -130,8 +130,8 @@ import javax.net.ssl.SSLSocketFactory;
         return new MPDbAdapter(context);
     }
 
-    protected MPConfig getConfig(Context context) {
-        return MPConfig.getInstance(context);
+    protected SGConfig getConfig(Context context) {
+        return SGConfig.getInstance(context);
     }
 
     protected RemoteService getPoster() {
@@ -173,13 +173,13 @@ import javax.net.ssl.SSLSocketFactory;
     // Sends a message if and only if we are running with Mixpanel Message log enabled.
     // Will be called from the Mixpanel thread.
     private void logAboutMessageToMixpanel(String message) {
-        if (MPConfig.DEBUG) {
+        if (SGConfig.DEBUG) {
             Log.v(LOGTAG, message + " (Thread " + Thread.currentThread().getId() + ")");
         }
     }
 
     private void logAboutMessageToMixpanel(String message, Throwable e) {
-        if (MPConfig.DEBUG) {
+        if (SGConfig.DEBUG) {
             Log.v(LOGTAG, message + " (Thread " + Thread.currentThread().getId() + ")", e);
         }
     }
@@ -372,7 +372,7 @@ import javax.net.ssl.SSLSocketFactory;
                     final String encodedData = Base64Coder.encodeString(rawMessage);
 //                    final Map<String, Object> params = new HashMap<String, Object>();
 //                    params.put("data", encodedData);
-//                    if (MPConfig.DEBUG) {
+//                    if (SGConfig.DEBUG) {
 //                        params.put("verbose", "1");
 //                    }
 
@@ -446,7 +446,7 @@ import javax.net.ssl.SSLSocketFactory;
                 final JSONObject ret = new JSONObject();
 
                 ret.put("mp_lib", "android");
-                ret.put("$lib_version", MPConfig.VERSION);
+                ret.put("$lib_version", SGConfig.VERSION);
 
                 // For querying together with data from other libraries
                 ret.put("$os", "Android");
@@ -592,7 +592,7 @@ import javax.net.ssl.SSLSocketFactory;
     // Used across thread boundaries
     private final Worker mWorker;
     protected final Context mContext;
-    protected final MPConfig mConfig;
+    protected final SGConfig mConfig;
 
     // Messages for our thread
     private static final int ENQUEUE_PEOPLE = 0; // submit events and people data

@@ -129,7 +129,7 @@ public abstract class ResourceReader implements ResourceIds {
                             "If you're not using proguard, or if your proguard configuration already contains the directive above, " +
                             "you can add the following to your AndroidManifest.xml file to explicitly point the Mixpanel library to " +
                             "the appropriate library for your resources class:\n\n" +
-                            "<meta-data android:name=\"com.mixpanel.android.MPConfig.ResourcePackageName\" android:value=\"YOUR_PACKAGE_NAME\" />\n\n" +
+                            "<meta-data android:name=\"com.mixpanel.android.SGConfig.ResourcePackageName\" android:value=\"YOUR_PACKAGE_NAME\" />\n\n" +
                             "where YOUR_PACKAGE_NAME is the same string you use for the \"package\" attribute in your <manifest> tag."
             );
         }

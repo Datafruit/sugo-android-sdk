@@ -7,7 +7,7 @@ import android.support.v4.util.LruCache;
 import android.util.Base64;
 import android.util.Log;
 
-import io.sugo.android.mpmetrics.MPConfig;
+import io.sugo.android.mpmetrics.SGConfig;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -41,7 +41,7 @@ public class ImageStore {
     public ImageStore(Context context, String directoryName, RemoteService poster) {
         mDirectory = context.getDir(directoryName, Context.MODE_PRIVATE);
         mPoster = poster;
-        mConfig = MPConfig.getInstance(context);
+        mConfig = SGConfig.getInstance(context);
         MessageDigest useDigest;
         try {
             useDigest = MessageDigest.getInstance("SHA1");
@@ -206,7 +206,7 @@ public class ImageStore {
     private final File mDirectory;
     private final RemoteService mPoster;
     private final MessageDigest mDigest;
-    private final MPConfig mConfig;
+    private final SGConfig mConfig;
     private static LruCache<String, Bitmap> sMemoryCache;
 
     private static final String DEFAULT_DIRECTORY_PREFIX = "SugoAPI.Images.";

@@ -12,7 +12,7 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import io.sugo.android.mpmetrics.MPConfig;
+import io.sugo.android.mpmetrics.SGConfig;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -27,7 +27,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
 
-@TargetApi(MPConfig.UI_FEATURES_MIN_API)
+@TargetApi(SGConfig.UI_FEATURES_MIN_API)
 /* package */ abstract class ViewVisitor implements Pathfinder.Accumulator {
 
     /**

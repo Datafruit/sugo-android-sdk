@@ -367,7 +367,7 @@ import android.util.Log;
         try {
             final SharedPreferences prefs = mLoadStoredPreferences.get();
             final String props = prefs.getString("super_properties", "{}");
-            if (MPConfig.DEBUG) {
+            if (SGConfig.DEBUG) {
                 Log.v(LOGTAG, "Loading Super Properties " + props);
             }
             mSuperPropertiesCache = new JSONObject(props);
@@ -415,7 +415,7 @@ import android.util.Log;
         }
 
         final String props = mSuperPropertiesCache.toString();
-        if (MPConfig.DEBUG) {
+        if (SGConfig.DEBUG) {
             Log.v(LOGTAG, "Storing Super Properties " + props);
         }
 

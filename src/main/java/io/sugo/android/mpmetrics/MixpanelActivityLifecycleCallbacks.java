@@ -17,14 +17,14 @@ import io.sugo.android.viewcrawler.GestureTracker;
     private boolean mPaused = true;
     public static final int CHECK_DELAY = 500;
 
-    public MixpanelActivityLifecycleCallbacks(SugoAPI mpInstance, MPConfig config) {
+    public MixpanelActivityLifecycleCallbacks(SugoAPI mpInstance, SGConfig config) {
         mMpInstance = mpInstance;
         mConfig = config;
     }
 
     @Override
     public void onActivityStarted(Activity activity) {
-        if (android.os.Build.VERSION.SDK_INT >= MPConfig.UI_FEATURES_MIN_API && mConfig.getAutoShowMixpanelUpdates()) {
+        if (android.os.Build.VERSION.SDK_INT >= SGConfig.UI_FEATURES_MIN_API && mConfig.getAutoShowMixpanelUpdates()) {
             if (!activity.isTaskRoot()) {
                 return; // No checks, no nothing.
             }
@@ -80,5 +80,5 @@ import io.sugo.android.viewcrawler.GestureTracker;
     public void onActivityStopped(Activity activity) { }
 
     private final SugoAPI mMpInstance;
-    private final MPConfig mConfig;
+    private final SGConfig mConfig;
 }

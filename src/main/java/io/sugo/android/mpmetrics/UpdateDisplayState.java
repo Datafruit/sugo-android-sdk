@@ -21,7 +21,7 @@ import android.util.Log;
  *
  * The interface to this class may change or disappear from release to release.
  */
-@TargetApi(MPConfig.UI_FEATURES_MIN_API)
+@TargetApi(SGConfig.UI_FEATURES_MIN_API)
 public class UpdateDisplayState implements Parcelable {
 
     /**
@@ -326,7 +326,7 @@ public class UpdateDisplayState implements Parcelable {
             sNextIntentId++;
             ret = sNextIntentId;
         } else {
-            if (MPConfig.DEBUG) {
+            if (SGConfig.DEBUG) {
                 Log.v(LOGTAG, "Already showing (or cooking) a Mixpanel update, declining to show another.");
             }
         }

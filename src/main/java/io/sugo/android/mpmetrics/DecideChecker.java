@@ -46,7 +46,7 @@ import javax.net.ssl.SSLSocketFactory;
         public JSONArray variants;
     }
 
-    public DecideChecker(final Context context, final MPConfig config, final SystemInformation systemInformation) {
+    public DecideChecker(final Context context, final SGConfig config, final SystemInformation systemInformation) {
         mContext = context;
         mConfig = config;
         mChecks = new LinkedList<DecideMessages>();
@@ -87,7 +87,7 @@ import javax.net.ssl.SSLSocketFactory;
     private Result runDecideCheck(final String token, final String distinctId, final RemoteService poster)
         throws RemoteService.ServiceUnavailableException, UnintelligibleMessageException {
         final String responseString = getDecideResponseFromServer(token, distinctId, poster);
-        if (MPConfig.DEBUG) {
+        if (SGConfig.DEBUG) {
             Log.v(LOGTAG, "Mixpanel decide server response was:\n" + responseString);
         }
 
@@ -157,7 +157,7 @@ import javax.net.ssl.SSLSocketFactory;
         }
 
         if (null != notifications) {
-            final int notificationsToRead = Math.min(notifications.length(), MPConfig.MAX_NOTIFICATION_CACHE_COUNT);
+            final int notificationsToRead = Math.min(notifications.length(), SGConfig.MAX_NOTIFICATION_CACHE_COUNT);
             for (int i = 0; i < notificationsToRead; i++) {
                 try {
                     final JSONObject notificationJson = notifications.getJSONObject(i);
@@ -226,7 +226,7 @@ import javax.net.ssl.SSLSocketFactory;
 
         JSONObject properties = new JSONObject();
         try {
-            properties.putOpt("$android_lib_version", MPConfig.VERSION);
+            properties.putOpt("$android_lib_version", SGConfig.VERSION);
             properties.putOpt("$android_app_version", mSystemInformation.getAppVersionName());
             properties.putOpt("$android_version", Build.VERSION.RELEASE);
             properties.putOpt("$android_app_release", mSystemInformation.getAppVersionCode());
@@ -245,7 +245,7 @@ import javax.net.ssl.SSLSocketFactory;
                     mConfig.getDecideFallbackEndpoint() + checkQuery};
         }
 
-        if (MPConfig.DEBUG) {
+        if (SGConfig.DEBUG) {
             Log.v(LOGTAG, "Querying decide server, urls:");
             for (int i = 0; i < urls.length; i++) {
                 Log.v(LOGTAG, "    >> " + urls[i]);
@@ -300,7 +300,7 @@ import javax.net.ssl.SSLSocketFactory;
 
     private static byte[] getUrls(RemoteService poster, Context context, String[] urls)
         throws RemoteService.ServiceUnavailableException {
-        final MPConfig config = MPConfig.getInstance(context);
+        final SGConfig config = SGConfig.getInstance(context);
 
         if (!poster.isOnline(context, config.getOfflineMode())) {
             return null;
@@ -315,11 +315,11 @@ import javax.net.ssl.SSLSocketFactory;
             } catch (final MalformedURLException e) {
                 Log.e(LOGTAG, "Cannot interpret " + url + " as a URL.", e);
             } catch (final FileNotFoundException e) {
-                if (MPConfig.DEBUG) {
+                if (SGConfig.DEBUG) {
                     Log.v(LOGTAG, "Cannot get " + url + ", file not found.", e);
                 }
             } catch (final IOException e) {
-                if (MPConfig.DEBUG) {
+                if (SGConfig.DEBUG) {
                     Log.v(LOGTAG, "Cannot get " + url + ".", e);
                 }
             } catch (final OutOfMemoryError e) {
@@ -331,7 +331,7 @@ import javax.net.ssl.SSLSocketFactory;
         return response;
     }
 
-    private final MPConfig mConfig;
+    private final SGConfig mConfig;
     private final Context mContext;
     private final List<DecideMessages> mChecks;
     private final ImageStore mImageStore;

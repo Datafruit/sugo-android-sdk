@@ -6,7 +6,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.util.Log;
 
-import io.sugo.android.mpmetrics.MPConfig;
+import io.sugo.android.mpmetrics.SGConfig;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -42,7 +42,7 @@ public class HttpService implements RemoteService {
                             apiMixpanelInet.isAnyLocalAddress() ||
                             decideMixpanelInet.isLoopbackAddress() ||
                             decideMixpanelInet.isAnyLocalAddress();
-                    if (MPConfig.DEBUG && sIsMixpanelBlocked) {
+                    if (SGConfig.DEBUG && sIsMixpanelBlocked) {
                         Log.v(LOGTAG, "AdBlocker is enabled. Won't be able to use Mixpanel services.");
                     }
                 } catch (Exception e) {
@@ -64,12 +64,12 @@ public class HttpService implements RemoteService {
                     (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             final NetworkInfo netInfo = cm.getActiveNetworkInfo();
             isOnline = netInfo != null && netInfo.isConnectedOrConnecting();
-            if (MPConfig.DEBUG) {
+            if (SGConfig.DEBUG) {
                 Log.v(LOGTAG, "ConnectivityManager says we " + (isOnline ? "are" : "are not") + " online");
             }
         } catch (final SecurityException e) {
             isOnline = true;
-            if (MPConfig.DEBUG) {
+            if (SGConfig.DEBUG) {
                 Log.v(LOGTAG, "Don't have permission to check connectivity, will assume we are online");
             }
         }
@@ -83,7 +83,7 @@ public class HttpService implements RemoteService {
             onOfflineMode = offlineMode != null && offlineMode.isOffline();
         } catch (Exception e) {
             onOfflineMode = false;
-            if (MPConfig.DEBUG) {
+            if (SGConfig.DEBUG) {
                 Log.v(LOGTAG, "Client State should not throw exception, will assume is not on offline mode", e);
             }
         }
@@ -93,7 +93,7 @@ public class HttpService implements RemoteService {
 
     @Override
     public byte[] performRequest(String endpointUrl, Map<String, Object> params, SSLSocketFactory socketFactory) throws ServiceUnavailableException, IOException {
-        if (MPConfig.DEBUG) {
+        if (SGConfig.DEBUG) {
             Log.v(LOGTAG, "Attempting request to " + endpointUrl);
         }
         byte[] response = null;
@@ -146,7 +146,7 @@ public class HttpService implements RemoteService {
                 in = null;
                 succeeded = true;
             } catch (final EOFException e) {
-                if (MPConfig.DEBUG) {
+                if (SGConfig.DEBUG) {
                     Log.d(LOGTAG, "Failure to connect, likely caused by a known issue with Android lib. Retrying.");
                 }
                 retries = retries + 1;
@@ -179,7 +179,7 @@ public class HttpService implements RemoteService {
                     connection.disconnect();
             }
         }
-        if (MPConfig.DEBUG) {
+        if (SGConfig.DEBUG) {
             if (retries >= 3) {
                 Log.v(LOGTAG, "Could not connect to Mixpanel service after three retries.");
             }
@@ -190,7 +190,7 @@ public class HttpService implements RemoteService {
 
     @Override
     public byte[] performRawRequest(String endpointUrl, String data, SSLSocketFactory socketFactory) throws ServiceUnavailableException, IOException {
-        if (MPConfig.DEBUG) {
+        if (SGConfig.DEBUG) {
             Log.v(LOGTAG, "Attempting request to " + endpointUrl);
         }
         byte[] response = null;
@@ -239,7 +239,7 @@ public class HttpService implements RemoteService {
                 in = null;
                 succeeded = true;
             } catch (final EOFException e) {
-                if (MPConfig.DEBUG) {
+                if (SGConfig.DEBUG) {
                     Log.d(LOGTAG, "Failure to connect, likely caused by a known issue with Android lib. Retrying.");
                 }
                 retries = retries + 1;
@@ -272,7 +272,7 @@ public class HttpService implements RemoteService {
                     connection.disconnect();
             }
         }
-        if (MPConfig.DEBUG) {
+        if (SGConfig.DEBUG) {
             if (retries >= 3) {
                 Log.v(LOGTAG, "Could not connect to Mixpanel service after three retries.");
             }

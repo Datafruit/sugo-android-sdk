@@ -70,7 +70,7 @@ import android.util.Log;
         MPDatabaseHelper(Context context, String dbName) {
             super(context, dbName, null, DATABASE_VERSION);
             mDatabaseFile = context.getDatabasePath(dbName);
-            mConfig = MPConfig.getInstance(context);
+            mConfig = SGConfig.getInstance(context);
         }
 
         /**
@@ -83,7 +83,7 @@ import android.util.Log;
 
         @Override
         public void onCreate(SQLiteDatabase db) {
-            if (MPConfig.DEBUG) {
+            if (SGConfig.DEBUG) {
                 Log.v(LOGTAG, "Creating a new Mixpanel events DB");
             }
 
@@ -95,7 +95,7 @@ import android.util.Log;
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            if (MPConfig.DEBUG) {
+            if (SGConfig.DEBUG) {
                 Log.v(LOGTAG, "Upgrading app, replacing Mixpanel events DB");
             }
 
@@ -115,7 +115,7 @@ import android.util.Log;
         }
 
         private final File mDatabaseFile;
-        private final MPConfig mConfig;
+        private final SGConfig mConfig;
     }
 
     public MPDbAdapter(Context context) {

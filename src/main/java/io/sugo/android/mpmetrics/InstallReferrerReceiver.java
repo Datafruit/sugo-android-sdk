@@ -95,7 +95,7 @@ public class InstallReferrerReceiver extends BroadcastReceiver {
             newPrefs.put("utm_term", term);
         }
 
-        PersistentIdentity.writeReferrerPrefs(context, MPConfig.REFERRER_PREFS_NAME, newPrefs);
+        PersistentIdentity.writeReferrerPrefs(context, SGConfig.REFERRER_PREFS_NAME, newPrefs);
     }
 
     private String find(Matcher matcher) {

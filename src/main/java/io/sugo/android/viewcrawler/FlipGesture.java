@@ -6,7 +6,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.util.Log;
 
-import io.sugo.android.mpmetrics.MPConfig;
+import io.sugo.android.mpmetrics.SGConfig;
 
 /* package */ class FlipGesture implements SensorEventListener {
 
@@ -59,7 +59,7 @@ import io.sugo.android.mpmetrics.MPConfig;
         switch (mFlipState) {
             case FLIP_STATE_DOWN:
                 if (flipDurationNanos > MINIMUM_UP_DOWN_DURATION && mTriggerState == TRIGGER_STATE_NONE) {
-                    if (MPConfig.DEBUG) {
+                    if (SGConfig.DEBUG) {
                         Log.v(LOGTAG, "Flip gesture begun");
                     }
                     mTriggerState = TRIGGER_STATE_BEGIN;
@@ -67,7 +67,7 @@ import io.sugo.android.mpmetrics.MPConfig;
                 break;
             case FLIP_STATE_UP:
                 if (flipDurationNanos > MINIMUM_UP_DOWN_DURATION && mTriggerState == TRIGGER_STATE_BEGIN) {
-                    if (MPConfig.DEBUG) {
+                    if (SGConfig.DEBUG) {
                         Log.v(LOGTAG, "Flip gesture completed");
                     }
                     mTriggerState = TRIGGER_STATE_NONE;
@@ -76,7 +76,7 @@ import io.sugo.android.mpmetrics.MPConfig;
                 break;
             case FLIP_STATE_NONE:
                 if (flipDurationNanos > MINIMUM_CANCEL_DURATION && mTriggerState != TRIGGER_STATE_NONE) {
-                    if (MPConfig.DEBUG) {
+                    if (SGConfig.DEBUG) {
                         Log.v(LOGTAG, "Flip gesture abandoned");
                     }
                     mTriggerState = TRIGGER_STATE_NONE;

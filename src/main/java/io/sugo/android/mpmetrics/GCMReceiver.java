@@ -154,7 +154,7 @@ public class GCMReceiver extends BroadcastReceiver {
             return null;
         }
 
-        if (MPConfig.DEBUG) Log.d(LOGTAG, "MP GCM notification received: " + notificationData.message);
+        if (SGConfig.DEBUG) Log.d(LOGTAG, "MP GCM notification received: " + notificationData.message);
         final PendingIntent contentIntent = PendingIntent.getActivity(
                 context,
                 0,
@@ -179,7 +179,7 @@ public class GCMReceiver extends BroadcastReceiver {
 
 
     private void handleNotificationIntent(Context context, Intent intent) {
-        final MPConfig config = MPConfig.getInstance(context);
+        final SGConfig config = SGConfig.getInstance(context);
         String resourcePackage = config.getResourcePackageName();
         if (null == resourcePackage) {
             resourcePackage = context.getPackageName();

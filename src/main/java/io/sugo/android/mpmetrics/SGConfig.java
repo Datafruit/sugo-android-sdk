@@ -28,68 +28,68 @@ import javax.net.ssl.X509TrustManager;
  * Mixpanel understands the following options:
  *
  * <dl>
- *     <dt>com.mixpanel.android.MPConfig.EnableDebugLogging</dt>
+ *     <dt>io.sugo.android.SGConfig.EnableDebugLogging</dt>
  *     <dd>A boolean value. If true, emit more detailed log messages. Defaults to false</dd>
  *
- *     <dt>com.mixpanel.android.MPConfig.BulkUploadLimit</dt>
+ *     <dt>io.sugo.android.SGConfig.BulkUploadLimit</dt>
  *     <dd>An integer count of messages, the maximum number of messages to queue before an upload attempt. This value should be less than 50.</dd>
  *
- *     <dt>com.mixpanel.android.MPConfig.FlushInterval</dt>
+ *     <dt>io.sugo.android.SGConfig.FlushInterval</dt>
  *     <dd>An integer number of milliseconds, the maximum time to wait before an upload if the bulk upload limit isn't reached.</dd>
  *
- *     <dt>com.mixpanel.android.MPConfig.DebugFlushInterval</dt>
+ *     <dt>io.sugo.android.SGConfig.DebugFlushInterval</dt>
  *     <dd>An integer number of milliseconds, the maximum time to wait before an upload if the bulk upload limit isn't reached in debug mode.</dd>
  *
- *     <dt>com.mixpanel.android.MPConfig.DataExpiration</dt>
+ *     <dt>io.sugo.android.SGConfig.DataExpiration</dt>
  *     <dd>An integer number of milliseconds, the maximum age of records to send to Mixpanel. Corresponds to Mixpanel's server-side limit on record age.</dd>
  *
- *     <dt>com.mixpanel.android.MPConfig.MinimumDatabaseLimit</dt>
+ *     <dt>io.sugo.android.SGConfig.MinimumDatabaseLimit</dt>
  *     <dd>An integer number of bytes. Mixpanel attempts to limit the size of its persistent data
  *          queue based on the storage capacity of the device, but will always allow queing below this limit. Higher values
  *          will take up more storage even when user storage is very full.</dd>
  *
- *     <dt>com.mixpanel.android.MPConfig.DisableFallback</dt>
+ *     <dt>io.sugo.android.SGConfig.DisableFallback</dt>
  *     <dd>A boolean value. If true, do not send data over HTTP, even if HTTPS is unavailable. Defaults to true - by default, Mixpanel will only attempt to communicate over HTTPS.</dd>
  *
- *     <dt>com.mixpanel.android.MPConfig.ResourcePackageName</dt>
+ *     <dt>io.sugo.android.SGConfig.ResourcePackageName</dt>
  *     <dd>A string java package name. Defaults to the package name of the Application. Users should set if the package name of their R class is different from the application package name due to application id settings.</dd>
  *
- *     <dt>com.mixpanel.android.MPConfig.DisableGestureBindingUI</dt>
+ *     <dt>io.sugo.android.SGConfig.DisableGestureBindingUI</dt>
  *     <dd>A boolean value. If true, do not allow connecting to the codeless event binding or A/B testing editor using an accelerometer gesture. Defaults to false.</dd>
  *
- *     <dt>com.mixpanel.android.MPConfig.DisableEmulatorBindingUI</dt>
+ *     <dt>io.sugo.android.SGConfig.DisableEmulatorBindingUI</dt>
  *     <dd>A boolean value. If true, do not attempt to connect to the codeless event binding or A/B testing editor when running in the Android emulator. Defaults to false.</dd>
  *
- *     <dt>com.mixpanel.android.MPConfig.DisableAppOpenEvent</dt>
+ *     <dt>io.sugo.android.SGConfig.DisableAppOpenEvent</dt>
  *     <dd>A boolean value. If true, do not send an "$app_open" event when the SugoAPI object is created for the first time. Defaults to true - the $app_open event will not be sent by default.</dd>
  *
- *     <dt>com.mixpanel.android.MPConfig.AutoShowMixpanelUpdates</dt>
+ *     <dt>io.sugo.android.SGConfig.AutoShowMixpanelUpdates</dt>
  *     <dd>A boolean value. If true, automatically show surveys, notifications, and A/B test variants. Defaults to true.</dd>
  *
- *     <dt>com.mixpanel.android.MPConfig.EventsEndpoint</dt>
+ *     <dt>io.sugo.android.SGConfig.EventsEndpoint</dt>
  *     <dd>A string URL. If present, the library will attempt to send events to this endpoint rather than to the default Mixpanel endpoint.</dd>
  *
- *     <dt>com.mixpanel.android.MPConfig.EventsFallbackEndpoint</dt>
+ *     <dt>io.sugo.android.SGConfig.EventsFallbackEndpoint</dt>
  *     <dd>A string URL. If present, AND if DisableFallback is false, events will be sent to this endpoint if the EventsEndpoint cannot be reached.</dd>
  *
- *     <dt>com.mixpanel.android.MPConfig.PeopleEndpoint</dt>
+ *     <dt>io.sugo.android.SGConfig.PeopleEndpoint</dt>
  *     <dd>A string URL. If present, the library will attempt to send people updates to this endpoint rather than to the default Mixpanel endpoint.</dd>
  *
- *     <dt>com.mixpanel.android.MPConfig.PeopleFallbackEndpoint</dt>
+ *     <dt>io.sugo.android.SGConfig.PeopleFallbackEndpoint</dt>
  *     <dd>A string URL. If present, AND if DisableFallback is false, people updates will be sent to this endpoint if the EventsEndpoint cannot be reached.</dd>
  *
- *     <dt>com.mixpanel.android.MPConfig.DecideEndpoint</dt>
+ *     <dt>io.sugo.android.SGConfig.DecideEndpoint</dt>
  *     <dd>A string URL. If present, the library will attempt to get survey, notification, codeless event tracking, and A/B test variant information from this url rather than the default Mixpanel endpoint.</dd>
  *
- *     <dt>com.mixpanel.android.MPConfig.DecideFallbackEndpoint</dt>
+ *     <dt>io.sugo.android.SGConfig.DecideFallbackEndpoint</dt>
  *     <dd>A string URL. If present, AND if DisableFallback is false, the library will query this url if the DecideEndpoint url cannot be reached.</dd>
  *
- *     <dt>com.mixpanel.android.MPConfig.EditorUrl</dt>
+ *     <dt>io.sugo.android.SGConfig.EditorUrl</dt>
  *     <dd>A string URL. If present, the library will attempt to connect to this endpoint when in interactive editing mode, rather than to the default Mixpanel editor url.</dd>
  * </dl>
  *
  */
-public class MPConfig {
+public class SGConfig {
 
     // Unfortunately, as long as we support building from source in Eclipse,
     // we can't rely on BuildConfig.MIXPANEL_VERSION existing, so this must
@@ -105,14 +105,14 @@ public class MPConfig {
     public static final int UI_FEATURES_MIN_API = 16;
 
     // Name for persistent storage of app referral SharedPreferences
-    /* package */ static final String REFERRER_PREFS_NAME = "com.mixpanel.android.mpmetrics.ReferralInfo";
+    /* package */ static final String REFERRER_PREFS_NAME = "io.sugo.android.mpmetrics.ReferralInfo";
 
     // Max size of the number of notifications we will hold in memory. Since they may contain images,
     // we don't want to suck up all of the memory on the device.
     /* package */ static final int MAX_NOTIFICATION_CACHE_COUNT = 2;
 
     // Instances are safe to store, since they're immutable and always the same.
-    public static MPConfig getInstance(Context context) {
+    public static SGConfig getInstance(Context context) {
         synchronized (sInstanceLock) {
             if (null == sInstance) {
                 final Context appContext = context.getApplicationContext();
@@ -131,7 +131,7 @@ public class MPConfig {
      *
      * {@code
      * <pre>
-     *     MPConfig.getInstance(context).setSSLSocketFactory(someCustomizedSocketFactory);
+     *     SGConfig.getInstance(context).setSSLSocketFactory(someCustomizedSocketFactory);
      * </pre>
      * }
      *
@@ -157,7 +157,7 @@ public class MPConfig {
      *
      * {@code
      * <pre>
-     *     MPConfig.getInstance(context).setOfflineMode(OfflineModeImplementation);
+     *     SGConfig.getInstance(context).setOfflineMode(OfflineModeImplementation);
      * </pre>
      * }
      *
@@ -175,7 +175,7 @@ public class MPConfig {
         mOfflineMode = offlineMode;
     }
 
-    /* package */ MPConfig(Bundle metaData, Context context) {
+    /* package */ SGConfig(Bundle metaData, Context context) {
 
         // By default, we use a clean, FACTORY default SSLSocket. In general this is the right
         // thing to do, and some other third party libraries change the
@@ -193,79 +193,79 @@ public class MPConfig {
         }
         mSSLSocketFactory = foundSSLFactory;
 
-        DEBUG = metaData.getBoolean("com.mixpanel.android.MPConfig.EnableDebugLogging", false);
+        DEBUG = metaData.getBoolean("io.sugo.android.SGConfig.EnableDebugLogging", false);
 
-        if (metaData.containsKey("com.mixpanel.android.MPConfig.AutoCheckForSurveys")) {
-            Log.w(LOGTAG, "com.mixpanel.android.MPConfig.AutoCheckForSurveys has been deprecated in favor of " +
-                          "com.mixpanel.android.MPConfig.AutoShowMixpanelUpdates. Please update this key as soon as possible.");
+        if (metaData.containsKey("io.sugo.android.SGConfig.AutoCheckForSurveys")) {
+            Log.w(LOGTAG, "io.sugo.android.SGConfig.AutoCheckForSurveys has been deprecated in favor of " +
+                          "io.sugo.android.SGConfig.AutoShowMixpanelUpdates. Please update this key as soon as possible.");
         }
-        if (metaData.containsKey("com.mixpanel.android.MPConfig.DebugFlushInterval")) {
-            Log.w(LOGTAG, "We do not support com.mixpanel.android.MPConfig.DebugFlushInterval anymore. There will only be one flush interval. Please, update your AndroidManifest.xml.");
+        if (metaData.containsKey("io.sugo.android.SGConfig.DebugFlushInterval")) {
+            Log.w(LOGTAG, "We do not support io.sugo.android.SGConfig.DebugFlushInterval anymore. There will only be one flush interval. Please, update your AndroidManifest.xml.");
         }
 
-        mBulkUploadLimit = metaData.getInt("com.mixpanel.android.MPConfig.BulkUploadLimit", 40); // 40 records default
-        mFlushInterval = metaData.getInt("com.mixpanel.android.MPConfig.FlushInterval", 60 * 1000); // one minute default
-        mDataExpiration = metaData.getInt("com.mixpanel.android.MPConfig.DataExpiration", 1000 * 60 * 60 * 24 * 5); // 5 days default
-        mMinimumDatabaseLimit = metaData.getInt("com.mixpanel.android.MPConfig.MinimumDatabaseLimit", 20 * 1024 * 1024); // 20 Mb
-        mDisableFallback = metaData.getBoolean("com.mixpanel.android.MPConfig.DisableFallback", true);
-        mResourcePackageName = metaData.getString("com.mixpanel.android.MPConfig.ResourcePackageName"); // default is null
-        mDisableGestureBindingUI = metaData.getBoolean("com.mixpanel.android.MPConfig.DisableGestureBindingUI", false);
-        mDisableEmulatorBindingUI = metaData.getBoolean("com.mixpanel.android.MPConfig.DisableEmulatorBindingUI", false);
-        mDisableAppOpenEvent = metaData.getBoolean("com.mixpanel.android.MPConfig.DisableAppOpenEvent", true);
-        mDisableViewCrawler = metaData.getBoolean("com.mixpanel.android.MPConfig.DisableViewCrawler", false);
-        mDisableDecideChecker = metaData.getBoolean("com.mixpanel.android.MPConfig.DisableDecideChecker", false);
-        mImageCacheMaxMemoryFactor = metaData.getInt("com.mixpanel.android.MPConfig.ImageCacheMaxMemoryFactor", 10);
-        mToken = metaData.getString("com.mixpanel.android.MPConfig.token");
+        mBulkUploadLimit = metaData.getInt("io.sugo.android.SGConfig.BulkUploadLimit", 40); // 40 records default
+        mFlushInterval = metaData.getInt("io.sugo.android.SGConfig.FlushInterval", 60 * 1000); // one minute default
+        mDataExpiration = metaData.getInt("io.sugo.android.SGConfig.DataExpiration", 1000 * 60 * 60 * 24 * 5); // 5 days default
+        mMinimumDatabaseLimit = metaData.getInt("io.sugo.android.SGConfig.MinimumDatabaseLimit", 20 * 1024 * 1024); // 20 Mb
+        mDisableFallback = metaData.getBoolean("io.sugo.android.SGConfig.DisableFallback", true);
+        mResourcePackageName = metaData.getString("io.sugo.android.SGConfig.ResourcePackageName"); // default is null
+        mDisableGestureBindingUI = metaData.getBoolean("io.sugo.android.SGConfig.DisableGestureBindingUI", false);
+        mDisableEmulatorBindingUI = metaData.getBoolean("io.sugo.android.SGConfig.DisableEmulatorBindingUI", false);
+        mDisableAppOpenEvent = metaData.getBoolean("io.sugo.android.SGConfig.DisableAppOpenEvent", true);
+        mDisableViewCrawler = metaData.getBoolean("io.sugo.android.SGConfig.DisableViewCrawler", false);
+        mDisableDecideChecker = metaData.getBoolean("io.sugo.android.SGConfig.DisableDecideChecker", false);
+        mImageCacheMaxMemoryFactor = metaData.getInt("io.sugo.android.SGConfig.ImageCacheMaxMemoryFactor", 10);
+        mToken = metaData.getString("io.sugo.android.SGConfig.token");
         // Disable if EITHER of these is present and false, otherwise enable
-        final boolean surveysAutoCheck = metaData.getBoolean("com.mixpanel.android.MPConfig.AutoCheckForSurveys", true);
-        final boolean mixpanelUpdatesAutoShow = metaData.getBoolean("com.mixpanel.android.MPConfig.AutoShowMixpanelUpdates", true);
+        final boolean surveysAutoCheck = metaData.getBoolean("io.sugo.android.SGConfig.AutoCheckForSurveys", true);
+        final boolean mixpanelUpdatesAutoShow = metaData.getBoolean("io.sugo.android.SGConfig.AutoShowMixpanelUpdates", true);
         mAutoShowMixpanelUpdates = surveysAutoCheck && mixpanelUpdatesAutoShow;
 
-        mTestMode = metaData.getBoolean("com.mixpanel.android.MPConfig.TestMode", false);
+        mTestMode = metaData.getBoolean("io.sugo.android.SGConfig.TestMode", false);
 
-        String eventsEndpoint = metaData.getString("com.mixpanel.android.MPConfig.EventsEndpoint");
+        String eventsEndpoint = metaData.getString("io.sugo.android.SGConfig.EventsEndpoint");
         if (null == eventsEndpoint) {
             eventsEndpoint = "https://api.mixpanel.com/track?ip=1";
         }
         mEventsEndpoint = eventsEndpoint;
 
-        String eventsFallbackEndpoint = metaData.getString("com.mixpanel.android.MPConfig.EventsFallbackEndpoint");
+        String eventsFallbackEndpoint = metaData.getString("io.sugo.android.SGConfig.EventsFallbackEndpoint");
         if (null == eventsFallbackEndpoint) {
             eventsFallbackEndpoint = "http://api.mixpanel.com/track?ip=1";
         }
         mEventsFallbackEndpoint = eventsFallbackEndpoint;
 
-        String peopleEndpoint = metaData.getString("com.mixpanel.android.MPConfig.PeopleEndpoint");
+        String peopleEndpoint = metaData.getString("io.sugo.android.SGConfig.PeopleEndpoint");
         if (null == peopleEndpoint) {
             peopleEndpoint = "https://api.mixpanel.com/engage";
         }
         mPeopleEndpoint = peopleEndpoint;
 
-        String peopleFallbackEndpoint = metaData.getString("com.mixpanel.android.MPConfig.PeopleFallbackEndpoint");
+        String peopleFallbackEndpoint = metaData.getString("io.sugo.android.SGConfig.PeopleFallbackEndpoint");
         if (null == peopleFallbackEndpoint) {
             peopleFallbackEndpoint = "http://api.mixpanel.com/engage";
         }
         mPeopleFallbackEndpoint = peopleFallbackEndpoint;
 
-        String decideEndpoint = metaData.getString("com.mixpanel.android.MPConfig.DecideEndpoint");
+        String decideEndpoint = metaData.getString("io.sugo.android.SGConfig.DecideEndpoint");
         if (null == decideEndpoint) {
             decideEndpoint = "https://decide.mixpanel.com/decide";
         }
         mDecideEndpoint = decideEndpoint;
 
-        String decideFallbackEndpoint = metaData.getString("com.mixpanel.android.MPConfig.DecideFallbackEndpoint");
+        String decideFallbackEndpoint = metaData.getString("io.sugo.android.SGConfig.DecideFallbackEndpoint");
         if (null == decideFallbackEndpoint) {
             decideFallbackEndpoint = "http://decide.mixpanel.com/decide";
         }
         mDecideFallbackEndpoint = decideFallbackEndpoint;
 
-        String editorUrl = metaData.getString("com.mixpanel.android.MPConfig.EditorUrl");
+        String editorUrl = metaData.getString("io.sugo.android.SGConfig.EditorUrl");
         if (null == editorUrl) {
             editorUrl = "wss://switchboard.mixpanel.com/connect/";
         }
         mEditorUrl = editorUrl;
 
-        int resourceId = metaData.getInt("com.mixpanel.android.MPConfig.DisableViewCrawlerForProjects", -1);
+        int resourceId = metaData.getInt("io.sugo.android.SGConfig.DisableViewCrawlerForProjects", -1);
         if (resourceId != -1) {
             mDisableViewCrawlerForProjects = context.getResources().getStringArray(resourceId);
         } else {
@@ -421,7 +421,7 @@ public class MPConfig {
     //
     // As far as I can tell, the original package name is lost in the build
     // process in these cases, and must be specified by the developer using
-    // MPConfig meta-data.
+    // SGConfig meta-data.
     public String getResourcePackageName() {
         return mResourcePackageName;
     }
@@ -446,7 +446,7 @@ public class MPConfig {
     ///////////////////////////////////////////////
 
     // Package access for testing only- do not call directly in library code
-    /* package */ static MPConfig readConfig(Context appContext) {
+    /* package */ static SGConfig readConfig(Context appContext) {
         final String packageName = appContext.getPackageName();
         try {
             final ApplicationInfo appInfo = appContext.getPackageManager().getApplicationInfo(packageName, PackageManager.GET_META_DATA);
@@ -454,7 +454,7 @@ public class MPConfig {
             if (null == configBundle) {
                 configBundle = new Bundle();
             }
-            return new MPConfig(configBundle, appContext);
+            return new SGConfig(configBundle, appContext);
         } catch (final NameNotFoundException e) {
             throw new RuntimeException("Can't configure Mixpanel with package name " + packageName, e);
         }
@@ -487,7 +487,7 @@ public class MPConfig {
     private SSLSocketFactory mSSLSocketFactory;
     private OfflineMode mOfflineMode;
 
-    private static MPConfig sInstance;
+    private static SGConfig sInstance;
     private static final Object sInstanceLock = new Object();
     private static final String LOGTAG = "SugoAPI.Conf";
 }

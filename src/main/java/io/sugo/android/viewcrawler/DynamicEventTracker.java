@@ -27,7 +27,7 @@ import java.util.Map;
 /* package */ class DynamicEventTracker implements ViewVisitor.OnEventListener {
 
     public DynamicEventTracker(SugoAPI mixpanel, Handler homeHandler) {
-        mMixpanel = mixpanel;
+        mSugo = mixpanel;
         mDebouncedEvents = new HashMap<Signature, UnsentEvent>();
         mTask = new SendDebouncedTask();
         mHandler = homeHandler;
@@ -66,7 +66,7 @@ import java.util.Map;
                 }
             }
         } else {
-            mMixpanel.track(eventId, eventName, properties);
+            mSugo.track(eventId, eventName, properties);
         }
     }
 
@@ -83,7 +83,7 @@ import java.util.Map;
                     final Map.Entry<Signature, UnsentEvent> entry = iter.next();
                     final UnsentEvent val = entry.getValue();
                     if (now - val.timeSentMillis > DEBOUNCE_TIME_MILLIS) {
-                        mMixpanel.track(null, val.eventName, val.properties);
+                        mSugo.track(null, val.eventName, val.properties);
                         iter.remove();
                     }
                 }
@@ -172,7 +172,7 @@ import java.util.Map;
         public final JSONObject properties;
     }
 
-    private final SugoAPI mMixpanel;
+    private final SugoAPI mSugo;
     private final Handler mHandler;
     private final Runnable mTask;
 

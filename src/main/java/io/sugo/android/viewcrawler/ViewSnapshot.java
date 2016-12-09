@@ -25,7 +25,7 @@ import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
-import io.sugo.android.mpmetrics.MPConfig;
+import io.sugo.android.mpmetrics.SGConfig;
 import io.sugo.android.mpmetrics.ResourceIds;
 import io.sugo.android.mpmetrics.SugoWebNodeReporter;
 
@@ -49,7 +49,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-@TargetApi(MPConfig.UI_FEATURES_MIN_API)
+@TargetApi(SGConfig.UI_FEATURES_MIN_API)
 /* package */ class ViewSnapshot {
 
     public ViewSnapshot(List<PropertyDescription> properties, ResourceIds resourceIds) {
@@ -77,15 +77,15 @@ import java.util.concurrent.TimeoutException;
         try {
             infoList = infoFuture.get(1, TimeUnit.SECONDS);
         } catch (final InterruptedException e) {
-            if (MPConfig.DEBUG) {
+            if (SGConfig.DEBUG) {
                 Log.d(LOGTAG, "Screenshot interrupted, no screenshot will be sent.", e);
             }
         } catch (final TimeoutException e) {
-            if (MPConfig.DEBUG) {
+            if (SGConfig.DEBUG) {
                 Log.i(LOGTAG, "Screenshot took more than 1 second to be scheduled and executed. No screenshot will be sent.", e);
             }
         } catch (final ExecutionException e) {
-            if (MPConfig.DEBUG) {
+            if (SGConfig.DEBUG) {
                 Log.e(LOGTAG, "Exception thrown during screenshot attempt", e);
             }
         }
@@ -372,7 +372,7 @@ import java.util.concurrent.TimeoutException;
                 createSnapshot.setAccessible(true);
                 rawBitmap = (Bitmap) createSnapshot.invoke(rootView, Bitmap.Config.RGB_565, Color.WHITE, false);
             } catch (final NoSuchMethodException e) {
-                if (MPConfig.DEBUG) {
+                if (SGConfig.DEBUG) {
                     Log.v(LOGTAG, "Can't call createSnapshot, will use drawCache", e);
                 }
             } catch (final IllegalArgumentException e) {
@@ -394,7 +394,7 @@ import java.util.concurrent.TimeoutException;
                     rawBitmap = rootView.getDrawingCache();
                 }
             } catch (final RuntimeException e) {
-                if (MPConfig.DEBUG) {
+                if (SGConfig.DEBUG) {
                     Log.v(LOGTAG, "Can't take a bitmap snapshot of view " + rootView + ", skipping for now.", e);
                 }
             }

@@ -20,7 +20,7 @@ import android.util.JsonWriter;
 import android.util.Log;
 import android.util.Pair;
 
-import io.sugo.android.mpmetrics.MPConfig;
+import io.sugo.android.mpmetrics.SGConfig;
 import io.sugo.android.mpmetrics.SugoAPI;
 import io.sugo.android.mpmetrics.OnMixpanelTweaksUpdatedListener;
 import io.sugo.android.mpmetrics.ResourceIds;
@@ -58,11 +58,11 @@ import javax.net.ssl.SSLSocketFactory;
  * This class is for internal use by the Mixpanel API, and should
  * not be called directly by your code.
  */
-@TargetApi(MPConfig.UI_FEATURES_MIN_API)
+@TargetApi(SGConfig.UI_FEATURES_MIN_API)
 public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisitor.OnLayoutErrorListener {
 
     public ViewCrawler(Context context, String token, SugoAPI mixpanel, Tweaks tweaks) {
-        mConfig = MPConfig.getInstance(context);
+        mConfig = SGConfig.getInstance(context);
 
         Context appContext = context.getApplicationContext();
         mContext = appContext;
@@ -486,12 +486,12 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
          * Try to connect to the remote interactive editor, if a connection does not already exist.
          */
         private void connectToEditor() {
-            if (MPConfig.DEBUG) {
+            if (SGConfig.DEBUG) {
                 Log.v(LOGTAG, "connecting to editor");
             }
 
             if (mEditorConnection != null && mEditorConnection.isValid()) {
-                if (MPConfig.DEBUG) {
+                if (SGConfig.DEBUG) {
                     Log.v(LOGTAG, "There is already a valid connection to an events editor.");
                 }
                 return;
@@ -499,13 +499,13 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
 
             final SSLSocketFactory socketFactory = mConfig.getSSLSocketFactory();
             if (null == socketFactory) {
-                if (MPConfig.DEBUG) {
+                if (SGConfig.DEBUG) {
                     Log.v(LOGTAG, "SSL is not available on this device, no connection will be attempted to the events editor.");
                 }
                 return;
             }
 
-            final String url = MPConfig.getInstance(mContext).getEditorUrl() + mToken;
+            final String url = SGConfig.getInstance(mContext).getEditorUrl() + mToken;
             try {
                 Socket socket;
                 if (url.startsWith("wss://"))
@@ -636,7 +636,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                 final JSONObject payload = message.getJSONObject("payload");
                 if (payload.has("config")) {
                     mSnapshot = mProtocol.readSnapshotConfig(payload);
-                    if (MPConfig.DEBUG) {
+                    if (SGConfig.DEBUG) {
                         Log.v(LOGTAG, "Initializing snapshot with configuration");
                     }
                 }
@@ -920,7 +920,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
             // Free (or make available) snapshot memory
             mSnapshot = null;
 
-            if (MPConfig.DEBUG) {
+            if (SGConfig.DEBUG) {
                 Log.v(LOGTAG, "Editor closed- freeing snapshot");
             }
 
@@ -1218,7 +1218,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
     }
 
     private String secretKey = null;
-    private final MPConfig mConfig;
+    private final SGConfig mConfig;
     private final Context mContext;
     private final SugoAPI mMixpanel;
     private final DynamicEventTracker mDynamicEventTracker;

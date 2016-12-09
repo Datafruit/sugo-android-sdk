@@ -114,7 +114,7 @@ import java.util.Set;
             newContent = true;
         }
 
-        if (MPConfig.DEBUG) {
+        if (SGConfig.DEBUG) {
             Log.v(LOGTAG, "New Decide content has become available. " +
                     newSurveys.size() + " surveys, " +
                     newNotifications.size() + " notifications and " +
@@ -157,7 +157,7 @@ import java.util.Set;
 
     public synchronized InAppNotification getNotification(boolean replace) {
         if (mUnseenNotifications.isEmpty()) {
-            if (MPConfig.DEBUG) {
+            if (SGConfig.DEBUG) {
                 Log.v(LOGTAG, "No unseen notifications exist, none will be returned.");
             }
             return null;
@@ -166,7 +166,7 @@ import java.util.Set;
         if (replace) {
             mUnseenNotifications.add(n);
         } else {
-            if (MPConfig.DEBUG) {
+            if (SGConfig.DEBUG) {
                 Log.v(LOGTAG, "Recording notification " + n + " as seen.");
             }
         }
@@ -190,7 +190,7 @@ import java.util.Set;
     // if a notification was failed to show, add it back to the unseen list so that we
     // won't lose it
     public synchronized void markNotificationAsUnseen(InAppNotification notif) {
-        if (!MPConfig.DEBUG) {
+        if (!SGConfig.DEBUG) {
             mUnseenNotifications.add(notif);
         }
     }
