@@ -5,19 +5,19 @@
 
 ```xml
 <meta-data
-            android:name="com.mixpanel.android.MPConfig.EditorUrl"
+            android:name="io.sugo.android.SGConfig.EditorUrl"
             android:value="ws://192.168.0.111:8887/connect/" />
 
 <meta-data
-            android:name="com.mixpanel.android.MPConfig.DecideEndpoint"
+            android:name="io.sugo.android.SGConfig.DecideEndpoint"
             android:value="http://192.168.0.111:8080/api/sdk/decide" />
 
 <meta-data
-            android:name="com.mixpanel.android.MPConfig.token"
+            android:name="io.sugo.android.SGConfig.token"
             android:value="{YOUR_TOKEN}" />
 
 <meta-data
-            android:name="com.mixpanel.android.MPConfig.EventsEndpoint"
+            android:name="io.sugo.android.SGConfig.EventsEndpoint"
             android:value="http://collect.sugo.net/post?locate={YOUR_PROJECT}" />
 ```
 
@@ -38,7 +38,7 @@
 protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        MixpanelAPI mixpanel = MixpanelAPI.getInstance(this);
+        SugoAPI sugo = SugoAPI.getInstance(this);
 }
 ```
 
@@ -53,7 +53,7 @@ H5支持
 
     void initWebView() {
         final WebView webView = (WebView) findViewById(R.id.sys_webview);
-        MixpanelAPI.getInstance(this).handleWebView(webView);
+        SugoAPI.getInstance(this).handleWebView(webView);
         webView.loadUrl("http://dev.ufile.ucloud.cn/test.html");
 
     }
