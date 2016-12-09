@@ -247,6 +247,9 @@ public class SugoAPI {
                 messageProps.put("mp_lib", "android");
                 messageProps.put("lib", "android");
                 messageProps.put("distinct_id", token);
+                final double timeSecondsDouble = (System.currentTimeMillis()) / 1000.0;
+                final long timeSeconds = (long) timeSecondsDouble;
+                messageProps.put("time", timeSeconds);
 
                 final AnalyticsMessages.EventDescription eventDescription =
                         new AnalyticsMessages.EventDescription(null, "Integration", messageProps, "85053bf24bba75239b16a601d9387e17");
