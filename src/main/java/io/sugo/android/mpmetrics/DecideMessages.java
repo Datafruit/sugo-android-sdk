@@ -213,5 +213,5 @@ import java.util.Set;
     private static final Set<Integer> mLoadedVariants = new HashSet<>();
 
     @SuppressWarnings("unused")
-    private static final String LOGTAG = "MixpanelAPI.DecideUpdts";
+    private static final String LOGTAG = "SugoAPI.DecideUpdts";
 }

@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 /**
  * Represents a in-app notification delivered from Mixpanel. Under ordinary circumstances,
  * most code won't have to interact with this class directly, but rather will display
- * InAppNotifications using {@link MixpanelAPI.People#showNotificationIfAvailable(Activity)}
+ * InAppNotifications using {@link SugoAPI.People#showNotificationIfAvailable(Activity)}
  * This class is public to
  */
 public class InAppNotification implements Parcelable {
@@ -234,6 +234,6 @@ public class InAppNotification implements Parcelable {
     private final String mCallToAction;
     private final String mCallToActionUrl;
 
-    private static final String LOGTAG = "MixpanelAPI.InAppNotif";
+    private static final String LOGTAG = "SugoAPI.InAppNotif";
     private static final Pattern FILE_EXTENSION_PATTERN = Pattern.compile("(\\.[^./]+$)");
 }

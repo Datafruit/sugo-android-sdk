@@ -173,5 +173,5 @@ import android.view.WindowManager;
     private final String mAppVersionName;
     private final Integer mAppVersionCode;
 
-    private static final String LOGTAG = "MixpanelAPI.SysInfo";
+    private static final String LOGTAG = "SugoAPI.SysInfo";
 }

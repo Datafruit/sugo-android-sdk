@@ -12,16 +12,16 @@ import java.util.Map;
  */
 
 public class SugoWebEventListener {
-    private final MixpanelAPI mixpanelAPI;
+    private final SugoAPI sugoAPI;
     private static Map<String, JSONArray> eventBindingsMap = new HashMap<String, JSONArray>();
 
-    SugoWebEventListener(MixpanelAPI mixpanelAPI) {
-        this.mixpanelAPI = mixpanelAPI;
+    SugoWebEventListener(SugoAPI sugoAPI) {
+        this.sugoAPI = sugoAPI;
     }
 
     @JavascriptInterface
     public void eventOnAndroid(String eventId, String eventName, String props) {
-        mixpanelAPI.track(eventId, eventName, null);
+        sugoAPI.track(eventId, eventName, null);
     }
 
     public static void bindEvents(String token, JSONArray eventBindings) {

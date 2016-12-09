@@ -65,10 +65,10 @@ import java.util.concurrent.Future;
  * <pre>
  * {@code
  * public class MainActivity extends Activity {
- *      MixpanelAPI mMixpanel;
+ *      SugoAPI mMixpanel;
  *
  *      public void onCreate(Bundle saved) {
- *          mMixpanel = MixpanelAPI.getInstance(this, "YOUR MIXPANEL API TOKEN");
+ *          mMixpanel = SugoAPI.getInstance(this, "YOUR MIXPANEL API TOKEN");
  *          ...
  *      }
  *
@@ -98,7 +98,7 @@ import java.util.concurrent.Future;
  * @see <a href="https://mixpanel.com/docs/people-analytics/android-push">getting started with push notifications for Android</a>
  * @see <a href="https://github.com/mixpanel/sample-android-mixpanel-integration">The Mixpanel Android sample application</a>
  */
-public class MixpanelAPI {
+public class SugoAPI {
     /**
      * String version of the library.
      */
@@ -179,18 +179,18 @@ public class MixpanelAPI {
     }
 
     /**
-     * You shouldn't instantiate MixpanelAPI objects directly.
-     * Use MixpanelAPI.getInstance to get an instance.
+     * You shouldn't instantiate SugoAPI objects directly.
+     * Use SugoAPI.getInstance to get an instance.
      */
-    MixpanelAPI(Context context, Future<SharedPreferences> referrerPreferences) {
+    SugoAPI(Context context, Future<SharedPreferences> referrerPreferences) {
         this(context, referrerPreferences, MPConfig.getInstance(context));
     }
 
     /**
-     * You shouldn't instantiate MixpanelAPI objects directly.
-     * Use MixpanelAPI.getInstance to get an instance.
+     * You shouldn't instantiate SugoAPI objects directly.
+     * Use SugoAPI.getInstance to get an instance.
      */
-    MixpanelAPI(Context context, Future<SharedPreferences> referrerPreferences, MPConfig config) {
+    SugoAPI(Context context, Future<SharedPreferences> referrerPreferences, MPConfig config) {
         Context appContext = context.getApplicationContext();
         mContext = appContext;
         mConfig = config;
@@ -261,20 +261,20 @@ public class MixpanelAPI {
     }
 
     /**
-     * Get the instance of MixpanelAPI associated with your Mixpanel project token.
+     * Get the instance of SugoAPI associated with your Mixpanel project token.
      * <p>
      * <p>Use getInstance to get a reference to a shared
-     * instance of MixpanelAPI you can use to send events
+     * instance of SugoAPI you can use to send events
      * and People Analytics updates to Mixpanel.</p>
      * <p>getInstance is thread safe, but the returned instance is not,
      * and may be shared with other callers of getInstance.
-     * The best practice is to call getInstance, and use the returned MixpanelAPI,
+     * The best practice is to call getInstance, and use the returned SugoAPI,
      * object from a single thread (probably the main UI thread of your application).</p>
      * <p>If you do choose to track events from multiple threads in your application,
      * you should synchronize your calls on the instance itself, like so:</p>
      * <pre>
      * {@code
-     * MixpanelAPI instance = MixpanelAPI.getInstance(context, token);
+     * SugoAPI instance = SugoAPI.getInstance(context, token);
      * synchronized(instance) { // Only necessary if the instance will be used in multiple threads.
      *     instance.track(...)
      * }
@@ -284,9 +284,9 @@ public class MixpanelAPI {
      * @param context The application context you are tracking
      * @param token   Your Mixpanel project token. You can get your project token on the Mixpanel web site,
      *                in the settings dialog.
-     * @return an instance of MixpanelAPI associated with your project
+     * @return an instance of SugoAPI associated with your project
      */
-    public static MixpanelAPI getInstance(Context context) {
+    public static SugoAPI getInstance(Context context) {
         if (null == context) {
             return null;
         }
@@ -297,9 +297,9 @@ public class MixpanelAPI {
                 sReferrerPrefs = sPrefsLoader.loadPreferences(context, MPConfig.REFERRER_PREFS_NAME, null);
             }
 
-            MixpanelAPI instance = sInstanceMap.get(appContext);
+            SugoAPI instance = sInstanceMap.get(appContext);
             if (null == instance && ConfigurationChecker.checkBasicConfiguration(appContext)) {
-                instance = new MixpanelAPI(context, sReferrerPrefs);
+                instance = new SugoAPI(context, sReferrerPrefs);
                 registerAppLinksListeners(context, instance);
                 sInstanceMap.put(appContext, instance);
             }
@@ -319,7 +319,7 @@ public class MixpanelAPI {
     public static void setFlushInterval(Context context, long milliseconds) {
         Log.i(
                 LOGTAG,
-                "MixpanelAPI.setFlushInterval is deprecated. Calling is now a no-op.\n" +
+                "SugoAPI.setFlushInterval is deprecated. Calling is now a no-op.\n" +
                         "    To set a custom Mixpanel flush interval for your application, add\n" +
                         "    <meta-data android:name=\"com.mixpanel.android.MPConfig.FlushInterval\" android:value=\"YOUR_INTERVAL\" />\n" +
                         "    to the <application> section of your AndroidManifest.xml."
@@ -335,7 +335,7 @@ public class MixpanelAPI {
     public static void enableFallbackServer(Context context, boolean enableIfTrue) {
         Log.i(
                 LOGTAG,
-                "MixpanelAPI.enableFallbackServer is deprecated. This call is a no-op.\n" +
+                "SugoAPI.enableFallbackServer is deprecated. This call is a no-op.\n" +
                         "    To enable fallback in your application, add\n" +
                         "    <meta-data android:name=\"com.mixpanel.android.MPConfig.DisableFallback\" android:value=\"false\" />\n" +
                         "    to the <application> section of your AndroidManifest.xml."
@@ -460,11 +460,11 @@ public class MixpanelAPI {
      *                   Pass null if no extra properties exist.
      */
     // DO NOT DOCUMENT, but track() must be thread safe since it is used to track events in
-    // notifications from the UI thread, which might not be our MixpanelAPI "home" thread.
+    // notifications from the UI thread, which might not be our SugoAPI "home" thread.
     // This MAY CHANGE IN FUTURE RELEASES, so minimize code that assumes thread safety
     // (and perhaps document that code here).
     public void track(String eventId, String eventName, JSONObject properties) {
-        if (MixpanelAPI.developmentMode) {
+        if (SugoAPI.developmentMode) {
             Toast.makeText(this.mContext, eventName, Toast.LENGTH_SHORT).show();
         }
         final Long eventBegin;
@@ -507,7 +507,7 @@ public class MixpanelAPI {
                 }
             }
 
-            if(MixpanelAPI.developmentMode){
+            if(SugoAPI.developmentMode){
                 JSONArray events = new JSONArray();
                 JSONObject event = new JSONObject();
                 event.put("event_id", eventId);
@@ -747,7 +747,7 @@ public class MixpanelAPI {
     public void logPosts() {
         Log.i(
                 LOGTAG,
-                "MixpanelAPI.logPosts() is deprecated.\n" +
+                "SugoAPI.logPosts() is deprecated.\n" +
                         "    To get verbose debug level logging, add\n" +
                         "    <meta-data android:name=\"com.mixpanel.android.MPConfig.EnableDebugLogging\" value=\"true\" />\n" +
                         "    to the <application> section of your AndroidManifest.xml."
@@ -781,13 +781,13 @@ public class MixpanelAPI {
     // Package-level access. Used (at least) by GCMReceiver
     // when OS-level events occur.
     /* package */ interface InstanceProcessor {
-        public void process(MixpanelAPI m);
+        public void process(SugoAPI m);
     }
 
     /* package */
     static void allInstances(InstanceProcessor processor) {
         synchronized (sInstanceMap) {
-            for (final MixpanelAPI instance : sInstanceMap.values()) {
+            for (final SugoAPI instance : sInstanceMap.values()) {
                 processor.process(instance);
 
             }
@@ -816,7 +816,7 @@ public class MixpanelAPI {
         final String prefsName = "com.mixpanel.android.mpmetrics.MixpanelAPI_" + token;
         final Future<SharedPreferences> storedPreferences = sPrefsLoader.loadPreferences(context, prefsName, listener);
 
-        final String timeEventsPrefsName = "MixpanelAPI.TimeEvents_" + token;
+        final String timeEventsPrefsName = "SugoAPI.TimeEvents_" + token;
         final Future<SharedPreferences> timeEventsPrefs = sPrefsLoader.loadPreferences(context, timeEventsPrefsName, null);
 
         return new PersistentIdentity(referrerPreferences, storedPreferences, timeEventsPrefs);
@@ -996,7 +996,7 @@ public class MixpanelAPI {
         }
     }
 
-    private static void registerAppLinksListeners(Context context, final MixpanelAPI mixpanel) {
+    private static void registerAppLinksListeners(Context context, final SugoAPI mixpanel) {
         // Register a BroadcastReceiver to receive com.parse.bolts.measurement_event and track a call to mixpanel
         try {
             final Class<?> clazz = Class.forName("android.support.v4.content.LocalBroadcastManager");
@@ -1085,14 +1085,14 @@ public class MixpanelAPI {
     private final Map<String, String> mDeviceInfo;
     private final Map<String, Long> mEventTimings;
 
-    // Maps each token to a singleton MixpanelAPI instance
-    private static final Map<Context, MixpanelAPI> sInstanceMap = new HashMap<Context, MixpanelAPI>();
+    // Maps each token to a singleton SugoAPI instance
+    private static final Map<Context, SugoAPI> sInstanceMap = new HashMap<Context, SugoAPI>();
     private static final SharedPreferencesLoader sPrefsLoader = new SharedPreferencesLoader();
     private static final Tweaks sSharedTweaks = new Tweaks();
     private static Future<SharedPreferences> sReferrerPrefs;
 
-    private static final String LOGTAG = "MixpanelAPI.API";
-    private static final String APP_LINKS_LOGTAG = "MixpanelAPI.AL";
+    private static final String LOGTAG = "SugoAPI.API";
+    private static final String APP_LINKS_LOGTAG = "SugoAPI.AL";
     private static final String ENGAGE_DATE_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ss";
 
     private boolean mDisableDecideChecker;

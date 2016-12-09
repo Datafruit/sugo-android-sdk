@@ -339,5 +339,5 @@ import javax.net.ssl.SSLSocketFactory;
 
     private static final JSONArray EMPTY_JSON_ARRAY = new JSONArray();
 
-    private static final String LOGTAG = "MixpanelAPI.DChecker";
+    private static final String LOGTAG = "SugoAPI.DChecker";
 }

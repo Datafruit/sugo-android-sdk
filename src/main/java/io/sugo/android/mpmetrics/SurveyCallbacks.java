@@ -2,7 +2,7 @@ package io.sugo.android.mpmetrics;
 
 /**
  * This interface is only used with deprecated APIs, and should not be used in new code.
- * Use {@link MixpanelAPI.People#getSurveyIfAvailable()} instead.
+ * Use {@link SugoAPI.People#getSurveyIfAvailable()} instead.
  *
  * @deprecated since 4.0.1
  */

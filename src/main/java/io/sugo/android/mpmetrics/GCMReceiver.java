@@ -18,8 +18,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 
-import io.sugo.android.mpmetrics.MixpanelAPI.InstanceProcessor;
-
 
 public class GCMReceiver extends BroadcastReceiver {
 
@@ -289,5 +287,5 @@ public class GCMReceiver extends BroadcastReceiver {
     }
 
     @SuppressWarnings("unused")
-    private static final String LOGTAG = "MixpanelAPI.GCMReceiver";
+    private static final String LOGTAG = "SugoAPI.GCMReceiver";
 }

@@ -33,7 +33,7 @@ import android.util.Log;
  * </pre>
  *
  * <p>Once you've added the &lt;receiver&gt; tag to your manifest,
- * all calls to {@link MixpanelAPI#track(String, org.json.JSONObject)}
+ * all calls to {@link SugoAPI#track(String, org.json.JSONObject)}
  * will include the user's Google Play Referrer as metadata. In addition, if
  * you include utm parameters in your link to Google Play, they will be parsed and
  * provided as individual properties in your track calls.</p>
@@ -118,5 +118,5 @@ public class InstallReferrerReceiver extends BroadcastReceiver {
     private final Pattern UTM_CONTENT_PATTERN = Pattern.compile("(^|&)utm_content=([^&#=]*)([#&]|$)");
     private final Pattern UTM_TERM_PATTERN = Pattern.compile("(^|&)utm_term=([^&#=]*)([#&]|$)");
 
-    private static final String LOGTAG = "MixpanelAPI.InstRfrRcvr";
+    private static final String LOGTAG = "SugoAPI.InstRfrRcvr";
 }

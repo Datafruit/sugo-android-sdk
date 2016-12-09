@@ -197,5 +197,5 @@ import java.util.Set;
     private final Set<EditBinding> mCurrentEdits;
 
     @SuppressWarnings("unused")
-    private static final String LOGTAG = "MixpanelAPI.EditState";
+    private static final String LOGTAG = "SugoAPI.EditState";
 }

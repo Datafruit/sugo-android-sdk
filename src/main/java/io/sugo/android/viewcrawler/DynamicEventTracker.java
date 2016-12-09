@@ -6,7 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import io.sugo.android.mpmetrics.MixpanelAPI;
+import io.sugo.android.mpmetrics.SugoAPI;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,11 +22,11 @@ import java.util.Map;
  *
  * - Possibly debounces events using the Handler given at construction
  *
- * - Calls MixpanelAPI.track
+ * - Calls SugoAPI.track
  */
 /* package */ class DynamicEventTracker implements ViewVisitor.OnEventListener {
 
-    public DynamicEventTracker(MixpanelAPI mixpanel, Handler homeHandler) {
+    public DynamicEventTracker(SugoAPI mixpanel, Handler homeHandler) {
         mMixpanel = mixpanel;
         mDebouncedEvents = new HashMap<Signature, UnsentEvent>();
         mTask = new SendDebouncedTask();
@@ -172,7 +172,7 @@ import java.util.Map;
         public final JSONObject properties;
     }
 
-    private final MixpanelAPI mMixpanel;
+    private final SugoAPI mMixpanel;
     private final Handler mHandler;
     private final Runnable mTask;
 
@@ -183,5 +183,5 @@ import java.util.Map;
     private static final int DEBOUNCE_TIME_MILLIS = 1000; // 1 second delay before sending
 
     @SuppressWarnings("Unused")
-    private static String LOGTAG = "MixpanelAPI.DynamicEventTracker";
+    private static String LOGTAG = "SugoAPI.DynamicEventTracker";
 }

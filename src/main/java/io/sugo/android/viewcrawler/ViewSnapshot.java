@@ -521,5 +521,5 @@ import java.util.concurrent.TimeoutException;
     private static final int MAX_CLASS_NAME_CACHE_SIZE = 255;
 
     @SuppressWarnings("unused")
-    private static final String LOGTAG = "MixpanelAPI.Snapshot";
+    private static final String LOGTAG = "SugoAPI.Snapshot";
 }

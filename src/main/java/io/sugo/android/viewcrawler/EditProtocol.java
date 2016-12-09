@@ -431,5 +431,5 @@ import java.util.List;
     private static final List<Pathfinder.PathElement> NEVER_MATCH_PATH = Collections.<Pathfinder.PathElement>emptyList();
 
     @SuppressWarnings("unused")
-    private static final String LOGTAG = "MixpanelAPI.EProtocol";
+    private static final String LOGTAG = "SugoAPI.EProtocol";
 } // EditProtocol

@@ -209,10 +209,10 @@ public class ImageStore {
     private final MPConfig mConfig;
     private static LruCache<String, Bitmap> sMemoryCache;
 
-    private static final String DEFAULT_DIRECTORY_PREFIX = "MixpanelAPI.Images.";
+    private static final String DEFAULT_DIRECTORY_PREFIX = "SugoAPI.Images.";
     private static final int MAX_BITMAP_SIZE = 10000000; // 10 MB
     private static final String FILE_PREFIX = "MP_IMG_";
 
     @SuppressWarnings("unused")
-    private static final String LOGTAG = "MixpanelAPI.ImageStore";
+    private static final String LOGTAG = "SugoAPI.ImageStore";
 }

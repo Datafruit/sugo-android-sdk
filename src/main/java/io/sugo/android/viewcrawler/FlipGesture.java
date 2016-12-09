@@ -124,5 +124,5 @@ import io.sugo.android.mpmetrics.MPConfig;
     // Higher is noisier but more responsive, 1.0 to 0.0
     private static final float ACCELEROMETER_SMOOTHING = 0.7f;
 
-    private static final String LOGTAG = "MixpanelAPI.FlipGesture";
+    private static final String LOGTAG = "SugoAPI.FlipGesture";
 }

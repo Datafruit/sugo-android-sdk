@@ -17,7 +17,7 @@ import io.sugo.android.viewcrawler.GestureTracker;
     private boolean mPaused = true;
     public static final int CHECK_DELAY = 500;
 
-    public MixpanelActivityLifecycleCallbacks(MixpanelAPI mpInstance, MPConfig config) {
+    public MixpanelActivityLifecycleCallbacks(SugoAPI mpInstance, MPConfig config) {
         mMpInstance = mpInstance;
         mConfig = config;
     }
@@ -79,6 +79,6 @@ import io.sugo.android.viewcrawler.GestureTracker;
     @Override
     public void onActivityStopped(Activity activity) { }
 
-    private final MixpanelAPI mMpInstance;
+    private final SugoAPI mMpInstance;
     private final MPConfig mConfig;
 }

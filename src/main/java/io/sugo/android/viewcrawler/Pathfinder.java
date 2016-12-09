@@ -291,5 +291,5 @@ import java.util.List;
     private final IntStack mIndexStack;
 
     @SuppressWarnings("unused")
-    private static final String LOGTAG = "MixpanelAPI.PathFinder";
+    private static final String LOGTAG = "SugoAPI.PathFinder";
 }

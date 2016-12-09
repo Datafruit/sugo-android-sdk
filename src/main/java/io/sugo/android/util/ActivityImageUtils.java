@@ -67,5 +67,5 @@ public class ActivityImageUtils {
     }
 
     @SuppressWarnings("unused")
-    private static final String LOGTAG = "MixpanelAPI.ActImgUtils";
+    private static final String LOGTAG = "SugoAPI.ActImgUtils";
 }

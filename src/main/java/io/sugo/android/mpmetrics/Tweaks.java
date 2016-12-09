@@ -13,9 +13,9 @@ import java.util.Map;
 /**
  * In general, you won't need to interact with this class directly -
  * it's used internally to communicate changes in values to the tweaks you define with
- * {@link MixpanelAPI#stringTweak(String, String)}, {@link MixpanelAPI#booleanTweak(String, boolean)},
- * {@link MixpanelAPI#doubleTweak(String, double)}, {@link MixpanelAPI#longTweak(String, long)},
- * and other tweak-related interfaces on MixpanelAPI.
+ * {@link SugoAPI#stringTweak(String, String)}, {@link SugoAPI#booleanTweak(String, boolean)},
+ * {@link SugoAPI#doubleTweak(String, double)}, {@link SugoAPI#longTweak(String, long)},
+ * and other tweak-related interfaces on SugoAPI.
  *
  * Instances of tweaks aren't available to library user code.
  */
@@ -334,5 +334,5 @@ public class Tweaks {
     private final Map<String, TweakValue> mTweakDefaultValues;
     private final List<OnTweakDeclaredListener> mTweakDeclaredListeners;
 
-    private static final String LOGTAG = "MixpanelAPI.Tweaks";
+    private static final String LOGTAG = "SugoAPI.Tweaks";
 }

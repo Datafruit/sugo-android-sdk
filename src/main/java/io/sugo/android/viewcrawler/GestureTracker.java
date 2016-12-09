@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.view.MotionEvent;
 import android.view.View;
 
-import io.sugo.android.mpmetrics.MixpanelAPI;
+import io.sugo.android.mpmetrics.SugoAPI;
 
 /**
  * Tracking ABTesting Gestures
@@ -13,15 +13,15 @@ import io.sugo.android.mpmetrics.MixpanelAPI;
  **/
 public class GestureTracker {
 
-    public GestureTracker(MixpanelAPI mMixpanel, Activity parent) {
+    public GestureTracker(SugoAPI mMixpanel, Activity parent) {
         trackGestures(mMixpanel, parent);
     }
 
-    private void trackGestures(final MixpanelAPI mMixpanel, final Activity parent) {
+    private void trackGestures(final SugoAPI mMixpanel, final Activity parent) {
         parent.getWindow().getDecorView().setOnTouchListener(getGestureTrackerTouchListener(mMixpanel));
     }
 
-    private View.OnTouchListener getGestureTrackerTouchListener(final MixpanelAPI mMixpanel) {
+    private View.OnTouchListener getGestureTrackerTouchListener(final SugoAPI mMixpanel) {
         return new View.OnTouchListener() {
 
             @Override

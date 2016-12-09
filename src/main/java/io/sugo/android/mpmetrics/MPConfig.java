@@ -61,7 +61,7 @@ import javax.net.ssl.X509TrustManager;
  *     <dd>A boolean value. If true, do not attempt to connect to the codeless event binding or A/B testing editor when running in the Android emulator. Defaults to false.</dd>
  *
  *     <dt>com.mixpanel.android.MPConfig.DisableAppOpenEvent</dt>
- *     <dd>A boolean value. If true, do not send an "$app_open" event when the MixpanelAPI object is created for the first time. Defaults to true - the $app_open event will not be sent by default.</dd>
+ *     <dd>A boolean value. If true, do not send an "$app_open" event when the SugoAPI object is created for the first time. Defaults to true - the $app_open event will not be sent by default.</dd>
  *
  *     <dt>com.mixpanel.android.MPConfig.AutoShowMixpanelUpdates</dt>
  *     <dd>A boolean value. If true, automatically show surveys, notifications, and A/B test variants. Defaults to true.</dd>
@@ -124,7 +124,7 @@ public class MPConfig {
     }
 
     /**
-     * The MixpanelAPI will use the system default SSL socket settings under ordinary circumstances.
+     * The SugoAPI will use the system default SSL socket settings under ordinary circumstances.
      * That means it will ignore settings you associated with the default SSLSocketFactory in the
      * schema registry or in underlying HTTP libraries. If you'd prefer for Mixpanel to use your
      * own SSL settings, you'll need to call setSSLSocketFactory early in your code, like this
@@ -137,7 +137,7 @@ public class MPConfig {
      *
      * Your settings will be globally available to all Mixpanel instances, and will be used for
      * all SSL connections in the library. The call is thread safe, but should be done before
-     * your first call to MixpanelAPI.getInstance to insure that the library never uses it's
+     * your first call to SugoAPI.getInstance to insure that the library never uses it's
      * default.
      *
      * The given socket factory may be used from multiple threads, which is safe for the system
@@ -163,7 +163,7 @@ public class MPConfig {
      *
      * Your settings will be globally available to all Mixpanel instances, and will be used across
      * all the library. The call is thread safe, but should be done before
-     * your first call to MixpanelAPI.getInstance to insure that the library never uses it's
+     * your first call to SugoAPI.getInstance to insure that the library never uses it's
      * default.
      *
      * The given {@link OfflineMode} may be used from multiple threads, you should ensure that
@@ -188,7 +188,7 @@ public class MPConfig {
             sslContext.init(null, xtmArray, new java.security.SecureRandom());
             foundSSLFactory = sslContext.getSocketFactory();
         } catch (final GeneralSecurityException e) {
-            Log.i("MixpanelAPI.Conf", "System has no SSL support. Built-in events editor will not be available", e);
+            Log.i("SugoAPI.Conf", "System has no SSL support. Built-in events editor will not be available", e);
             foundSSLFactory = null;
         }
         mSSLSocketFactory = foundSSLFactory;
@@ -489,5 +489,5 @@ public class MPConfig {
 
     private static MPConfig sInstance;
     private static final Object sInstanceLock = new Object();
-    private static final String LOGTAG = "MixpanelAPI.Conf";
+    private static final String LOGTAG = "SugoAPI.Conf";
 }

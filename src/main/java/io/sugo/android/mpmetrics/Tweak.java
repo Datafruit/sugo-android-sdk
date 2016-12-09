@@ -7,9 +7,9 @@ package io.sugo.android.mpmetrics;
  * your goals.
  *
  * You can declare tweaks with
- * {@link MixpanelAPI#stringTweak(String, String)}, {@link MixpanelAPI#booleanTweak(String, boolean)},
- * {@link MixpanelAPI#doubleTweak(String, double)}, {@link MixpanelAPI#longTweak(String, long)},
- * and other tweak-related interfaces on MixpanelAPI.
+ * {@link SugoAPI#stringTweak(String, String)}, {@link SugoAPI#booleanTweak(String, boolean)},
+ * {@link SugoAPI#doubleTweak(String, double)}, {@link SugoAPI#longTweak(String, long)},
+ * and other tweak-related interfaces on SugoAPI.
  */
 public interface Tweak<T> {
     /**

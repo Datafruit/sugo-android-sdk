@@ -617,5 +617,5 @@ import java.util.WeakHashMap;
     private final List<Pathfinder.PathElement> mPath;
     private final Pathfinder mPathfinder;
 
-    private static final String LOGTAG = "MixpanelAPI.ViewVisitor";
+    private static final String LOGTAG = "SugoAPI.ViewVisitor";
 }

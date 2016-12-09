@@ -15,14 +15,14 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 /**
- * SQLite database adapter for MixpanelAPI.
+ * SQLite database adapter for SugoAPI.
  *
  * <p>Not thread-safe. Instances of this class should only be used
  * by a single thread.
  *
  */
 /* package */ class MPDbAdapter {
-    private static final String LOGTAG = "MixpanelAPI.Database";
+    private static final String LOGTAG = "SugoAPI.Database";
 
     public enum Table {
         EVENTS ("events"),

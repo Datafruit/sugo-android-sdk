@@ -21,7 +21,7 @@ import android.util.Log;
 import android.util.Pair;
 
 import io.sugo.android.mpmetrics.MPConfig;
-import io.sugo.android.mpmetrics.MixpanelAPI;
+import io.sugo.android.mpmetrics.SugoAPI;
 import io.sugo.android.mpmetrics.OnMixpanelTweaksUpdatedListener;
 import io.sugo.android.mpmetrics.ResourceIds;
 import io.sugo.android.mpmetrics.ResourceReader;
@@ -61,7 +61,7 @@ import javax.net.ssl.SSLSocketFactory;
 @TargetApi(MPConfig.UI_FEATURES_MIN_API)
 public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisitor.OnLayoutErrorListener {
 
-    public ViewCrawler(Context context, String token, MixpanelAPI mixpanel, Tweaks tweaks) {
+    public ViewCrawler(Context context, String token, SugoAPI mixpanel, Tweaks tweaks) {
         mConfig = MPConfig.getInstance(context);
 
         Context appContext = context.getApplicationContext();
@@ -839,7 +839,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
          * Accept and apply a persistent h5 event binding from a non-interactive source.
          */
         private void handleH5EventBindingsReceived(JSONArray eventBindings) {
-            if (!MixpanelAPI.developmentMode) {
+            if (!SugoAPI.developmentMode) {
                 SugoWebEventListener.bindEvents(mToken, eventBindings);
             }
         }
@@ -873,7 +873,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                 }
             }
 
-//            if(!MixpanelAPI.developmentMode) {
+//            if(!SugoAPI.developmentMode) {
 //                SugoWebEventListener.bindEvents(mToken, eventBindings);
 //            }
         }
@@ -1061,7 +1061,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                         }
                     }
                 } else {
-                    MixpanelAPI.developmentMode = true;
+                    SugoAPI.developmentMode = true;
                 }
             }
 
@@ -1220,7 +1220,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
     private String secretKey = null;
     private final MPConfig mConfig;
     private final Context mContext;
-    private final MixpanelAPI mMixpanel;
+    private final SugoAPI mMixpanel;
     private final DynamicEventTracker mDynamicEventTracker;
     private final EditState mEditState;
     private final Tweaks mTweaks;
@@ -1252,5 +1252,5 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
     private static final int EMULATOR_CONNECT_ATTEMPT_INTERVAL_MILLIS = 1000 * 30;
 
     @SuppressWarnings("unused")
-    private static final String LOGTAG = "MixpanelAPI.ViewCrawler";
+    private static final String LOGTAG = "SugoAPI.ViewCrawler";
 }

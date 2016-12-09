@@ -12,8 +12,7 @@ import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.gcm.GoogleCloudMessaging;
-import com.google.android.gms.iid.InstanceID;
+
 import io.sugo.android.util.Base64Coder;
 import io.sugo.android.util.HttpService;
 import io.sugo.android.util.RemoteService;
@@ -313,7 +312,7 @@ import javax.net.ssl.SSLSocketFactory;
                         // a flush right here, so we may end up with two flushes
                         // in our queue, but we're OK with that.
                         long interval = mFlushInterval;
-                        if(MixpanelAPI.developmentMode){
+                        if(SugoAPI.developmentMode){
                             interval = 1000;
                         }
                         logAboutMessageToMixpanel("Queue depth " + returnCode + " - Adding flush in " + interval);
@@ -603,7 +602,7 @@ import javax.net.ssl.SSLSocketFactory;
     private static final int INSTALL_DECIDE_CHECK = 12; // Run this DecideCheck at intervals until it isDestroyed()
     private static final int REGISTER_FOR_GCM = 13; // Register for GCM using Google Play Services
 
-    private static final String LOGTAG = "MixpanelAPI.Messages";
+    private static final String LOGTAG = "SugoAPI.Messages";
 
     private static final Map<Context, AnalyticsMessages> sInstances = new HashMap<Context, AnalyticsMessages>();
 

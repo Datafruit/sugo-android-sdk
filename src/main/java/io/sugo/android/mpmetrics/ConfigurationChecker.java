@@ -39,7 +39,7 @@ import android.util.Log;
 
 /* package */ class ConfigurationChecker {
 
-    public static String LOGTAG = "MixpanelAPI.ConfigurationChecker";
+    public static String LOGTAG = "SugoAPI.ConfigurationChecker";
 
     public static boolean checkBasicConfiguration(Context context) {
         final PackageManager packageManager = context.getPackageManager();
