@@ -1,4 +1,7 @@
-
+##编译
+```shell
+gradle build
+```
 
 ##使用文档
 `AndroidManifest.xml`文件的`application`节点下添加
@@ -32,7 +35,7 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
             </intent-filter>
 ```
-`MAIN activity` 的 `onCreate` 时间如下 添加
+`MAIN activity` 的 `onCreate` 事件如下 添加
 ```java
 @Override
 protected void onCreate(Bundle savedInstanceState) {
