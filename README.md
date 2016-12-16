@@ -4,6 +4,15 @@ gradle build
 ```
 
 ##使用文档
+`app/build.gradle` 添加
+
+```gradle
+dependencies {
+    compile "io.sugo.android:sugo-android-sdk:1.0.0"
+}
+
+```
+
 `AndroidManifest.xml`文件的`application`节点下添加
 
 ```xml
