@@ -20,7 +20,7 @@ android {
         // the relevant attributes of the <uses-sdk> tag in AndroidManifest.xml
         minSdkVersion 9
         targetSdkVersion 23
-        testApplicationId "com.mixpanel.android.mpmetrics"
+        testApplicationId "io.sugo.android.mpmetrics"
         testInstrumentationRunner "android.test.InstrumentationTestRunner"
         consumerProguardFiles 'proguard.txt'
 
@@ -106,13 +106,12 @@ uploadArchives {
         pom.project {
             name project.name
             packaging 'aar'
-            description 'An Android library for Mixpanel Analytics \n' +
-                    'http://mixpanel.com/android-analytics/'
-            url 'https://github.com/mixpanel/mixpanel-android'
+            description 'An Android library for SUGO \n'
+            url 'https://github.com/Datafruit/sugo-android-sdk'
             scm {
-                url 'http://github.com/mixpanel/mixpanel-android'
-                connection 'scm:git:http://github.com/mixpanel/mixpanel-android'
-                developerConnection 'scm:git:git@github.com:mixpanel/mixpanel-android.git'
+                url 'https://github.com/Datafruit/sugo-android-sdk'
+                connection 'scm:git:https://github.com/Datafruit/sugo-android-sdk'
+                developerConnection 'scm:git:git@github.com:Datafruit/sugo-android-sdk.git'
             }
             licenses {
                 license {
@@ -123,9 +122,9 @@ uploadArchives {
             }
             developers {
                 developer {
-                    id 'mixpanel_dev'
-                    name 'Mixpanel Developers'
-                    email 'dev+android@mixpanel.com'
+                    id 'sugo_dev'
+                    name 'SUGO Developers'
+                    email 'developer@sugo.io'
                 }
             }
         }
@@ -152,6 +151,9 @@ uploadArchives {
                 MavenDeployment deployment -> signing.signPom(deployment)
             }
             repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: sonatypeUsername, password: sonatypePassword)
+            }
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
                 authentication(userName: sonatypeUsername, password: sonatypePassword)
             }
         } else {
