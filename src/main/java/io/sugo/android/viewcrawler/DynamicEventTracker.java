@@ -40,8 +40,8 @@ import java.util.Map;
         final JSONObject properties = new JSONObject();
         try {
             final String text = textPropertyFromView(v);
-            properties.put("$text", text);
-            properties.put("$from_binding", true);
+            properties.put("text", text);
+            properties.put("from_binding", true);
 
             // We may call track much later, but we'll be tracking something
             // that happened right at moment.
@@ -183,5 +183,5 @@ import java.util.Map;
     private static final int DEBOUNCE_TIME_MILLIS = 1000; // 1 second delay before sending
 
     @SuppressWarnings("Unused")
-    private static String LOGTAG = "SugoAPI.DynamicEventTracker";
+    private static String LOGTAG = "DynamicEventTracker";
 }

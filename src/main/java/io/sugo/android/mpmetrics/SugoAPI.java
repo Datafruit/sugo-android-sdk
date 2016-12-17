@@ -499,7 +499,7 @@ public class SugoAPI {
             if (null != eventBegin) {
                 final double eventBeginDouble = ((double) eventBegin) / 1000.0;
                 final double secondsElapsed = timeSecondsDouble - eventBeginDouble;
-                messageProps.put("$duration", secondsElapsed);
+                messageProps.put("duration", secondsElapsed);
             }
 
             if (null != properties) {
