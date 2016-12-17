@@ -1099,8 +1099,8 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                         final int variantId = variant.second;
 
                         final JSONObject trackProps = new JSONObject();
-                        trackProps.put("$experiment_id", experimentId);
-                        trackProps.put("$variant_id", variantId);
+                        trackProps.put("experiment_id", experimentId);
+                        trackProps.put("variant_id", variantId);
 
                         variantObject.put(Integer.toString(experimentId), variantId);
 
@@ -1115,7 +1115,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                             }
                         });
 
-                        mMixpanel.track(null, "$experiment_started", trackProps);
+                        mMixpanel.track(null, "experiment_started", trackProps);
                     }
                 } catch (JSONException e) {
                     Log.wtf(LOGTAG, "Could not build JSON for reporting experiment start", e);
