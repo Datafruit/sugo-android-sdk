@@ -3,9 +3,13 @@ package io.sugo.android.mpmetrics;
 import android.webkit.JavascriptInterface;
 
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Created by fengxj on 11/7/16.
@@ -21,7 +25,19 @@ public class SugoWebEventListener {
 
     @JavascriptInterface
     public void eventOnAndroid(String eventId, String eventName, String props) {
-        sugoAPI.track(eventId, eventName, null);
+        try {
+            JSONObject jsonObject = new JSONObject(props);
+            sugoAPI.track(eventId, eventName, jsonObject);
+        } catch (JSONException e) {
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put("text", e.toString());
+            } catch (JSONException e1) {
+                e1.printStackTrace();
+            }
+            sugoAPI.track("Exception", jsonObject);
+        }
+
     }
 
     public static void bindEvents(String token, JSONArray eventBindings) {

@@ -93,9 +93,15 @@ public class SugoWebViewClient extends WebViewClient {
             "};\n" +
             "sugo.addEvent = function (children, event) {\n" +
             "  children.addEventListener(event.event_type, function (e) {\n" +
-            "    window.sugoEventListener.eventOnAndroid(event.event_id, event.event_name, '{}');\n" +
+            "    var custom_props = {};\n" +
+            "    if(event.code && event.code.replace(/(^\\s*)|(\\s*$)/g, \"\") != ''){\n" +
+            "        eval(event.code);\n" +
+            "        custom_props = sugo_props();\n" +
+            "    }\n" +
+            "    custom_props.from_binding = true;\n" +
+            "    window.sugoEventListener.eventOnAndroid(event.event_id, event.event_name, JSON.stringify(custom_props));\n" +
             "  });\n" +
-            "};\n" +
+            "};" +
             "sugo.bindEvent = function () {\n" +
             "  var jsonArry = [];\n" +
             "  var body = document.getElementsByTagName('body')[0];\n" +
