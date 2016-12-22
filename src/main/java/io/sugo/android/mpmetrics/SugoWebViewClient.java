@@ -16,6 +16,168 @@ import org.json.JSONArray;
 
 public class SugoWebViewClient extends WebViewClient {
     private String mToken;
+    private String cssUtil ="var UTILS = {};\n" +
+            "UTILS.cssPath = function(node, optimized)\n" +
+            "{\n" +
+            "    if (node.nodeType !== Node.ELEMENT_NODE)\n" +
+            "        return \"\";\n" +
+            "    var steps = [];\n" +
+            "    var contextNode = node;\n" +
+            "    while (contextNode) {\n" +
+            "        var step = UTILS._cssPathStep(contextNode, !!optimized, contextNode === node);\n" +
+            "        if (!step)\n" +
+            "            break; \n" +
+            "        steps.push(step);\n" +
+            "        if (step.optimized)\n" +
+            "            break;\n" +
+            "        contextNode = contextNode.parentNode;\n" +
+            "    }\n" +
+            "    steps.reverse();\n" +
+            "    return steps.join(\" > \");\n" +
+            "};\n" +
+            "UTILS._cssPathStep = function(node, optimized, isTargetNode)\n" +
+            "{\n" +
+            "    if (node.nodeType !== Node.ELEMENT_NODE)\n" +
+            "        return null;\n" +
+            " \n" +
+            "    var id = node.getAttribute(\"id\");\n" +
+            "    if (optimized) {\n" +
+            "        if (id)\n" +
+            "            return new UTILS.DOMNodePathStep(idSelector(id), true);\n" +
+            "        var nodeNameLower = node.nodeName.toLowerCase();\n" +
+            "        if (nodeNameLower === \"body\" || nodeNameLower === \"head\" || nodeNameLower === \"html\")\n" +
+            "            return new UTILS.DOMNodePathStep(node.nodeName.toLowerCase(), true);\n" +
+            "     }\n" +
+            "    var nodeName = node.nodeName.toLowerCase();\n" +
+            " \n" +
+            "    if (id)\n" +
+            "        return new UTILS.DOMNodePathStep(nodeName.toLowerCase() + idSelector(id), true);\n" +
+            "    var parent = node.parentNode;\n" +
+            "    if (!parent || parent.nodeType === Node.DOCUMENT_NODE)\n" +
+            "        return new UTILS.DOMNodePathStep(nodeName.toLowerCase(), true);\n" +
+            "\n" +
+            "\n" +
+            "    function prefixedElementClassNames(node)\n" +
+            "    {\n" +
+            "        var classAttribute = node.getAttribute(\"class\");\n" +
+            "        if (!classAttribute)\n" +
+            "            return [];\n" +
+            "\n" +
+            "        return classAttribute.split(/\\s+/g).filter(Boolean).map(function(name) {\n" +
+            "            return \"$\" + name;\n" +
+            "        });\n" +
+            "     }\n" +
+            " \n" +
+            "\n" +
+            "    function idSelector(id)\n" +
+            "    {\n" +
+            "        return \"#\" + escapeIdentifierIfNeeded(id);\n" +
+            "    }\n" +
+            "\n" +
+            "    function escapeIdentifierIfNeeded(ident)\n" +
+            "    {\n" +
+            "        if (isCSSIdentifier(ident))\n" +
+            "            return ident;\n" +
+            "        var shouldEscapeFirst = /^(?:[0-9]|-[0-9-]?)/.test(ident);\n" +
+            "        var lastIndex = ident.length - 1;\n" +
+            "        return ident.replace(/./g, function(c, i) {\n" +
+            "            return ((shouldEscapeFirst && i === 0) || !isCSSIdentChar(c)) ? escapeAsciiChar(c, i === lastIndex) : c;\n" +
+            "        });\n" +
+            "    }\n" +
+            "\n" +
+            "\n" +
+            "    function escapeAsciiChar(c, isLast)\n" +
+            "    {\n" +
+            "        return \"\\\\\" + toHexByte(c) + (isLast ? \"\" : \" \");\n" +
+            "    }\n" +
+            "\n" +
+            "\n" +
+            "    function toHexByte(c)\n" +
+            "    {\n" +
+            "        var hexByte = c.charCodeAt(0).toString(16);\n" +
+            "        if (hexByte.length === 1)\n" +
+            "          hexByte = \"0\" + hexByte;\n" +
+            "        return hexByte;\n" +
+            "    }\n" +
+            "\n" +
+            "    function isCSSIdentChar(c)\n" +
+            "    {\n" +
+            "        if (/[a-zA-Z0-9_-]/.test(c))\n" +
+            "            return true;\n" +
+            "        return c.charCodeAt(0) >= 0xA0;\n" +
+            "    }\n" +
+            "\n" +
+            "\n" +
+            "    function isCSSIdentifier(value)\n" +
+            "    {\n" +
+            "        return /^-?[a-zA-Z_][a-zA-Z0-9_-]*$/.test(value);\n" +
+            "    }\n" +
+            "\n" +
+            "    var prefixedOwnClassNamesArray = prefixedElementClassNames(node);\n" +
+            "    var needsClassNames = false;\n" +
+            "    var needsNthChild = false;\n" +
+            "    var ownIndex = -1;\n" +
+            "    var siblings = parent.children;\n" +
+            "    for (var i = 0; (ownIndex === -1 || !needsNthChild) && i < siblings.length; ++i) {\n" +
+            "        var sibling = siblings[i];\n" +
+            "        if (sibling === node) {\n" +
+            "            ownIndex = i;\n" +
+            "            continue;\n" +
+            "        }\n" +
+            "        if (needsNthChild)\n" +
+            "            continue;\n" +
+            "        if (sibling.nodeName.toLowerCase() !== nodeName.toLowerCase())\n" +
+            "            continue;\n" +
+            "\n" +
+            "        needsClassNames = true;\n" +
+            "        var ownClassNames = prefixedOwnClassNamesArray;\n" +
+            "        var ownClassNameCount = 0;\n" +
+            "        for (var name in ownClassNames)\n" +
+            "            ++ownClassNameCount;\n" +
+            "        if (ownClassNameCount === 0) {\n" +
+            "            needsNthChild = true;\n" +
+            "            continue;\n" +
+            "        }\n" +
+            "        var siblingClassNamesArray = prefixedElementClassNames(sibling);\n" +
+            "        for (var j = 0; j < siblingClassNamesArray.length; ++j) {\n" +
+            "            var siblingClass = siblingClassNamesArray[j];\n" +
+            "            if (ownClassNames.indexOf(siblingClass))\n" +
+            "                continue;\n" +
+            "            delete ownClassNames[siblingClass];\n" +
+            "            if (!--ownClassNameCount) {\n" +
+            "                needsNthChild = true;\n" +
+            "                break;\n" +
+            "            }\n" +
+            "        }\n" +
+            "    }\n" +
+            " \n" +
+            "    var result = nodeName.toLowerCase();\n" +
+            "    if (isTargetNode && nodeName.toLowerCase() === \"input\" && node.getAttribute(\"type\") && !node.getAttribute(\"id\") && !node.getAttribute(\"class\"))\n" +
+            "        result += \"[type=\\\"\" + node.getAttribute(\"type\") + \"\\\"]\";\n" +
+            "    if (needsNthChild) {\n" +
+            "        result += \":nth-child(\" + (ownIndex + 1) + \")\";\n" +
+            "    } else if (needsClassNames) {\n" +
+            "        for (var prefixedName in prefixedOwnClassNamesArray)\n" +
+            "            result += \".\" + escapeIdentifierIfNeeded(prefixedOwnClassNamesArray[prefixedName].substr(1));\n" +
+            "    }\n" +
+            "\n" +
+            "    return new UTILS.DOMNodePathStep(result, false);\n" +
+            "};\n" +
+            "\n" +
+            "\n" +
+            "UTILS.DOMNodePathStep = function(value, optimized)\n" +
+            "{\n" +
+            "    this.value = value;\n" +
+            "    this.optimized = optimized || false;\n" +
+            "};\n" +
+            "\n" +
+            "UTILS.DOMNodePathStep.prototype = {\n" +
+            "\n" +
+            "    toString: function()\n" +
+            "    {\n" +
+            "        return this.value;\n" +
+            "    }\n" +
+            "};";
     private String script= ";\n" +
             "sugo.current_event_bindings = {};\n" +
             "for (var i = 0; i < sugo.h5_event_bindings.length; i++) {\n" +
@@ -36,40 +198,13 @@ public class SugoWebViewClient extends WebViewClient {
             "      rect.right <= sugo.clientWidth\n" +
             "  );\n" +
             "};\n" +
-            "sugo.get_node_name = function (node) {\n" +
-            "  var path = '';\n" +
-            "  var name = node.localName;\n" +
             "\n" +
-            "  if (name == 'script') {\n" +
-            "    return '';\n" +
-            "  }\n" +
-            "\n" +
-            "  if (name == 'link') {\n" +
-            "    return '';\n" +
-            "  }\n" +
-            "\n" +
-            "  path = name;\n" +
-            "  id = node.id;\n" +
-            "  if (id && id.length > 0) {\n" +
-            "    path += '#' + id;\n" +
-            "  }\n" +
-            "  return path;\n" +
-            "};\n" +
             "sugo.handleNodeChild = function (childrens, jsonArry, parent_path, type) {\n" +
             "  var index_map = {};\n" +
             "  for (var i = 0; i < childrens.length; i++) {\n" +
-            "    var children = childrens[i];\n" +
-            "    var node_name = sugo.get_node_name(children);\n" +
-            "    if (node_name == '') {\n" +
-            "      continue;\n" +
-            "    }\n" +
-            "    if (index_map[node_name] == null) {\n" +
-            "      index_map[node_name] = 0;\n" +
-            "    } else {\n" +
-            "      index_map[node_name] = index_map[node_name] + 1;\n" +
-            "    }\n" +
+            "\tvar children = childrens[i];\n" +
+            "\tvar path = UTILS.cssPath(children);\n" +
             "    var htmlNode = {};\n" +
-            "    var path = parent_path + '/' + node_name + '[' + index_map[node_name] + ']';\n" +
             "    htmlNode.path = path;\n" +
             "    if (type === 'report') {\n" +
             "      var rect = children.getBoundingClientRect();\n" +
@@ -78,19 +213,14 @@ public class SugoWebViewClient extends WebViewClient {
             "        jsonArry.push(htmlNode);\n" +
             "      }\n" +
             "    }\n" +
-            "    if (type === 'bind') {\n" +
-            "      var b_event = sugo.current_event_bindings[JSON.stringify(htmlNode)];\n" +
-            "      if (b_event) {\n" +
-            "        var event = JSON.parse(JSON.stringify(b_event));\n" +
-            "        sugo.addEvent(children, event);\n" +
-            "      }\n" +
             "\n" +
-            "    }\n" +
             "    if (children.children) {\n" +
             "      sugo.handleNodeChild(children.children, jsonArry, path, type);\n" +
             "    }\n" +
             "  }\n" +
             "};\n" +
+            "\n" +
+            "\n" +
             "sugo.addEvent = function (children, event) {\n" +
             "  children.addEventListener(event.event_type, function (e) {\n" +
             "    var custom_props = {};\n" +
@@ -101,15 +231,21 @@ public class SugoWebViewClient extends WebViewClient {
             "    custom_props.from_binding = true;\n" +
             "    window.sugoEventListener.eventOnAndroid(event.event_id, event.event_name, JSON.stringify(custom_props));\n" +
             "  });\n" +
-            "};" +
+            "};\n" +
             "sugo.bindEvent = function () {\n" +
-            "  var jsonArry = [];\n" +
-            "  var body = document.getElementsByTagName('body')[0];\n" +
-            "  var childrens = body.children;\n" +
-            "  var parent_path = '';\n" +
-            "  sugo.handleNodeChild(childrens, jsonArry, parent_path, 'bind');\n" +
-            "\n" +
-            "\n" +
+            "  var paths = Object.keys(sugo.current_event_bindings);\n" +
+            "  for(var idx in paths){\n" +
+            "\t  var path_str = paths[idx];\n" +
+            "\t  var event = sugo.current_event_bindings[path_str];\n" +
+            "\t  var eles = document.querySelectorAll(JSON.parse(paths[idx]).path);\n" +
+            "\t  if(eles){\n" +
+            "\t\t  for(var eles_idx=0;eles_idx < eles.length; eles_idx ++){\n" +
+            "\t\t\t  var ele = eles[eles_idx];\n" +
+            "\t\t\t  sugo.addEvent(ele, event);\n" +
+            "\t\t  }\n" +
+            "\t  }\n" +
+            "\t  \n" +
+            "  }\n" +
             "};\n" +
             "sugo.bindEvent();\n" +
             "sugo.reportNodes = function () {\n" +
@@ -137,6 +273,7 @@ public class SugoWebViewClient extends WebViewClient {
         }
         JSONArray eventBindings = SugoWebEventListener.getBindEvents(mToken);
         StringBuffer scriptBuf = new StringBuffer();
+        scriptBuf.append(cssUtil);
         scriptBuf.append("var sugo={}; sugo.current_page ='");
         scriptBuf.append(activityName);
         scriptBuf.append("::' + window.location.pathname;");
