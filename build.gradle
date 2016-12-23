@@ -77,7 +77,7 @@ android.libraryVariants.all { variant ->
 }
 
 android.buildTypes.all { buildType ->
-    buildType.buildConfigField "String", "MIXPANEL_VERSION", "\"${project.properties.version}\""
+    buildType.buildConfigField "String", "SUGO_VERSION", "\"${project.properties.version}\""
 }
 
 allprojects {
