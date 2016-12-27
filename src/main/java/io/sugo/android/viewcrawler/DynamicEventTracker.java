@@ -34,10 +34,9 @@ import java.util.Map;
     }
 
     @Override
-    public void OnEvent(View v, String eventId, String eventName, boolean debounce) {
+    public void OnEvent(View v, String eventId, String eventName, JSONObject properties, boolean debounce) {
         // Will be called on the UI thread
         final long moment = System.currentTimeMillis();
-        final JSONObject properties = new JSONObject();
         try {
             final String text = textPropertyFromView(v);
             properties.put("text", text);
