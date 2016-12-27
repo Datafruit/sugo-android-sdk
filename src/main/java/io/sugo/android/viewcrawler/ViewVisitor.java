@@ -12,6 +12,9 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import io.sugo.android.mpmetrics.SGConfig;
 
 import java.lang.reflect.InvocationTargetException;
@@ -36,7 +39,7 @@ import java.util.WeakHashMap;
      * on click)
      */
     public interface OnEventListener {
-        void OnEvent(View host, String eventId, String eventName, boolean debounce);
+        void OnEvent(View host, String eventId, String eventName, JSONObject properties, boolean debounce);
     }
 
     public interface OnLayoutErrorListener {
@@ -77,7 +80,7 @@ import java.util.WeakHashMap;
 
         @Override
         public void cleanup() {
-            for (Map.Entry<View, Object> original:mOriginalValues.entrySet()) {
+            for (Map.Entry<View, Object> original : mOriginalValues.entrySet()) {
                 final View changedView = original.getKey();
                 final Object originalValue = original.getValue();
                 if (null != originalValue) {
@@ -205,7 +208,7 @@ import java.util.WeakHashMap;
         @Override
         public void cleanup() {
             // TODO find a way to optimize this.. remove this visitor and trigger a re-layout??
-            for (Map.Entry<View, int[]> original:mOriginalValues.entrySet()) {
+            for (Map.Entry<View, int[]> original : mOriginalValues.entrySet()) {
                 final View changedView = original.getKey();
                 final int[] originalValue = original.getValue();
                 final RelativeLayout.LayoutParams originalParams = (RelativeLayout.LayoutParams) changedView.getLayoutParams();
@@ -293,7 +296,7 @@ import java.util.WeakHashMap;
                         return 0;
                     } else if (null == lhs) {
                         return -1;
-                    } else if (null == rhs){
+                    } else if (null == rhs) {
                         return 1;
                     } else {
                         return rhs.hashCode() - lhs.hashCode();
@@ -320,7 +323,9 @@ import java.util.WeakHashMap;
             return mCycleDetector.hasCycle(dependencyGraph);
         }
 
-        protected String name() { return "Layout Update"; }
+        protected String name() {
+            return "Layout Update";
+        }
 
         private final WeakHashMap<View, int[]> mOriginalValues;
         private final List<LayoutRule> mArgs;
@@ -355,15 +360,15 @@ import java.util.WeakHashMap;
      * Adds an accessibility event, which will fire OnEvent, to every matching view.
      */
     public static class AddAccessibilityEventVisitor extends EventTriggeringVisitor {
-        public AddAccessibilityEventVisitor(List<Pathfinder.PathElement> path, int accessibilityEventType, String eventId, String eventName, OnEventListener listener) {
-            super(path, eventId, eventName, listener, false);
+        public AddAccessibilityEventVisitor(List<Pathfinder.PathElement> path, int accessibilityEventType, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener) {
+            super(path, eventId, eventName, dimMap, listener, false);
             mEventType = accessibilityEventType;
             mWatching = new WeakHashMap<View, TrackingAccessibilityDelegate>();
         }
 
         @Override
         public void cleanup() {
-            for (final Map.Entry<View, TrackingAccessibilityDelegate> entry:mWatching.entrySet()) {
+            for (final Map.Entry<View, TrackingAccessibilityDelegate> entry : mWatching.entrySet()) {
                 final View v = entry.getKey();
                 final TrackingAccessibilityDelegate toCleanup = entry.getValue();
                 final View.AccessibilityDelegate currentViewDelegate = getOldDelegate(v);
@@ -470,14 +475,14 @@ import java.util.WeakHashMap;
      * Installs a TextWatcher in each matching view. Does nothing if matching views are not TextViews.
      */
     public static class AddTextChangeListener extends EventTriggeringVisitor {
-        public AddTextChangeListener(List<Pathfinder.PathElement> path, String eventId, String eventName, OnEventListener listener) {
-            super(path, eventId, eventName, listener, true);
+        public AddTextChangeListener(List<Pathfinder.PathElement> path, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener) {
+            super(path, eventId, eventName, dimMap, listener, true);
             mWatching = new HashMap<TextView, TextWatcher>();
         }
 
         @Override
         public void cleanup() {
-            for (final Map.Entry<TextView, TextWatcher> entry:mWatching.entrySet()) {
+            for (final Map.Entry<TextView, TextWatcher> entry : mWatching.entrySet()) {
                 final TextView v = entry.getKey();
                 final TextWatcher watcher = entry.getValue();
                 v.removeTextChangedListener(watcher);
@@ -536,8 +541,8 @@ import java.util.WeakHashMap;
      * matching views before. Fires only once per traversal.
      */
     public static class ViewDetectorVisitor extends EventTriggeringVisitor {
-        public ViewDetectorVisitor(List<Pathfinder.PathElement> path, String eventId, String eventName, OnEventListener listener) {
-            super(path, eventId, eventName, listener, false);
+        public ViewDetectorVisitor(List<Pathfinder.PathElement> path, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener) {
+            super(path, eventId, eventName, dimMap, listener, false);
             mSeen = false;
         }
 
@@ -564,16 +569,35 @@ import java.util.WeakHashMap;
     }
 
     private static abstract class EventTriggeringVisitor extends ViewVisitor {
-        public EventTriggeringVisitor(List<Pathfinder.PathElement> path, String eventId, String eventName, OnEventListener listener, boolean debounce) {
+        public EventTriggeringVisitor(List<Pathfinder.PathElement> path, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener, boolean debounce) {
             super(path);
             mListener = listener;
             mEvenId = eventId;
             mEventName = eventName;
+            mDimMap = dimMap;
             mDebounce = debounce;
         }
 
         protected void fireEvent(View found) {
-            mListener.OnEvent(found, mEvenId, mEventName, mDebounce);
+            properties = new JSONObject();
+            if (mDimMap != null && mDimMap.size() > 0) {
+                for (final String dimName : mDimMap.keySet()) {
+                    getPathfinder().findTargetsInRoot(getRootView(), mDimMap.get(dimName), new Pathfinder.Accumulator() {
+                        @Override
+                        public void accumulate(View v) {
+                            if (v instanceof TextView) {
+                                TextView tv = (TextView) v;
+                                try {
+                                    properties.put(dimName, tv.getText().toString());
+                                } catch (JSONException e) {
+                                    Log.e(LOGTAG, "", e);
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+            mListener.OnEvent(found, mEvenId, mEventName, properties, mDebounce);
         }
 
         protected String getEventName() {
@@ -582,6 +606,8 @@ import java.util.WeakHashMap;
 
         private final OnEventListener mListener;
         private final String mEventName;
+        private final Map<String, List<Pathfinder.PathElement>> mDimMap;
+        private JSONObject properties;
         private final String mEvenId;
         private final boolean mDebounce;
     }
@@ -590,6 +616,7 @@ import java.util.WeakHashMap;
      * Scans the View hierarchy below rootView, applying it's operation to each matching child view.
      */
     public void visit(View rootView) {
+        mRootView = rootView;
         mPathfinder.findTargetsInRoot(rootView, mPath, this);
     }
 
@@ -612,10 +639,14 @@ import java.util.WeakHashMap;
         return mPathfinder;
     }
 
+    protected View getRootView() {
+        return mRootView;
+    }
+
     protected abstract String name();
 
     private final List<Pathfinder.PathElement> mPath;
     private final Pathfinder mPathfinder;
-
+    private View mRootView;
     private static final String LOGTAG = "SugoAPI.ViewVisitor";
 }

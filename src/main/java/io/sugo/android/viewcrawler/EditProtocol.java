@@ -20,7 +20,10 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /* package */ class EditProtocol {
 
@@ -59,6 +62,7 @@ import java.util.List;
             visitor = aVisitor;
             imageUrls = someUrls;
         }
+
         public final ViewVisitor visitor;
         public final List<String> imageUrls;
     }
@@ -82,12 +86,24 @@ import java.util.List;
                 throw new InapplicableInstructionsException("event '" + eventName + "' will not be bound to any element in the UI.");
             }
 
+            Map<String, List<Pathfinder.PathElement>> dimMap = null;
+            if (source.has("attributes")) {
+                JSONObject attributes = source.getJSONObject("attributes");
+                dimMap = new HashMap<String, List<Pathfinder.PathElement>>();
+                final Iterator<?> propIter = attributes.keys();
+                while (propIter.hasNext()) {
+                    final String key = (String) propIter.next();
+                    final List<Pathfinder.PathElement> bindPaths = readPath(attributes.getJSONArray(key), mResourceIds);
+                    dimMap.put(key, bindPaths);
+                }
+            }
             if ("click".equals(eventType)) {
                 return new ViewVisitor.AddAccessibilityEventVisitor(
                     path,
                     AccessibilityEvent.TYPE_VIEW_CLICKED,
                     eventId,
                     eventName,
+                    dimMap,
                     listener
                 );
             } else if ("selected".equals(eventType)) {
@@ -96,12 +112,13 @@ import java.util.List;
                     AccessibilityEvent.TYPE_VIEW_SELECTED,
                     eventId,
                     eventName,
+                    dimMap,
                     listener
                 );
             } else if ("text_changed".equals(eventType)) {
-                return new ViewVisitor.AddTextChangeListener(path, eventId, eventName, listener);
+                return new ViewVisitor.AddTextChangeListener(path, eventId, eventName, dimMap, listener);
             } else if ("detected".equals(eventType)) {
-                return new ViewVisitor.ViewDetectorVisitor(path, eventId, eventName, listener);
+                return new ViewVisitor.ViewDetectorVisitor(path, eventId, eventName, dimMap, listener);
             } else {
                 throw new BadInstructionsException("Mixpanel can't track event type \"" + eventType + "\"");
             }
