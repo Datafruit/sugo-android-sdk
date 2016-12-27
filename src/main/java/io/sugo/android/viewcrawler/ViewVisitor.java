@@ -579,7 +579,7 @@ import java.util.WeakHashMap;
         }
 
         protected void fireEvent(View found) {
-            properties = new JSONObject();
+            final JSONObject properties = new JSONObject();
             if (mDimMap != null && mDimMap.size() > 0) {
                 for (final String dimName : mDimMap.keySet()) {
                     getPathfinder().findTargetsInRoot(getRootView(), mDimMap.get(dimName), new Pathfinder.Accumulator() {
@@ -607,7 +607,6 @@ import java.util.WeakHashMap;
         private final OnEventListener mListener;
         private final String mEventName;
         private final Map<String, List<Pathfinder.PathElement>> mDimMap;
-        private JSONObject properties;
         private final String mEvenId;
         private final boolean mDebounce;
     }
