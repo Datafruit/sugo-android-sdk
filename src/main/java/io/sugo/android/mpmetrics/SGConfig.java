@@ -94,7 +94,7 @@ public class SGConfig {
     // Unfortunately, as long as we support building from source in Eclipse,
     // we can't rely on BuildConfig.SUGO_VERSION existing, so this must
     // be hard-coded both in our gradle files and here in code.
-    public static final String VERSION = "1.0.1";
+    public static final String VERSION = "1.0.2";
 
     public static boolean DEBUG = false;
 
