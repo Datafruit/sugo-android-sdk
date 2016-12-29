@@ -221,16 +221,20 @@ import javax.net.ssl.SSLSocketFactory;
         if (null != escapedId) {
             queryBuilder.append("&distinct_id=").append(escapedId);
         }
-        
-        queryBuilder.append("&properties=");
+
 
         JSONObject properties = new JSONObject();
         try {
+            String appVersion = URLEncoder.encode(mSystemInformation.getAppVersionName(), "utf-8");
+            queryBuilder.append("&app_version=").append(appVersion);
+
             properties.putOpt("$android_lib_version", SGConfig.VERSION);
             properties.putOpt("$android_app_version", mSystemInformation.getAppVersionName());
             properties.putOpt("$android_version", Build.VERSION.RELEASE);
             properties.putOpt("$android_app_release", mSystemInformation.getAppVersionCode());
             properties.putOpt("$android_device_model", Build.MODEL);
+
+            queryBuilder.append("&properties=");
             queryBuilder.append(URLEncoder.encode(properties.toString(), "utf-8"));
         } catch (Exception e) {
             Log.e(LOGTAG, "Exception constructing properties JSON", e.getCause());
