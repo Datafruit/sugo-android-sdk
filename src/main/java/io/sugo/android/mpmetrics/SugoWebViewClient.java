@@ -157,7 +157,7 @@ public class SugoWebViewClient extends WebViewClient {
             "    if (needsNthChild) {\n" +
             "        result += \":nth-child(\" + (ownIndex + 1) + \")\";\n" +
             "    } else if (needsClassNames) {\n" +
-            "        for (var prefixedName in prefixedOwnClassNamesArray)\n" +
+            "        for (var prefixedName in prefixedOwnClassNamesArray.keys())\n" +
             "            result += \".\" + escapeIdentifierIfNeeded(prefixedOwnClassNamesArray[prefixedName].substr(1));\n" +
             "    }\n" +
             "\n" +
@@ -209,7 +209,13 @@ public class SugoWebViewClient extends WebViewClient {
             "    if (type === 'report') {\n" +
             "      var rect = children.getBoundingClientRect();\n" +
             "      if (sugo.isElementInViewport(rect) == true) {\n" +
-            "        htmlNode.rect = rect;\n" +
+            "    var temp_rect = {\n" +
+            "      top: rect.top,\n" +
+            "      left: rect.left,\n" +
+            "      width: rect.width,\n" +
+            "      height: rect.height\n" +
+            "   }\n" +
+            "        htmlNode.rect = temp_rect;\n" +
             "        jsonArry.push(htmlNode);\n" +
             "      }\n" +
             "    }\n" +
@@ -218,9 +224,7 @@ public class SugoWebViewClient extends WebViewClient {
             "      sugo.handleNodeChild(children.children, jsonArry, path, type);\n" +
             "    }\n" +
             "  }\n" +
-            "};\n" +
-            "\n" +
-            "\n" +
+            "};" +
             "sugo.addEvent = function (children, event) {\n" +
             "  children.addEventListener(event.event_type, function (e) {\n" +
             "    var custom_props = {};\n" +
@@ -234,7 +238,7 @@ public class SugoWebViewClient extends WebViewClient {
             "};\n" +
             "sugo.bindEvent = function () {\n" +
             "  var paths = Object.keys(sugo.current_event_bindings);\n" +
-            "  for(var idx in paths){\n" +
+            "  for(var idx = 0;idx < paths.length; idx++) {\n" +
             "\t  var path_str = paths[idx];\n" +
             "\t  var event = sugo.current_event_bindings[path_str];\n" +
             "\t  var eles = document.querySelectorAll(JSON.parse(paths[idx]).path);\n" +
