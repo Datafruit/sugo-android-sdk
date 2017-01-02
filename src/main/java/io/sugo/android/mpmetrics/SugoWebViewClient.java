@@ -141,9 +141,10 @@ public class SugoWebViewClient extends WebViewClient {
             "        var siblingClassNamesArray = prefixedElementClassNames(sibling);\n" +
             "        for (var j = 0; j < siblingClassNamesArray.length; ++j) {\n" +
             "            var siblingClass = siblingClassNamesArray[j];\n" +
-            "            if (ownClassNames.indexOf(siblingClass))\n" +
+            "\t\t\tvar o_idx = ownClassNames.indexOf(siblingClass);\n" +
+            "            if (o_idx === -1)\n" +
             "                continue;\n" +
-            "            delete ownClassNames[siblingClass];\n" +
+            "            ownClassNames.splice(o_idx,1);\n" +
             "            if (!--ownClassNameCount) {\n" +
             "                needsNthChild = true;\n" +
             "                break;\n" +
@@ -157,8 +158,8 @@ public class SugoWebViewClient extends WebViewClient {
             "    if (needsNthChild) {\n" +
             "        result += \":nth-child(\" + (ownIndex + 1) + \")\";\n" +
             "    } else if (needsClassNames) {\n" +
-            "        for (var idx = 0;idx < prefixedOwnClassNamesArray.length; idx++) {\n" +
-            "            result += \".\" + escapeIdentifierIfNeeded(prefixedOwnClassNamesArray[idx].substr(1));\n" +
+            "        for (var idx = 0;idx < ownClassNames.length; idx++) {\n" +
+            "            result += \".\" + escapeIdentifierIfNeeded(ownClassNames[idx].substr(1));\n" +
             "        }\n" +
             "    }\n" +
             "\n" +
@@ -215,7 +216,7 @@ public class SugoWebViewClient extends WebViewClient {
             "            left: rect.left,\n" +
             "            width: rect.width,\n" +
             "            height: rect.height\n" +
-            "        }\n" +
+            "        };\n" +
             "        htmlNode.rect = temp_rect;\n" +
             "        jsonArry.push(htmlNode);\n" +
             "      }\n" +
@@ -245,7 +246,11 @@ public class SugoWebViewClient extends WebViewClient {
             "  for(var idx = 0;idx < paths.length; idx++) {\n" +
             "    var path_str = paths[idx];\n" +
             "      var event = sugo.current_event_bindings[path_str];\n" +
-            "      var eles = document.querySelectorAll(JSON.parse(paths[idx]).path);\n" +
+            "\t  var path = JSON.parse(paths[idx]).path;\n" +
+            "\t  if(event.similar === true){\n" +
+            "\t\t  path = path.replace(/:nth-child\\([0-9]*\\)/g, \"\");\n" +
+            "\t  }\n" +
+            "      var eles = document.querySelectorAll(path);\n" +
             "      if(eles){\n" +
             "          for(var eles_idx=0;eles_idx < eles.length; eles_idx ++){\n" +
             "              var ele = eles[eles_idx];\n" +
@@ -253,7 +258,7 @@ public class SugoWebViewClient extends WebViewClient {
             "          }\n" +
             "      }\n" +
             "  }\n" +
-            "};\n" +
+            "};" +
             "sugo.bindEvent();\n" +
             "sugo.reportNodes = function () {\n" +
             "  var jsonArry = [];\n" +
