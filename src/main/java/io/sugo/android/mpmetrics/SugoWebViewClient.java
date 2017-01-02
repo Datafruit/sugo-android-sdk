@@ -132,7 +132,7 @@ public class SugoWebViewClient extends WebViewClient {
             "        needsClassNames = true;\n" +
             "        var ownClassNames = prefixedOwnClassNamesArray;\n" +
             "        var ownClassNameCount = 0;\n" +
-            "        for (var name in ownClassNames)\n" +
+            "        for (var cn_idx = 0; cn_idx < ownClassNames.length; cn_idx++)\n" +
             "            ++ownClassNameCount;\n" +
             "        if (ownClassNameCount === 0) {\n" +
             "            needsNthChild = true;\n" +
@@ -157,8 +157,9 @@ public class SugoWebViewClient extends WebViewClient {
             "    if (needsNthChild) {\n" +
             "        result += \":nth-child(\" + (ownIndex + 1) + \")\";\n" +
             "    } else if (needsClassNames) {\n" +
-            "        for (var prefixedName in prefixedOwnClassNamesArray)\n" +
-            "            result += \".\" + escapeIdentifierIfNeeded(prefixedOwnClassNamesArray[prefixedName].substr(1));\n" +
+            "        for (var idx = 0;idx < prefixedOwnClassNamesArray.length; idx++) {\n" +
+            "            result += \".\" + escapeIdentifierIfNeeded(prefixedOwnClassNamesArray[idx].substr(1));\n" +
+            "        }\n" +
             "    }\n" +
             "\n" +
             "    return new UTILS.DOMNodePathStep(result, false);\n" +
@@ -202,14 +203,20 @@ public class SugoWebViewClient extends WebViewClient {
             "sugo.handleNodeChild = function (childrens, jsonArry, parent_path, type) {\n" +
             "  var index_map = {};\n" +
             "  for (var i = 0; i < childrens.length; i++) {\n" +
-            "\tvar children = childrens[i];\n" +
-            "\tvar path = UTILS.cssPath(children);\n" +
+            "    var children = childrens[i];\n" +
+            "    var path = UTILS.cssPath(children);\n" +
             "    var htmlNode = {};\n" +
             "    htmlNode.path = path;\n" +
             "    if (type === 'report') {\n" +
             "      var rect = children.getBoundingClientRect();\n" +
             "      if (sugo.isElementInViewport(rect) == true) {\n" +
-            "        htmlNode.rect = rect;\n" +
+            "        var temp_rect = {\n" +
+            "            top: rect.top,\n" +
+            "            left: rect.left,\n" +
+            "            width: rect.width,\n" +
+            "            height: rect.height\n" +
+            "        }\n" +
+            "        htmlNode.rect = temp_rect;\n" +
             "        jsonArry.push(htmlNode);\n" +
             "      }\n" +
             "    }\n" +
@@ -232,19 +239,19 @@ public class SugoWebViewClient extends WebViewClient {
             "    window.sugoEventListener.eventOnAndroid(event.event_id, event.event_name, JSON.stringify(custom_props));\n" +
             "  });\n" +
             "};\n" +
+            "\n" +
             "sugo.bindEvent = function () {\n" +
             "  var paths = Object.keys(sugo.current_event_bindings);\n" +
-            "  for(var idx in paths){\n" +
-            "\t  var path_str = paths[idx];\n" +
-            "\t  var event = sugo.current_event_bindings[path_str];\n" +
-            "\t  var eles = document.querySelectorAll(JSON.parse(paths[idx]).path);\n" +
-            "\t  if(eles){\n" +
-            "\t\t  for(var eles_idx=0;eles_idx < eles.length; eles_idx ++){\n" +
-            "\t\t\t  var ele = eles[eles_idx];\n" +
-            "\t\t\t  sugo.addEvent(ele, event);\n" +
-            "\t\t  }\n" +
-            "\t  }\n" +
-            "\t  \n" +
+            "  for(var idx = 0;idx < paths.length; idx++) {\n" +
+            "    var path_str = paths[idx];\n" +
+            "      var event = sugo.current_event_bindings[path_str];\n" +
+            "      var eles = document.querySelectorAll(JSON.parse(paths[idx]).path);\n" +
+            "      if(eles){\n" +
+            "          for(var eles_idx=0;eles_idx < eles.length; eles_idx ++){\n" +
+            "              var ele = eles[eles_idx];\n" +
+            "              sugo.addEvent(ele, event);\n" +
+            "          }\n" +
+            "      }\n" +
             "  }\n" +
             "};\n" +
             "sugo.bindEvent();\n" +
