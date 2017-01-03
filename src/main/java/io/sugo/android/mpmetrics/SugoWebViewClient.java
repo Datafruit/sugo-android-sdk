@@ -16,7 +16,7 @@ import org.json.JSONArray;
 
 public class SugoWebViewClient extends WebViewClient {
     private String mToken;
-    private String cssUtil ="var UTILS = {};\n" +
+    private static String cssUtil = "var UTILS = {};\n" +
             "UTILS.cssPath = function(node, optimized)\n" +
             "{\n" +
             "    if (node.nodeType !== Node.ELEMENT_NODE)\n" +
@@ -141,9 +141,10 @@ public class SugoWebViewClient extends WebViewClient {
             "        var siblingClassNamesArray = prefixedElementClassNames(sibling);\n" +
             "        for (var j = 0; j < siblingClassNamesArray.length; ++j) {\n" +
             "            var siblingClass = siblingClassNamesArray[j];\n" +
-            "            if (ownClassNames.indexOf(siblingClass))\n" +
+            "\t\t\tvar o_idx = ownClassNames.indexOf(siblingClass);\n" +
+            "            if (o_idx === -1)\n" +
             "                continue;\n" +
-            "            delete ownClassNames[siblingClass];\n" +
+            "            ownClassNames.splice(o_idx,1);\n" +
             "            if (!--ownClassNameCount) {\n" +
             "                needsNthChild = true;\n" +
             "                break;\n" +
@@ -157,8 +158,8 @@ public class SugoWebViewClient extends WebViewClient {
             "    if (needsNthChild) {\n" +
             "        result += \":nth-child(\" + (ownIndex + 1) + \")\";\n" +
             "    } else if (needsClassNames) {\n" +
-            "        for (var idx = 0;idx < prefixedOwnClassNamesArray.length; idx++) {\n" +
-            "            result += \".\" + escapeIdentifierIfNeeded(prefixedOwnClassNamesArray[idx].substr(1));\n" +
+            "        for (var idx = 0;idx < ownClassNames.length; idx++) {\n" +
+            "            result += \".\" + escapeIdentifierIfNeeded(ownClassNames[idx].substr(1));\n" +
             "        }\n" +
             "    }\n" +
             "\n" +
@@ -179,7 +180,7 @@ public class SugoWebViewClient extends WebViewClient {
             "        return this.value;\n" +
             "    }\n" +
             "};";
-    private String script= ";\n" +
+    private static String script = ";\n" +
             "sugo.current_event_bindings = {};\n" +
             "for (var i = 0; i < sugo.h5_event_bindings.length; i++) {\n" +
             "  var b_event = sugo.h5_event_bindings[i];\n" +
@@ -215,7 +216,7 @@ public class SugoWebViewClient extends WebViewClient {
             "            left: rect.left,\n" +
             "            width: rect.width,\n" +
             "            height: rect.height\n" +
-            "        }\n" +
+            "        };\n" +
             "        htmlNode.rect = temp_rect;\n" +
             "        jsonArry.push(htmlNode);\n" +
             "      }\n" +
@@ -245,7 +246,11 @@ public class SugoWebViewClient extends WebViewClient {
             "  for(var idx = 0;idx < paths.length; idx++) {\n" +
             "    var path_str = paths[idx];\n" +
             "      var event = sugo.current_event_bindings[path_str];\n" +
-            "      var eles = document.querySelectorAll(JSON.parse(paths[idx]).path);\n" +
+            "\t  var path = JSON.parse(paths[idx]).path;\n" +
+            "\t  if(event.similar === true){\n" +
+            "\t\t  path = path.replace(/:nth-child\\([0-9]*\\)/g, \"\");\n" +
+            "\t  }\n" +
+            "      var eles = document.querySelectorAll(path);\n" +
             "      if(eles){\n" +
             "          for(var eles_idx=0;eles_idx < eles.length; eles_idx ++){\n" +
             "              var ele = eles[eles_idx];\n" +
@@ -253,7 +258,7 @@ public class SugoWebViewClient extends WebViewClient {
             "          }\n" +
             "      }\n" +
             "  }\n" +
-            "};\n" +
+            "};" +
             "sugo.bindEvent();\n" +
             "sugo.reportNodes = function () {\n" +
             "  var jsonArry = [];\n" +
@@ -268,17 +273,24 @@ public class SugoWebViewClient extends WebViewClient {
     @Override
     public void onPageFinished(WebView view, String url) {
         super.onPageFinished(view, url);
+        handlePageFinished(view, url, mToken);
+    }
+
+    public void setmToken(String mToken) {
+        this.mToken = mToken;
+    }
+
+    public static void handlePageFinished(WebView view, String url, String token) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             view.setWebContentsDebuggingEnabled(true);
         }
         Context context = view.getContext();
         String activityName = null;
-        if (context instanceof Activity)
-        {
-            Activity activity = (Activity)context;
+        if (context instanceof Activity) {
+            Activity activity = (Activity) context;
             activityName = activity.getClass().getName();
         }
-        JSONArray eventBindings = SugoWebEventListener.getBindEvents(mToken);
+        JSONArray eventBindings = SugoWebEventListener.getBindEvents(token);
         StringBuffer scriptBuf = new StringBuffer();
         scriptBuf.append(cssUtil);
         scriptBuf.append("var sugo={}; sugo.current_page ='");
@@ -288,10 +300,5 @@ public class SugoWebViewClient extends WebViewClient {
         scriptBuf.append(eventBindings.toString());
         scriptBuf.append(script);
         view.loadUrl("javascript:" + scriptBuf.toString());
-
-    }
-
-    public void setmToken(String mToken) {
-        this.mToken = mToken;
     }
 }

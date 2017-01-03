@@ -42,7 +42,7 @@ import java.util.concurrent.Future;
 /**
  * Core class for interacting with Mixpanel Analytics.
  * <p>
- * <p>Call {@link #getInstance(Context, String)} with
+ * <p>Call {@link #getInstance(Context)} with
  * your main application activity and your Mixpanel API token as arguments
  * an to get an instance you can use to report how users are using your
  * application.
@@ -285,8 +285,7 @@ public class SugoAPI {
      * </pre>
      *
      * @param context The application context you are tracking
-     * @param token   Your Mixpanel project token. You can get your project token on the Mixpanel web site,
-     *                in the settings dialog.
+
      * @return an instance of SugoAPI associated with your project
      */
     public static SugoAPI getInstance(Context context) {
@@ -1072,8 +1071,16 @@ public class SugoAPI {
         }
         webViewClient.setmToken(token);
         webView.setWebViewClient(webViewClient);
+        addWebViewJavascriptInterface(webView);
+    }
+
+    public void addWebViewJavascriptInterface(WebView webView){
         webView.addJavascriptInterface(new SugoWebEventListener(this), "sugoEventListener");
         webView.addJavascriptInterface(new SugoWebNodeReporter(), "sugoWebNodeReporter");
+    }
+
+    public SGConfig getmConfig(){
+        return mConfig;
     }
 
     private final Context mContext;
