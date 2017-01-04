@@ -7,9 +7,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * Created by fengxj on 11/7/16.
@@ -24,10 +22,13 @@ public class SugoWebEventListener {
     }
 
     @JavascriptInterface
-    public void eventOnAndroid(String eventId, String eventName, String props) {
+    public void track(String eventId, String eventName, String props) {
         try {
             JSONObject jsonObject = new JSONObject(props);
-            sugoAPI.track(eventId, eventName, jsonObject);
+            if(eventId == null || eventId.trim() == "")
+                sugoAPI.track(eventName, jsonObject);
+            else
+                sugoAPI.track(eventId, eventName, jsonObject);
         } catch (JSONException e) {
             JSONObject jsonObject = new JSONObject();
             try {
@@ -38,6 +39,11 @@ public class SugoWebEventListener {
             sugoAPI.track("Exception", jsonObject);
         }
 
+    }
+
+    @JavascriptInterface
+    public void timeEvent(String eventName) {
+        sugoAPI.timeEvent(eventName);
     }
 
     public static void bindEvents(String token, JSONArray eventBindings) {

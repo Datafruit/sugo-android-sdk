@@ -6,7 +6,6 @@ import android.os.Build;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import io.sugo.android.mpmetrics.SugoWebEventListener;
 
 import org.json.JSONArray;
 
@@ -15,7 +14,12 @@ import org.json.JSONArray;
  */
 
 public class SugoWebViewClient extends WebViewClient {
-    private String mToken;
+    private static String pageViewScript = "window.sugoEventListener.track('', 'h5_enter_page_event', JSON.stringify({page: window.location.pathname}));\n" +
+            "window.sugoEventListener.timeEvent('h5_stay_event');\n" +
+            "\n" +
+            "window.addEventListener('beforeunload', function (e) {\n" +
+            "\twindow.sugoEventListener.track('', 'h5_stay_event', JSON.stringify({page: window.location.pathname}));\n" +
+            "});";
     private static String cssUtil = "var UTILS = {};\n" +
             "UTILS.cssPath = function(node, optimized)\n" +
             "{\n" +
@@ -233,14 +237,13 @@ public class SugoWebViewClient extends WebViewClient {
             "  children.addEventListener(event.event_type, function (e) {\n" +
             "    var custom_props = {};\n" +
             "    if(event.code && event.code.replace(/(^\\s*)|(\\s*$)/g, \"\") != ''){\n" +
-            "        eval(event.code);\n" +
+            "        var sugo_props = new Function(event.code);\n" +
             "        custom_props = sugo_props();\n" +
             "    }\n" +
             "    custom_props.from_binding = true;\n" +
-            "    window.sugoEventListener.eventOnAndroid(event.event_id, event.event_name, JSON.stringify(custom_props));\n" +
+            "    window.sugoEventListener.track(event.event_id, event.event_name, JSON.stringify(custom_props));\n" +
             "  });\n" +
             "};\n" +
-            "\n" +
             "sugo.bindEvent = function () {\n" +
             "  var paths = Object.keys(sugo.current_event_bindings);\n" +
             "  for(var idx = 0;idx < paths.length; idx++) {\n" +
@@ -273,17 +276,19 @@ public class SugoWebViewClient extends WebViewClient {
     @Override
     public void onPageFinished(WebView view, String url) {
         super.onPageFinished(view, url);
-        handlePageFinished(view, url, mToken);
+        handlePageFinished(view, url);
     }
 
-    public void setmToken(String mToken) {
-        this.mToken = mToken;
-    }
 
-    public static void handlePageFinished(WebView view, String url, String token) {
+    public static void handlePageFinished(WebView view, String url) {
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             view.setWebContentsDebuggingEnabled(true);
         }
+
+        SugoAPI sugoInstance = SugoAPI.getInstance(view.getContext());
+
+        String token = sugoInstance.getmConfig().getToken();
         Context context = view.getContext();
         String activityName = null;
         if (context instanceof Activity) {
@@ -292,6 +297,7 @@ public class SugoWebViewClient extends WebViewClient {
         }
         JSONArray eventBindings = SugoWebEventListener.getBindEvents(token);
         StringBuffer scriptBuf = new StringBuffer();
+        scriptBuf.append(pageViewScript);
         scriptBuf.append(cssUtil);
         scriptBuf.append("var sugo={}; sugo.current_page ='");
         scriptBuf.append(activityName);
