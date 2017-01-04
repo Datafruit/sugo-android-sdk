@@ -1069,7 +1069,6 @@ public class SugoAPI {
         if (webViewClient == null) {
             webViewClient = new SugoWebViewClient();
         }
-        webViewClient.setmToken(token);
         webView.setWebViewClient(webViewClient);
         addWebViewJavascriptInterface(webView);
     }
