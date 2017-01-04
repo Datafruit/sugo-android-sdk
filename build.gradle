@@ -136,7 +136,7 @@ uploadArchives {
         if (isReleaseVersion() && project.hasProperty("sonatypeUsername")) {
             /**
              * In order to do nexus deploys, you'll need to setup a gradle.properties file in $HOME/.gradle
-             * with the following properties. You'll need the mixpanel.key file and then import it using GnuPG
+             * with the following properties. You'll need the sugo.key file and then import it using GnuPG
              * which will provide you with the keyId and the secring.gpg file
              * signing.keyId=
              * signing.password=
