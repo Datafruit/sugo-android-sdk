@@ -8,7 +8,7 @@ gradle build
 
 ```gradle
 dependencies {
-    compile "io.sugo.android:sugo-android-sdk:1.0.1"
+    compile "io.sugo.android:sugo-android-sdk:1.0.3"
 }
 
 ```
