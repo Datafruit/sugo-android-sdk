@@ -281,20 +281,27 @@ public class SugoWebViewClient extends WebViewClient {
 
 
     public static void handlePageFinished(WebView view, String url) {
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             view.setWebContentsDebuggingEnabled(true);
         }
 
-        SugoAPI sugoInstance = SugoAPI.getInstance(view.getContext());
-
-        String token = sugoInstance.getmConfig().getToken();
         Context context = view.getContext();
-        String activityName = null;
-        if (context instanceof Activity) {
-            Activity activity = (Activity) context;
-            activityName = activity.getClass().getName();
-        }
+
+        Activity activity = (Activity) context;
+        String script = getInjectScript(activity);
+        view.loadUrl("javascript:" + script);
+
+    }
+
+    public static void handlePageFinished(WebViewDelegate delegate, Activity activity, String url) {
+        String script = getInjectScript(activity);
+        delegate.loadUrl("javascript:" + script);
+    }
+
+    public static String getInjectScript(Activity activity){
+        SugoAPI sugoInstance = SugoAPI.getInstance(activity);
+        String token = sugoInstance.getmConfig().getToken();
+        String activityName = activity.getClass().getName();
         JSONArray eventBindings = SugoWebEventListener.getBindEvents(token);
         StringBuffer scriptBuf = new StringBuffer();
         scriptBuf.append(pageViewScript);
@@ -305,6 +312,6 @@ public class SugoWebViewClient extends WebViewClient {
         scriptBuf.append(" sugo.h5_event_bindings =");
         scriptBuf.append(eventBindings.toString());
         scriptBuf.append(script);
-        view.loadUrl("javascript:" + scriptBuf.toString());
+        return scriptBuf.toString();
     }
 }
