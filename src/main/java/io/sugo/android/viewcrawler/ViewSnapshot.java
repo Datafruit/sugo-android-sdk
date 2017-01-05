@@ -27,6 +27,7 @@ import android.widget.RelativeLayout;
 
 import io.sugo.android.mpmetrics.SGConfig;
 import io.sugo.android.mpmetrics.ResourceIds;
+import io.sugo.android.mpmetrics.SugoAPI;
 import io.sugo.android.mpmetrics.SugoWebNodeReporter;
 
 import org.json.JSONObject;
@@ -214,8 +215,9 @@ import java.util.concurrent.TimeoutException;
         }
 
         if (view instanceof WebView) {
+            SugoWebNodeReporter sugoWebNodeReporter = SugoAPI.getSugoWebNodeReporter(view);
             final WebView webView = (WebView) view;
-            int oldVersion = SugoWebNodeReporter.version;
+            int oldVersion = sugoWebNodeReporter.version;
             webView.post(new Runnable() {
                 @Override
                 public void run() {
@@ -224,7 +226,7 @@ import java.util.concurrent.TimeoutException;
             });
             int max_attempt = 20;
             int count = 0;
-            while (oldVersion == SugoWebNodeReporter.version && count < max_attempt) {
+            while (oldVersion == sugoWebNodeReporter.version && count < max_attempt) {
                 try {
                     count++;
                     Thread.sleep(100);
@@ -235,10 +237,10 @@ import java.util.concurrent.TimeoutException;
             if (count < max_attempt) {
                 j.name("htmlPage");
                 j.beginObject();
-                j.name("url").value(SugoWebNodeReporter.url);
-                j.name("clientWidth").value(SugoWebNodeReporter.clientWidth);
-                j.name("clientHeight").value(SugoWebNodeReporter.clientHeight);
-                j.name("nodes").value(SugoWebNodeReporter.webNodeJson);
+                j.name("url").value(sugoWebNodeReporter.url);
+                j.name("clientWidth").value(sugoWebNodeReporter.clientWidth);
+                j.name("clientHeight").value(sugoWebNodeReporter.clientHeight);
+                j.name("nodes").value(sugoWebNodeReporter.webNodeJson);
                 j.endObject();
             }
         }

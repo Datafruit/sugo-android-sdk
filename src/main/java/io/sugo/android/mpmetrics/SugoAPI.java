@@ -1075,7 +1075,9 @@ public class SugoAPI {
 
     public void addWebViewJavascriptInterface(WebView webView){
         webView.addJavascriptInterface(new SugoWebEventListener(this), "sugoEventListener");
-        webView.addJavascriptInterface(new SugoWebNodeReporter(), "sugoWebNodeReporter");
+        SugoWebNodeReporter reporter = new SugoWebNodeReporter();
+        webView.addJavascriptInterface(reporter, "sugoWebNodeReporter");
+        setSugoWebNodeReporter(webView, reporter);
     }
 
     public void addWebViewJavascriptInterface(WebViewDelegate delegate){
@@ -1087,6 +1089,12 @@ public class SugoAPI {
         return mConfig;
     }
 
+    public static SugoWebNodeReporter getSugoWebNodeReporter(Object key){
+        return sugoWNReporter.get(key);
+    }
+    public static void setSugoWebNodeReporter(Object key,SugoWebNodeReporter sugoWebNodeReporter){
+         sugoWNReporter.put(key, sugoWebNodeReporter);
+    }
     private final Context mContext;
     private final AnalyticsMessages mMessages;
     private final SGConfig mConfig;
@@ -1110,4 +1118,6 @@ public class SugoAPI {
     private static final String ENGAGE_DATE_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ss";
 
     private boolean mDisableDecideChecker;
+
+    private static Map<Object, SugoWebNodeReporter> sugoWNReporter = new HashMap<Object, SugoWebNodeReporter>();
 }
