@@ -15,10 +15,11 @@ import org.json.JSONArray;
 
 public class SugoWebViewClient extends WebViewClient {
     private static String pageViewScript = "sugo.track('', 'h5_enter_page_event', {page: window.location.pathname});\n" +
-            "sugo.timeEvent('h5_stay_event');\n" +
+            "sugo.enter_time = new Date().getTime();\n" +
             "\n" +
             "window.addEventListener('beforeunload', function (e) {\n" +
-            "    sugo.track('', 'h5_stay_event', {page: window.location.pathname});\n" +
+            "\tvar duration = (new Date().getTime() - sugo.enter_time)/1000;\n" +
+            "    sugo.track('', 'h5_stay_event', {page: window.location.pathname, duration: duration});\n" +
             "});";
     private static String cssUtil = "var UTILS = {};\n" +
             "UTILS.cssPath = function(node, optimized)\n" +
