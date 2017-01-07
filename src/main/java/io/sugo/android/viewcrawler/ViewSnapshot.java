@@ -20,6 +20,7 @@ import android.util.DisplayMetrics;
 import android.util.JsonWriter;
 import android.util.Log;
 import android.util.LruCache;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
@@ -31,6 +32,7 @@ import io.sugo.android.mpmetrics.SugoAPI;
 import io.sugo.android.mpmetrics.SugoWebNodeReporter;
 
 import org.json.JSONObject;
+import org.xwalk.core.XWalkView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -43,6 +45,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -105,7 +108,7 @@ import java.util.concurrent.TimeoutException;
             writer.write(String.format("%s", info.scale));
             writer.write(",");
 
-            String imageHash = info.screenshot.getBitmapHash();
+            String imageHash = info.screenshot.getRandomHash();
             writer.write("\"image_hash\":");
             writer.write(String.format("\"%s\"", imageHash));
             if (bitmapHash == null || !bitmapHash.equals(imageHash)) {
@@ -146,6 +149,9 @@ import java.util.concurrent.TimeoutException;
 
     private void snapshotView(JsonWriter j, View view)
             throws IOException {
+        if (view.getVisibility() != View.VISIBLE) {
+            return;
+        }
         final int viewId = view.getId();
         final String viewIdName;
         if (-1 == viewId) {
@@ -245,6 +251,40 @@ import java.util.concurrent.TimeoutException;
             }
         }
 
+        if (view instanceof XWalkView) {
+            SugoWebNodeReporter sugoWebNodeReporter = SugoAPI.getSugoWebNodeReporter(view);
+            if (sugoWebNodeReporter != null) {
+                final XWalkView xWalkView = (XWalkView) view;
+                int oldVersion = sugoWebNodeReporter.version;
+                xWalkView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        xWalkView.load("javascript:if(typeof sugo === 'object' && typeof sugo.reportNodes === 'function'){sugo.reportNodes();}", "");
+                    }
+                });
+                int max_attempt = 20;
+                int count = 0;
+                while (oldVersion == sugoWebNodeReporter.version && count < max_attempt) {
+                    try {
+                        count++;
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        Log.e(LOGTAG, e.getMessage());
+                    }
+                }
+                if (count < max_attempt) {
+                    j.name("htmlPage");
+                    j.beginObject();
+                    j.name("url").value(sugoWebNodeReporter.url);
+                    j.name("clientWidth").value(sugoWebNodeReporter.clientWidth);
+                    j.name("clientHeight").value(sugoWebNodeReporter.clientHeight);
+                    j.name("nodes").value(sugoWebNodeReporter.webNodeJson);
+                    j.name("screenshot").value(bitmapToBase64(captureImage(xWalkView)));
+                    j.endObject();
+                }
+            }
+        }
+
         j.name("subviews");
         j.beginArray();
         if (view instanceof ViewGroup) {
@@ -272,6 +312,87 @@ import java.util.concurrent.TimeoutException;
                 }
             }
         }
+    }
+
+    private TextureView findXWalkTextureView(ViewGroup group) {
+        int childCount = group.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            View child = group.getChildAt(i);
+            if (child instanceof TextureView) {
+                String parentClassName = child.getParent().getClass().toString();
+                boolean isRightKindOfParent = (parentClassName.contains("XWalk"));
+                if (isRightKindOfParent) {
+                    return (TextureView) child;
+                }
+            } else if (child instanceof ViewGroup) {
+                TextureView textureView = findXWalkTextureView((ViewGroup) child);
+                if (textureView != null) {
+                    return textureView;
+                }
+            }
+        }
+        return null;
+    }
+
+    public Bitmap captureImage(XWalkView xWalkView) {
+
+        if (xWalkView != null) {
+            Bitmap bitmap = null;
+
+            boolean isCrosswalk = false;
+            try {
+                Class.forName("org.xwalk.core.XWalkView");
+                isCrosswalk = true;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            if (isCrosswalk) {
+                try {
+                    TextureView textureView = findXWalkTextureView(xWalkView);
+                    bitmap = textureView.getBitmap();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else {
+                bitmap = Bitmap.createBitmap(xWalkView.getWidth(), xWalkView.getHeight(), Bitmap.Config.RGB_565);
+                Canvas c = new Canvas(bitmap);
+                xWalkView.draw(c);
+            }
+            return bitmap;
+        } else {
+            return null;
+        }
+    }
+
+    public static String bitmapToBase64(Bitmap bitmap) {
+
+        String result = null;
+        ByteArrayOutputStream baos = null;
+        try {
+            if (bitmap != null) {
+                baos = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 20, baos);
+
+                baos.flush();
+                baos.close();
+
+                byte[] bitmapBytes = baos.toByteArray();
+                result = Base64.encodeToString(bitmapBytes, Base64.DEFAULT);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (baos != null) {
+                    baos.flush();
+                    baos.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
     }
 
     private void addProperties(JsonWriter j, View v)
@@ -482,6 +603,26 @@ import java.util.concurrent.TimeoutException;
             try {
                 MessageDigest md = MessageDigest.getInstance("MD5");
                 md.update(byteArray);
+                byte messageDigest[] = md.digest();
+
+                // Create Hex String
+                StringBuffer hexString = new StringBuffer();
+                for (int i = 0; i < messageDigest.length; i++)
+                    hexString.append(Integer.toHexString(0xFF & messageDigest
+                            [i]));
+                mCachedHash = hexString.toString();
+            } catch (NoSuchAlgorithmException e) {
+                mCachedHash = null;
+            }
+            return mCachedHash;
+        }
+
+        public synchronized String getRandomHash() {
+            String mCachedHash = null;
+            Random random = new Random();
+            try {
+                MessageDigest md = MessageDigest.getInstance("MD5");
+                md.update((random.nextInt(10000000) + "'").getBytes());
                 byte messageDigest[] = md.digest();
 
                 // Create Hex String

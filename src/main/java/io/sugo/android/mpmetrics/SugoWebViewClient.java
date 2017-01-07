@@ -8,6 +8,7 @@ import android.webkit.WebViewClient;
 
 
 import org.json.JSONArray;
+import org.xwalk.core.XWalkView;
 
 /**
  * Created by fengxj on 10/31/16.
@@ -281,6 +282,7 @@ public class SugoWebViewClient extends WebViewClient {
             "sugo.timeEvent = function(event_name){\n" +
             "    window.sugoEventListener.timeEvent(event_name);\n" +
             "};";
+
     @Override
     public void onPageFinished(WebView view, String url) {
         super.onPageFinished(view, url);
@@ -301,12 +303,20 @@ public class SugoWebViewClient extends WebViewClient {
 
     }
 
+    public static void handlePageFinished(XWalkView view, String url) {
+        Context context = view.getContext();
+        Activity activity = (Activity) context;
+        String script = getInjectScript(activity);
+        view.load("javascript:" + script, "");
+
+    }
+
     public static void handlePageFinished(WebViewDelegate delegate, Activity activity, String url) {
         String script = getInjectScript(activity);
         delegate.loadUrl("javascript:" + script);
     }
 
-    public static String getInjectScript(Activity activity){
+    public static String getInjectScript(Activity activity) {
         SugoAPI sugoInstance = SugoAPI.getInstance(activity);
         String token = sugoInstance.getmConfig().getToken();
         String activityName = activity.getClass().getName();
