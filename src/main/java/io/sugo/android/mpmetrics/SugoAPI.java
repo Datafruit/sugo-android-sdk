@@ -1082,7 +1082,9 @@ public class SugoAPI {
 
     public void addWebViewJavascriptInterface(WebViewDelegate delegate){
         delegate.addJavascriptInterface(new SugoWebEventListener(this), "sugoEventListener");
-        delegate.addJavascriptInterface(new SugoWebNodeReporter(), "sugoWebNodeReporter");
+        SugoWebNodeReporter reporter = new SugoWebNodeReporter();
+        delegate.addJavascriptInterface(reporter, "sugoWebNodeReporter");
+        setSugoWebNodeReporter(delegate, reporter);
     }
 
     public SGConfig getmConfig(){
