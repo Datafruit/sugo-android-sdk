@@ -15,12 +15,12 @@ import org.xwalk.core.XWalkView;
  */
 
 public class SugoWebViewClient extends WebViewClient {
-    private static String pageViewScript = "sugo.track('', 'h5_enter_page_event', {page: window.location.pathname});\n" +
+    private static String pageViewScript = "sugo.track('', 'h5_enter_page_event', {page: sugo.relative_path});\n" +
             "sugo.enter_time = new Date().getTime();\n" +
             "\n" +
             "window.addEventListener('beforeunload', function (e) {\n" +
             "\tvar duration = (new Date().getTime() - sugo.enter_time)/1000;\n" +
-            "    sugo.track('', 'h5_stay_event', {page: window.location.pathname, duration: duration});\n" +
+            "    sugo.track('', 'h5_stay_event', {page: sugo.relative_path, duration: duration});\n" +
             "});";
     private static String cssUtil = "var UTILS = {};\n" +
             "UTILS.cssPath = function(node, optimized)\n" +
@@ -272,7 +272,7 @@ public class SugoWebViewClient extends WebViewClient {
             "  var parent_path = '';\n" +
             "  sugo.handleNodeChild(childrens, jsonArry, parent_path, 'report');\n" +
             "\n" +
-            "  window.sugoWebNodeReporter.reportNodes(window.location.pathname, JSON.stringify(jsonArry), sugo.clientWidth, sugo.clientHeight);\n" +
+            "  window.sugoWebNodeReporter.reportNodes(sugo.relative_path, JSON.stringify(jsonArry), sugo.clientWidth, sugo.clientHeight);\n" +
             "};";
     private static String initScript = "var sugo = {};\n" +
             "sugo.track = function(event_id, event_name, props){\n" +
@@ -324,10 +324,13 @@ public class SugoWebViewClient extends WebViewClient {
         StringBuffer scriptBuf = new StringBuffer();
         scriptBuf.append(cssUtil);
         scriptBuf.append(initScript);
+        scriptBuf.append("sugo.relative_path = window.location.pathname.replace(")
+                .append(sugoInstance.getmConfig().getWebRoot())
+                .append(", '');");
         scriptBuf.append(pageViewScript);
         scriptBuf.append("sugo.current_page ='");
         scriptBuf.append(activityName);
-        scriptBuf.append("::' + window.location.pathname;");
+        scriptBuf.append("::' + sugo.relative_path;");
         scriptBuf.append(" sugo.h5_event_bindings =");
         scriptBuf.append(eventBindings.toString());
         scriptBuf.append(script);
