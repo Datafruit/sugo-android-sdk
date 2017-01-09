@@ -146,6 +146,9 @@ import java.util.concurrent.TimeoutException;
 
     private void snapshotView(JsonWriter j, View view)
             throws IOException {
+        if (view.getVisibility() != View.VISIBLE) {
+            return;
+        }
         final int viewId = view.getId();
         final String viewIdName;
         if (-1 == viewId) {
