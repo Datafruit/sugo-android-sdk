@@ -216,6 +216,7 @@ public class SGConfig {
         mDisableDecideChecker = metaData.getBoolean("io.sugo.android.SGConfig.DisableDecideChecker", false);
         mImageCacheMaxMemoryFactor = metaData.getInt("io.sugo.android.SGConfig.ImageCacheMaxMemoryFactor", 10);
         mToken = metaData.getString("io.sugo.android.SGConfig.token");
+        webRoot = metaData.getString("io.sugo.android.SGConfig.webRoot");
         // Disable if EITHER of these is present and false, otherwise enable
         final boolean surveysAutoCheck = metaData.getBoolean("io.sugo.android.SGConfig.AutoCheckForSurveys", true);
         final boolean mixpanelUpdatesAutoShow = metaData.getBoolean("io.sugo.android.SGConfig.AutoShowMixpanelUpdates", true);
@@ -379,6 +380,13 @@ public class SGConfig {
     public String getDecideEndpoint() {
         return mDecideEndpoint;
     }
+
+    public String getWebRoot() {
+        if (webRoot == null || webRoot.trim().equals(""))
+            webRoot = "''";
+        return webRoot;
+    }
+
     public String getToken() {
         return mToken;
     }
@@ -483,6 +491,7 @@ public class SGConfig {
     private final boolean mDisableDecideChecker;
     private final int mImageCacheMaxMemoryFactor;
     private final String mToken;
+    private String webRoot;
     // Mutable, with synchronized accessor and mutator
     private SSLSocketFactory mSSLSocketFactory;
     private OfflineMode mOfflineMode;
