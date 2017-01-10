@@ -20,6 +20,7 @@ import android.util.DisplayMetrics;
 import android.util.JsonWriter;
 import android.util.Log;
 import android.util.LruCache;
+import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
@@ -334,6 +335,26 @@ import java.util.concurrent.TimeoutException;
         return null;
     }
 
+    private SurfaceView findXWalkSurfaceView(ViewGroup group) {
+        int childCount = group.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            View child = group.getChildAt(i);
+            if (child instanceof SurfaceView) {
+                String parentClassName = child.getParent().getClass().toString();
+                boolean isRightKindOfParent = (parentClassName.contains("XWalk"));
+                if (isRightKindOfParent) {
+                    return (SurfaceView) child;
+                }
+            } else if (child instanceof ViewGroup) {
+                SurfaceView textureView = findXWalkSurfaceView((ViewGroup) child);
+                if (textureView != null) {
+                    return textureView;
+                }
+            }
+        }
+        return null;
+    }
+
     public Bitmap captureImage(XWalkView xWalkView) {
 
         if (xWalkView != null) {
@@ -350,7 +371,15 @@ import java.util.concurrent.TimeoutException;
             if (isCrosswalk) {
                 try {
                     TextureView textureView = findXWalkTextureView(xWalkView);
-                    bitmap = textureView.getBitmap();
+                    if (textureView == null) {
+                        SurfaceView surfaceView = findXWalkSurfaceView(xWalkView);
+                        bitmap = Bitmap.createBitmap(xWalkView.getWidth(), xWalkView.getHeight(), Bitmap.Config.RGB_565);
+                        Canvas canvas = new Canvas(bitmap);
+                        surfaceView.draw(canvas);
+
+                    } else {
+                        bitmap = textureView.getBitmap();
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
