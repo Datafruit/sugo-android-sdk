@@ -15,12 +15,12 @@ import org.xwalk.core.XWalkView;
  */
 
 public class SugoWebViewClient extends WebViewClient {
-    private static String pageViewScript = "sugo.track('', 'h5_enter_page_event', {page: sugo.relative_path});\n" +
+    private static String pageViewScript = "sugo.track('', 'h5_enter_page_event', {" + SGConfig.FIELD_PAGE + ": sugo.relative_path});\n" +
             "sugo.enter_time = new Date().getTime();\n" +
             "\n" +
             "window.addEventListener('beforeunload', function (e) {\n" +
             "\tvar duration = (new Date().getTime() - sugo.enter_time)/1000;\n" +
-            "    sugo.track('', 'h5_stay_event', {page: sugo.relative_path, duration: duration});\n" +
+            "    sugo.track('', 'h5_stay_event', {" + SGConfig.FIELD_PAGE + ": sugo.relative_path, " + SGConfig.FIELD_DURATION + ": duration});\n" +
             "});";
     private static String cssUtil = "var UTILS = {};\n" +
             "UTILS.cssPath = function(node, optimized)\n" +
@@ -256,7 +256,7 @@ public class SugoWebViewClient extends WebViewClient {
             "                        var sugo_props = new Function(event.code);\n" +
             "                        custom_props = sugo_props();\n" +
             "                    }\n" +
-            "                    custom_props.from_binding = true;\n" +
+            "                    custom_props." + SGConfig.FIELD_FROM_BINDING + " = true;\n" +
             "                    sugo.track(event.event_id, event.event_name, custom_props);\n" +
             "                    break;\n" +
             "                 }\n" +

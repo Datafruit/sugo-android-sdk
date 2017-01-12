@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import io.sugo.android.mpmetrics.SGConfig;
 import io.sugo.android.mpmetrics.SugoAPI;
 
 import org.json.JSONException;
@@ -39,12 +40,12 @@ import java.util.Map;
         final long moment = System.currentTimeMillis();
         try {
             final String text = textPropertyFromView(v);
-            properties.put("text", text);
-            properties.put("from_binding", true);
+            properties.put(SGConfig.FIELD_TEXT, text);
+            properties.put(SGConfig.FIELD_FROM_BINDING, true);
 
             // We may call track much later, but we'll be tracking something
             // that happened right at moment.
-            properties.put("time", moment / 1000);
+            properties.put(SGConfig.FIELD_TIME, moment / 1000);
 
         } catch (JSONException e) {
             Log.e(LOGTAG, "Can't format properties from view due to JSON issue", e);

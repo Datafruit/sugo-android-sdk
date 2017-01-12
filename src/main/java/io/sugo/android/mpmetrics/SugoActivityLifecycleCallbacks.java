@@ -56,7 +56,7 @@ import io.sugo.android.viewcrawler.GestureTracker;
 
         try {
             JSONObject props = new JSONObject();
-            props.put("page",activity.getPackageName()+"."+activity.getLocalClassName());
+            props.put(SGConfig.FIELD_PAGE,activity.getPackageName()+"."+activity.getLocalClassName());
             mMpInstance.track("enter_page_event",props);
             mMpInstance.timeEvent("stay_event");
         } catch (JSONException e) {
@@ -81,7 +81,7 @@ import io.sugo.android.viewcrawler.GestureTracker;
 
         try {
             JSONObject props = new JSONObject();
-            props.put("page",activity.getPackageName()+"."+activity.getLocalClassName());
+            props.put(SGConfig.FIELD_PAGE,activity.getPackageName()+"."+activity.getLocalClassName());
             mMpInstance.track("stay_event",props);
         } catch (JSONException e) {
             e.printStackTrace();

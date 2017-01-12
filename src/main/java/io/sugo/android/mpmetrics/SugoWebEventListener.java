@@ -33,7 +33,7 @@ public class SugoWebEventListener {
         } catch (JSONException e) {
             JSONObject jsonObject = new JSONObject();
             try {
-                jsonObject.put("text", e.toString());
+                jsonObject.put(SGConfig.FIELD_TEXT, e.toString());
             } catch (JSONException e1) {
                 e1.printStackTrace();
             }
