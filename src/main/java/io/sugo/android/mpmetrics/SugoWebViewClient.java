@@ -233,36 +233,52 @@ public class SugoWebViewClient extends WebViewClient {
             "    }\n" +
             "  }\n" +
             "};\n" +
-            "\n" +
-            "\n" +
-            "sugo.addEvent = function (children, event) {\n" +
-            "  children.addEventListener(event.event_type, function (e) {\n" +
-            "    var custom_props = {};\n" +
-            "    if(event.code && event.code.replace(/(^\\s*)|(\\s*$)/g, \"\") != ''){\n" +
-            "        var sugo_props = new Function(event.code);\n" +
-            "        custom_props = sugo_props();\n" +
-            "    }\n" +
-            "    custom_props.from_binding = true;\n" +
-            "    window.sugoEventListener.track(event.event_id, event.event_name, JSON.stringify(custom_props));\n" +
-            "  });\n" +
-            "};\n" +
-            "sugo.bindEvent = function () {\n" +
-            "  var paths = Object.keys(sugo.current_event_bindings);\n" +
-            "  for(var idx = 0;idx < paths.length; idx++) {\n" +
-            "    var path_str = paths[idx];\n" +
-            "      var event = sugo.current_event_bindings[path_str];\n" +
-            "\t  var path = JSON.parse(paths[idx]).path;\n" +
-            "\t  if(event.similar === true){\n" +
-            "\t\t  path = path.replace(/:nth-child\\([0-9]*\\)/g, \"\");\n" +
-            "\t  }\n" +
-            "      var eles = document.querySelectorAll(path);\n" +
-            "      if(eles){\n" +
-            "          for(var eles_idx=0;eles_idx < eles.length; eles_idx ++){\n" +
-            "              var ele = eles[eles_idx];\n" +
-            "              sugo.addEvent(ele, event);\n" +
-            "          }\n" +
+            "sugo.delegate = function(eventType, event)  \n" +
+            "{  \n" +
+            "    function handle(e){\n" +
+            "        var evt = window.event ? window.event : e;  \n" +
+            "      \n" +
+            "        var target = evt.target || evt.srcElement;  \n" +
+            "        var currentTarget= e ? e.currentTarget : this; \n" +
+            "        var path = event.path.path;\n" +
+            "        if(event.similar === true){\n" +
+            "          path = path.replace(/:nth-child\\([0-9]*\\)/g, '');\n" +
             "      }\n" +
-            "  }\n" +
+            "        var eles = document.querySelectorAll(path);\n" +
+            "        if(eles){\n" +
+            "        for (var eles_idx=0;eles_idx < eles.length; eles_idx ++){\n" +
+            "             var ele = eles[eles_idx];\n" +
+            "             var parentNode = target;\n" +
+            "             while(parentNode){\n" +
+            "                 if(parentNode === ele){\n" +
+            "                    var custom_props = {};\n" +
+            "                    if(event.code && event.code.replace(/(^\\s*)|(\\s*$)/g, '') != ''){\n" +
+            "                        var sugo_props = new Function(event.code);\n" +
+            "                        custom_props = sugo_props();\n" +
+            "                    }\n" +
+            "                    custom_props.from_binding = true;\n" +
+            "                    sugo.track(event.event_id, event.event_name, custom_props);\n" +
+            "                    break;\n" +
+            "                 }\n" +
+            "                 parentNode = parentNode.parentNode\n" +
+            "             }\n" +
+            "             \n" +
+            "          }\n" +
+            "        }\n" +
+            "        \n" +
+            "    }  \n" +
+            "    document.body.addEventListener(eventType, handle);\n" +
+            "};  \n" +
+            "\n" +
+            "\n" +
+            "sugo.bindEvent = function () {\n" +
+            "    var paths = Object.keys(sugo.current_event_bindings);\n" +
+            "    for(var idx = 0;idx < paths.length; idx++) {\n" +
+            "      var path_str = paths[idx];\n" +
+            "      var event = sugo.current_event_bindings[path_str];\n" +
+            "      sugo.delegate(event.event_type, event);  \n" +
+            "    }\n" +
+            "\n" +
             "};" +
             "sugo.bindEvent();\n" +
             "sugo.reportNodes = function () {\n" +
