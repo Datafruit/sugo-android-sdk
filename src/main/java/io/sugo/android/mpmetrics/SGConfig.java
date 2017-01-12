@@ -515,7 +515,6 @@ public class SGConfig {
     public static final String FIELD_MODEL = "model";
     public static final String FIELD_OS = "os";
     public static final String FIELD_OS_VERSION = "os_version";
-    public static final String FIELD_RADIO = "radio";
     public static final String FIELD_SCREEN_DPI = "screen_dpi";
     public static final String FIELD_SCREEN_HEIGHT = "screen_height";
     public static final String FIELD_SCREEN_WIDTH = "screen_width";
