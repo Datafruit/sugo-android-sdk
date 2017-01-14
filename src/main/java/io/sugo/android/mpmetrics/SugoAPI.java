@@ -244,15 +244,14 @@ public class SugoAPI {
             try {
                 final JSONObject messageProps = new JSONObject();
 
-                messageProps.put("mp_lib", "android");
-                messageProps.put("lib", "android");
-                messageProps.put("distinct_id", token);
+                messageProps.put(SGConfig.FIELD_MP_LIB, "android");
+                messageProps.put(SGConfig.FIELD_DISTINCT_ID, token);
                 final double timeSecondsDouble = (System.currentTimeMillis()) / 1000.0;
                 final long timeSeconds = (long) timeSecondsDouble;
-                messageProps.put("time", timeSeconds);
+                messageProps.put(SGConfig.FIELD_TIME, timeSeconds);
 
                 final AnalyticsMessages.EventDescription eventDescription =
-                        new AnalyticsMessages.EventDescription(null, "Integration", messageProps, "85053bf24bba75239b16a601d9387e17");
+                        new AnalyticsMessages.EventDescription(null, "Integration", messageProps, token);
                 mMessages.eventsMessage(eventDescription);
                 flush();
                 mPersistentIdentity.setTrackedIntegration(true);
@@ -492,13 +491,13 @@ public class SugoAPI {
             // but DO allow the caller to override them in their given properties.
             final double timeSecondsDouble = (System.currentTimeMillis()) / 1000.0;
             final long timeSeconds = (long) timeSecondsDouble;
-            messageProps.put("time", timeSeconds);
-            messageProps.put("distinct_id", getDistinctId());
+            messageProps.put(SGConfig.FIELD_TIME, timeSeconds);
+            messageProps.put(SGConfig.FIELD_DISTINCT_ID, getDistinctId());
 
             if (null != eventBegin) {
                 final double eventBeginDouble = ((double) eventBegin) / 1000.0;
                 final double secondsElapsed = timeSecondsDouble - eventBeginDouble;
-                messageProps.put("duration", secondsElapsed);
+                messageProps.put(SGConfig.FIELD_DURATION, secondsElapsed);
             }
 
             if (null != properties) {
@@ -512,8 +511,8 @@ public class SugoAPI {
             if(SugoAPI.developmentMode){
                 JSONArray events = new JSONArray();
                 JSONObject event = new JSONObject();
-                event.put("event_id", eventId);
-                event.put("event_name", eventName);
+                event.put(SGConfig.FIELD_EVENT_ID, eventId);
+                event.put(SGConfig.FIELD_EVENT_NAME, eventName);
                 event.put("properties", messageProps);
                 events.put(event);
                 mUpdatesFromMixpanel.sendTestEvent(events);

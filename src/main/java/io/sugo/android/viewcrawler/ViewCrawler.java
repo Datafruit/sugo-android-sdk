@@ -708,7 +708,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                 j.name("payload");
                 {
                     j.beginObject();
-                    j.name("event_name").value(eventName);
+                    j.name(SGConfig.FIELD_EVENT_NAME).value(eventName);
                     j.endObject();
                 }
                 j.endObject();
