@@ -445,87 +445,87 @@ import javax.net.ssl.SSLSocketFactory;
                     throws JSONException {
                 final JSONObject ret = new JSONObject();
 
-                ret.put("mp_lib", "android");
-                ret.put("lib_version", SGConfig.VERSION);
+                ret.put(SGConfig.FIELD_MP_LIB, "android");
+                ret.put(SGConfig.FIELD_LIB_VERSION, SGConfig.VERSION);
 
                 // For querying together with data from other libraries
-                ret.put("os", "Android");
-                ret.put("os_version", Build.VERSION.RELEASE == null ? "UNKNOWN" : Build.VERSION.RELEASE);
+                ret.put(SGConfig.FIELD_OS, "Android");
+                ret.put(SGConfig.FIELD_OS_VERSION, Build.VERSION.RELEASE == null ? "UNKNOWN" : Build.VERSION.RELEASE);
 
-                ret.put("manufacturer", Build.MANUFACTURER == null ? "UNKNOWN" : Build.MANUFACTURER);
-                ret.put("brand", Build.BRAND == null ? "UNKNOWN" : Build.BRAND);
-                ret.put("model", Build.MODEL == null ? "UNKNOWN" : Build.MODEL);
+                ret.put(SGConfig.FIELD_MANUFACTURER, Build.MANUFACTURER == null ? "UNKNOWN" : Build.MANUFACTURER);
+                ret.put(SGConfig.FIELD_BRAND, Build.BRAND == null ? "UNKNOWN" : Build.BRAND);
+                ret.put(SGConfig.FIELD_MODEL, Build.MODEL == null ? "UNKNOWN" : Build.MODEL);
 
                 try {
                     try {
                         final int servicesAvailable = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(mContext);
                         switch (servicesAvailable) {
                             case ConnectionResult.SUCCESS:
-                                ret.put(FIELD_GOOGLE_PLAY_SERVICES, "available");
+                                ret.put(SGConfig.FIELD_GOOGLE_PLAY_SERVICES, "available");
                                 break;
                             case ConnectionResult.SERVICE_MISSING:
-                                ret.put(FIELD_GOOGLE_PLAY_SERVICES, "missing");
+                                ret.put(SGConfig.FIELD_GOOGLE_PLAY_SERVICES, "missing");
                                 break;
                             case ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED:
-                                ret.put(FIELD_GOOGLE_PLAY_SERVICES, "out of date");
+                                ret.put(SGConfig.FIELD_GOOGLE_PLAY_SERVICES, "out of date");
                                 break;
                             case ConnectionResult.SERVICE_DISABLED:
-                                ret.put(FIELD_GOOGLE_PLAY_SERVICES, "disabled");
+                                ret.put(SGConfig.FIELD_GOOGLE_PLAY_SERVICES, "disabled");
                                 break;
                             case ConnectionResult.SERVICE_INVALID:
-                                ret.put(FIELD_GOOGLE_PLAY_SERVICES, "invalid");
+                                ret.put(SGConfig.FIELD_GOOGLE_PLAY_SERVICES, "invalid");
                                 break;
                         }
                     } catch (RuntimeException e) {
                         // Turns out even checking for the service will cause explosions
                         // unless we've set up meta-data
-                        ret.put(FIELD_GOOGLE_PLAY_SERVICES, "not configured");
+                        ret.put(SGConfig.FIELD_GOOGLE_PLAY_SERVICES, "not configured");
                     }
 
                 } catch (NoClassDefFoundError e) {
-                    ret.put(FIELD_GOOGLE_PLAY_SERVICES, "not included");
+                    ret.put(SGConfig.FIELD_GOOGLE_PLAY_SERVICES, "not included");
                 }
 
                 final DisplayMetrics displayMetrics = mSystemInformation.getDisplayMetrics();
-                ret.put("screen_dpi", displayMetrics.densityDpi);
-                ret.put("screen_height", displayMetrics.heightPixels);
-                ret.put("screen_width", displayMetrics.widthPixels);
+                ret.put(SGConfig.FIELD_SCREEN_DPI, displayMetrics.densityDpi);
+                ret.put(SGConfig.FIELD_SCREEN_HEIGHT, displayMetrics.heightPixels);
+                ret.put(SGConfig.FIELD_SCREEN_WIDTH, displayMetrics.widthPixels);
 
                 final String applicationVersionName = mSystemInformation.getAppVersionName();
                 if (null != applicationVersionName) {
                     //ret.put("app_version", applicationVersionName);
-                    ret.put("app_version_string", applicationVersionName);
+                    ret.put(SGConfig.FIELD_APP_VERSION_STRING, applicationVersionName);
                 }
 
                  final Integer applicationVersionCode = mSystemInformation.getAppVersionCode();
                  if (null != applicationVersionCode) {
                     //ret.put("app_release", applicationVersionCode);
-                    ret.put("app_build_number", applicationVersionCode);
+                    ret.put(SGConfig.FIELD_APP_BUILD_NUMBER, applicationVersionCode);
                 }
 
                 final Boolean hasNFC = mSystemInformation.hasNFC();
                 if (null != hasNFC)
-                    ret.put("has_nfc", hasNFC.booleanValue());
+                    ret.put(SGConfig.FIELD_HAS_NFC, hasNFC.booleanValue());
 
                 final Boolean hasTelephony = mSystemInformation.hasTelephony();
                 if (null != hasTelephony)
-                    ret.put("has_telephone", hasTelephony.booleanValue());
+                    ret.put(SGConfig.FIELD_HAS_TELEPHONE, hasTelephony.booleanValue());
 
                 final String carrier = mSystemInformation.getCurrentNetworkOperator();
                 if (null != carrier)
-                    ret.put("carrier", carrier);
+                    ret.put(SGConfig.FIELD_CARRIER, carrier);
 
                 final Boolean isWifi = mSystemInformation.isWifiConnected();
                 if (null != isWifi)
-                    ret.put("wifi", isWifi.booleanValue());
+                    ret.put(SGConfig.FIELD_WIFI, isWifi.booleanValue());
 
                 final Boolean isBluetoothEnabled = mSystemInformation.isBluetoothEnabled();
                 if (isBluetoothEnabled != null)
-                    ret.put("bluetooth_enabled", isBluetoothEnabled);
+                    ret.put(SGConfig.FIELD_BLUETOOTH_ENABLED, isBluetoothEnabled);
 
                 final String bluetoothVersion = mSystemInformation.getBluetoothVersion();
                 if (bluetoothVersion != null)
-                    ret.put("bluetooth_version", bluetoothVersion);
+                    ret.put(SGConfig.FIELD_BLUETOOTH_VERSION, bluetoothVersion);
 
                 return ret;
             }
@@ -534,7 +534,7 @@ import javax.net.ssl.SSLSocketFactory;
                 final JSONObject eventObj = new JSONObject();
                 final JSONObject eventProperties = eventDescription.getProperties();
                 final JSONObject sendProperties = getDefaultEventProperties();
-                sendProperties.put("token", eventDescription.getToken());
+                sendProperties.put(SGConfig.FIELD_TOKEN, eventDescription.getToken());
                 if (eventProperties != null) {
                     for (final Iterator<?> iter = eventProperties.keys(); iter.hasNext();) {
                         final String key = (String) iter.next();
@@ -543,9 +543,9 @@ import javax.net.ssl.SSLSocketFactory;
                 }
                 String eventId = eventDescription.getEventId();
                 if(eventId != null)
-                    eventObj.put("event_id", eventId);
+                    eventObj.put(SGConfig.FIELD_EVENT_ID, eventId);
 
-                eventObj.put("event_name", eventDescription.getEventName());
+                eventObj.put(SGConfig.FIELD_EVENT_NAME, eventDescription.getEventName());
                 eventObj.put("properties", sendProperties);
                 return eventObj;
             }
@@ -606,7 +606,6 @@ import javax.net.ssl.SSLSocketFactory;
 
     private static final Map<Context, AnalyticsMessages> sInstances = new HashMap<Context, AnalyticsMessages>();
 
-    private static final String FIELD_GOOGLE_PLAY_SERVICES = "google_play_services";
 
 
 }
