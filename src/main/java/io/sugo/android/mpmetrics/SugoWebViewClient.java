@@ -213,6 +213,7 @@ public class SugoWebViewClient extends WebViewClient {
             "    var children = childrens[i];\n" +
             "    var path = UTILS.cssPath(children);\n" +
             "    var htmlNode = {};\n" +
+            "    htmlNode.innerText = children.innerText;\n" +
             "    htmlNode.path = path;\n" +
             "    if (type === 'report') {\n" +
             "      var rect = children.getBoundingClientRect();\n" +
