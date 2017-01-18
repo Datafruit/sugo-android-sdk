@@ -196,17 +196,16 @@ public class SugoWebViewClient extends WebViewClient {
             "  }\n" +
             "\n" +
             "};\n" +
-            "sugo.clientWidth = (window.innerWidth || document.documentElement.clientWidth);\n" +
-            "sugo.clientHeight = (window.innerHeight || document.documentElement.clientHeight);\n" +
             "sugo.isElementInViewport = function (rect) {\n" +
+            "  sugo.clientWidth = (window.innerWidth || document.documentElement.clientWidth);\n" +
+            "  sugo.clientHeight = (window.innerHeight || document.documentElement.clientHeight);\n" +
             "  return (\n" +
             "      rect.top >= 0 &&\n" +
             "      rect.left >= 0 &&\n" +
             "      rect.bottom <= sugo.clientHeight &&\n" +
             "      rect.right <= sugo.clientWidth\n" +
             "  );\n" +
-            "};\n" +
-            "\n" +
+            "};" +
             "sugo.handleNodeChild = function (childrens, jsonArry, parent_path, type) {\n" +
             "  var index_map = {};\n" +
             "  for (var i = 0; i < childrens.length; i++) {\n" +
@@ -288,7 +287,8 @@ public class SugoWebViewClient extends WebViewClient {
             "  var childrens = body.children;\n" +
             "  var parent_path = '';\n" +
             "  sugo.handleNodeChild(childrens, jsonArry, parent_path, 'report');\n" +
-            "\n" +
+            "  sugo.clientWidth = (window.innerWidth || document.documentElement.clientWidth);\n" +
+            "  sugo.clientHeight = (window.innerHeight || document.documentElement.clientHeight);\n" +
             "  window.sugoWebNodeReporter.reportNodes(sugo.relative_path, JSON.stringify(jsonArry), sugo.clientWidth, sugo.clientHeight);\n" +
             "};";
     private static String initScript = "var sugo = {};\n" +
