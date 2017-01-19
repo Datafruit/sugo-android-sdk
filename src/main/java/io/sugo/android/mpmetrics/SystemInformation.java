@@ -135,6 +135,66 @@ import android.view.WindowManager;
         return ret;
     }
 
+    /**
+     * 当前网络类型
+     *
+     * @return 2g / 3g / 4g / wifi / unknown
+     */
+    public String getNetworkType() {
+
+        final String NETWORK_2_G = "2g";
+        final String NETWORK_3_G = "3g";
+        final String NETWORK_4_G = "4g";
+        final String NETWORK_WIFI = "wifi";
+        final String NETWORK_UNKNOWN = "unknown";
+
+        String ret = NETWORK_UNKNOWN;
+
+        if (PackageManager.PERMISSION_GRANTED == mContext.checkCallingOrSelfPermission(Manifest.permission.ACCESS_NETWORK_STATE)) {
+            ConnectivityManager connManager = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = connManager.getActiveNetworkInfo();
+            //NetworkInfo对象为空 则代表没有网络
+            if (networkInfo == null) {
+                return null;
+            }
+            int nType = networkInfo.getType();
+            if (nType == ConnectivityManager.TYPE_WIFI) {
+                ret = NETWORK_WIFI;
+            } else if (nType == ConnectivityManager.TYPE_MOBILE) {
+                int networkType = networkInfo.getSubtype();
+                switch (networkType) {
+                    case TelephonyManager.NETWORK_TYPE_GPRS:
+                    case 16:        // NETWORK_TYPE_GSM:
+                    case TelephonyManager.NETWORK_TYPE_EDGE:
+                    case TelephonyManager.NETWORK_TYPE_CDMA:
+                    case TelephonyManager.NETWORK_TYPE_1xRTT:
+                    case TelephonyManager.NETWORK_TYPE_IDEN:
+                        ret = NETWORK_2_G;
+                        break;
+                    case TelephonyManager.NETWORK_TYPE_UMTS:
+                    case TelephonyManager.NETWORK_TYPE_EVDO_0:
+                    case TelephonyManager.NETWORK_TYPE_EVDO_A:
+                    case TelephonyManager.NETWORK_TYPE_HSDPA:
+                    case TelephonyManager.NETWORK_TYPE_HSUPA:
+                    case TelephonyManager.NETWORK_TYPE_HSPA:
+                    case TelephonyManager.NETWORK_TYPE_EVDO_B:
+                    case TelephonyManager.NETWORK_TYPE_EHRPD:
+                    case TelephonyManager.NETWORK_TYPE_HSPAP:
+                    case 17:        // NETWORK_TYPE_TD_SCDMA:
+                        ret = NETWORK_3_G;
+                        break;
+                    case TelephonyManager.NETWORK_TYPE_LTE:
+                    case 18:        // NETWORK_TYPE_IWLAN:
+                        ret = NETWORK_4_G;
+                        break;
+                    default:
+                        return NETWORK_UNKNOWN;
+                }
+            }
+        }
+        return ret;
+    }
+
     public Boolean isBluetoothEnabled() {
         Boolean isBluetoothEnabled = null;
         try {
