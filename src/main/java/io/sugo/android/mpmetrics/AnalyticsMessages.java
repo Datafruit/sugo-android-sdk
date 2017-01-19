@@ -13,10 +13,6 @@ import android.util.Log;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 
-import io.sugo.android.util.Base64Coder;
-import io.sugo.android.util.HttpService;
-import io.sugo.android.util.RemoteService;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -29,6 +25,10 @@ import java.util.Iterator;
 import java.util.Map;
 
 import javax.net.ssl.SSLSocketFactory;
+
+import io.sugo.android.util.Base64Coder;
+import io.sugo.android.util.HttpService;
+import io.sugo.android.util.RemoteService;
 
 /**
  * Manage communication of events with the internal database and the Mixpanel servers.
@@ -514,6 +514,11 @@ import javax.net.ssl.SSLSocketFactory;
                 final String carrier = mSystemInformation.getCurrentNetworkOperator();
                 if (null != carrier)
                     ret.put(SGConfig.FIELD_CARRIER, carrier);
+
+                final String networkType = mSystemInformation.getNetworkType();
+                if (null != networkType) {
+                    ret.put(SGConfig.FIELD_CLIENT_NETWORK, networkType);
+                }
 
                 final Boolean isWifi = mSystemInformation.isWifiConnected();
                 if (null != isWifi)
