@@ -7,8 +7,6 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 import android.util.Log;
 
-import io.sugo.android.util.OfflineMode;
-
 import java.security.GeneralSecurityException;
 import java.security.cert.X509Certificate;
 
@@ -17,6 +15,8 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509TrustManager;
+
+import io.sugo.android.util.OfflineMode;
 
 
 /**
@@ -519,6 +519,7 @@ public class SGConfig {
     public static final String FIELD_SCREEN_HEIGHT = "screen_height";
     public static final String FIELD_SCREEN_WIDTH = "screen_width";
     public static final String FIELD_TEXT = "text";
+    public static final String FIELD_CLIENT_NETWORK = "client_network";
     public static final String FIELD_WIFI = "wifi";
     public static final String FIELD_DISTINCT_ID = "distinct_id";
     public static final String FIELD_EVENT_ID = "event_id";
