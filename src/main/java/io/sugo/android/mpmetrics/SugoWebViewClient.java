@@ -261,11 +261,11 @@ public class SugoWebViewClient extends WebViewClient {
             "                            custom_props = sugo_props(e, ele, event, sugo);\n" +
             "                        }\n" +
             "                        custom_props.from_binding = true;\n" +
-            "                        custom_props.event_label = ele.innerText\n" +
+            "                        custom_props.event_label = ele.innerText;\n" +
             "                        sugo.track(event.event_id, event.event_name, custom_props);\n" +
             "                        break;\n" +
             "                     }\n" +
-            "                     parentNode = parentNode.parentNode\n" +
+            "                     parentNode = parentNode.parentNode;\n" +
             "                 }\n" +
             "                 \n" +
             "              }\n" +
@@ -276,7 +276,7 @@ public class SugoWebViewClient extends WebViewClient {
             "    }  \n" +
             "    \n" +
             "    document.addEventListener(eventType, handle);\n" +
-            "};  \n" +
+            "};" +
             "sugo.bindEvent = function () {\n" +
             "    sugo.delegate('click'); \n" +
             "    sugo.delegate('focus'); \n" +
