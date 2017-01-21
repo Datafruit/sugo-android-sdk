@@ -24,70 +24,69 @@ import io.sugo.android.util.OfflineMode;
  * options using &lt;meta-data&gt; tags inside of the &lt;application&gt; tag in your AndroidManifest.xml.
  * All settings are optional, and default to reasonable recommended values. Most users will not have to
  * set any options.
- *
+ * <p>
  * Mixpanel understands the following options:
- *
+ * <p>
  * <dl>
- *     <dt>io.sugo.android.SGConfig.EnableDebugLogging</dt>
- *     <dd>A boolean value. If true, emit more detailed log messages. Defaults to false</dd>
- *
- *     <dt>io.sugo.android.SGConfig.BulkUploadLimit</dt>
- *     <dd>An integer count of messages, the maximum number of messages to queue before an upload attempt. This value should be less than 50.</dd>
- *
- *     <dt>io.sugo.android.SGConfig.FlushInterval</dt>
- *     <dd>An integer number of milliseconds, the maximum time to wait before an upload if the bulk upload limit isn't reached.</dd>
- *
- *     <dt>io.sugo.android.SGConfig.DebugFlushInterval</dt>
- *     <dd>An integer number of milliseconds, the maximum time to wait before an upload if the bulk upload limit isn't reached in debug mode.</dd>
- *
- *     <dt>io.sugo.android.SGConfig.DataExpiration</dt>
- *     <dd>An integer number of milliseconds, the maximum age of records to send to Mixpanel. Corresponds to Mixpanel's server-side limit on record age.</dd>
- *
- *     <dt>io.sugo.android.SGConfig.MinimumDatabaseLimit</dt>
- *     <dd>An integer number of bytes. Mixpanel attempts to limit the size of its persistent data
- *          queue based on the storage capacity of the device, but will always allow queing below this limit. Higher values
- *          will take up more storage even when user storage is very full.</dd>
- *
- *     <dt>io.sugo.android.SGConfig.DisableFallback</dt>
- *     <dd>A boolean value. If true, do not send data over HTTP, even if HTTPS is unavailable. Defaults to true - by default, Mixpanel will only attempt to communicate over HTTPS.</dd>
- *
- *     <dt>io.sugo.android.SGConfig.ResourcePackageName</dt>
- *     <dd>A string java package name. Defaults to the package name of the Application. Users should set if the package name of their R class is different from the application package name due to application id settings.</dd>
- *
- *     <dt>io.sugo.android.SGConfig.DisableGestureBindingUI</dt>
- *     <dd>A boolean value. If true, do not allow connecting to the codeless event binding or A/B testing editor using an accelerometer gesture. Defaults to false.</dd>
- *
- *     <dt>io.sugo.android.SGConfig.DisableEmulatorBindingUI</dt>
- *     <dd>A boolean value. If true, do not attempt to connect to the codeless event binding or A/B testing editor when running in the Android emulator. Defaults to false.</dd>
- *
- *     <dt>io.sugo.android.SGConfig.DisableAppOpenEvent</dt>
- *     <dd>A boolean value. If true, do not send an "$app_open" event when the SugoAPI object is created for the first time. Defaults to true - the $app_open event will not be sent by default.</dd>
- *
- *     <dt>io.sugo.android.SGConfig.AutoShowMixpanelUpdates</dt>
- *     <dd>A boolean value. If true, automatically show surveys, notifications, and A/B test variants. Defaults to true.</dd>
- *
- *     <dt>io.sugo.android.SGConfig.EventsEndpoint</dt>
- *     <dd>A string URL. If present, the library will attempt to send events to this endpoint rather than to the default Mixpanel endpoint.</dd>
- *
- *     <dt>io.sugo.android.SGConfig.EventsFallbackEndpoint</dt>
- *     <dd>A string URL. If present, AND if DisableFallback is false, events will be sent to this endpoint if the EventsEndpoint cannot be reached.</dd>
- *
- *     <dt>io.sugo.android.SGConfig.PeopleEndpoint</dt>
- *     <dd>A string URL. If present, the library will attempt to send people updates to this endpoint rather than to the default Mixpanel endpoint.</dd>
- *
- *     <dt>io.sugo.android.SGConfig.PeopleFallbackEndpoint</dt>
- *     <dd>A string URL. If present, AND if DisableFallback is false, people updates will be sent to this endpoint if the EventsEndpoint cannot be reached.</dd>
- *
- *     <dt>io.sugo.android.SGConfig.DecideEndpoint</dt>
- *     <dd>A string URL. If present, the library will attempt to get survey, notification, codeless event tracking, and A/B test variant information from this url rather than the default Mixpanel endpoint.</dd>
- *
- *     <dt>io.sugo.android.SGConfig.DecideFallbackEndpoint</dt>
- *     <dd>A string URL. If present, AND if DisableFallback is false, the library will query this url if the DecideEndpoint url cannot be reached.</dd>
- *
- *     <dt>io.sugo.android.SGConfig.EditorUrl</dt>
- *     <dd>A string URL. If present, the library will attempt to connect to this endpoint when in interactive editing mode, rather than to the default Mixpanel editor url.</dd>
+ * <dt>io.sugo.android.SGConfig.EnableDebugLogging</dt>
+ * <dd>A boolean value. If true, emit more detailed log messages. Defaults to false</dd>
+ * <p>
+ * <dt>io.sugo.android.SGConfig.BulkUploadLimit</dt>
+ * <dd>An integer count of messages, the maximum number of messages to queue before an upload attempt. This value should be less than 50.</dd>
+ * <p>
+ * <dt>io.sugo.android.SGConfig.FlushInterval</dt>
+ * <dd>An integer number of milliseconds, the maximum time to wait before an upload if the bulk upload limit isn't reached.</dd>
+ * <p>
+ * <dt>io.sugo.android.SGConfig.DebugFlushInterval</dt>
+ * <dd>An integer number of milliseconds, the maximum time to wait before an upload if the bulk upload limit isn't reached in debug mode.</dd>
+ * <p>
+ * <dt>io.sugo.android.SGConfig.DataExpiration</dt>
+ * <dd>An integer number of milliseconds, the maximum age of records to send to Mixpanel. Corresponds to Mixpanel's server-side limit on record age.</dd>
+ * <p>
+ * <dt>io.sugo.android.SGConfig.MinimumDatabaseLimit</dt>
+ * <dd>An integer number of bytes. Mixpanel attempts to limit the size of its persistent data
+ * queue based on the storage capacity of the device, but will always allow queing below this limit. Higher values
+ * will take up more storage even when user storage is very full.</dd>
+ * <p>
+ * <dt>io.sugo.android.SGConfig.DisableFallback</dt>
+ * <dd>A boolean value. If true, do not send data over HTTP, even if HTTPS is unavailable. Defaults to true - by default, Mixpanel will only attempt to communicate over HTTPS.</dd>
+ * <p>
+ * <dt>io.sugo.android.SGConfig.ResourcePackageName</dt>
+ * <dd>A string java package name. Defaults to the package name of the Application. Users should set if the package name of their R class is different from the application package name due to application id settings.</dd>
+ * <p>
+ * <dt>io.sugo.android.SGConfig.DisableGestureBindingUI</dt>
+ * <dd>A boolean value. If true, do not allow connecting to the codeless event binding or A/B testing editor using an accelerometer gesture. Defaults to false.</dd>
+ * <p>
+ * <dt>io.sugo.android.SGConfig.DisableEmulatorBindingUI</dt>
+ * <dd>A boolean value. If true, do not attempt to connect to the codeless event binding or A/B testing editor when running in the Android emulator. Defaults to false.</dd>
+ * <p>
+ * <dt>io.sugo.android.SGConfig.DisableAppOpenEvent</dt>
+ * <dd>A boolean value. If true, do not send an "$app_open" event when the SugoAPI object is created for the first time. Defaults to true - the $app_open event will not be sent by default.</dd>
+ * <p>
+ * <dt>io.sugo.android.SGConfig.AutoShowMixpanelUpdates</dt>
+ * <dd>A boolean value. If true, automatically show surveys, notifications, and A/B test variants. Defaults to true.</dd>
+ * <p>
+ * <dt>io.sugo.android.SGConfig.EventsEndpoint</dt>
+ * <dd>A string URL. If present, the library will attempt to send events to this endpoint rather than to the default Mixpanel endpoint.</dd>
+ * <p>
+ * <dt>io.sugo.android.SGConfig.EventsFallbackEndpoint</dt>
+ * <dd>A string URL. If present, AND if DisableFallback is false, events will be sent to this endpoint if the EventsEndpoint cannot be reached.</dd>
+ * <p>
+ * <dt>io.sugo.android.SGConfig.PeopleEndpoint</dt>
+ * <dd>A string URL. If present, the library will attempt to send people updates to this endpoint rather than to the default Mixpanel endpoint.</dd>
+ * <p>
+ * <dt>io.sugo.android.SGConfig.PeopleFallbackEndpoint</dt>
+ * <dd>A string URL. If present, AND if DisableFallback is false, people updates will be sent to this endpoint if the EventsEndpoint cannot be reached.</dd>
+ * <p>
+ * <dt>io.sugo.android.SGConfig.DecideEndpoint</dt>
+ * <dd>A string URL. If present, the library will attempt to get survey, notification, codeless event tracking, and A/B test variant information from this url rather than the default Mixpanel endpoint.</dd>
+ * <p>
+ * <dt>io.sugo.android.SGConfig.DecideFallbackEndpoint</dt>
+ * <dd>A string URL. If present, AND if DisableFallback is false, the library will query this url if the DecideEndpoint url cannot be reached.</dd>
+ * <p>
+ * <dt>io.sugo.android.SGConfig.EditorUrl</dt>
+ * <dd>A string URL. If present, the library will attempt to connect to this endpoint when in interactive editing mode, rather than to the default Mixpanel editor url.</dd>
  * </dl>
- *
  */
 public class SGConfig {
 
@@ -128,18 +127,18 @@ public class SGConfig {
      * That means it will ignore settings you associated with the default SSLSocketFactory in the
      * schema registry or in underlying HTTP libraries. If you'd prefer for Mixpanel to use your
      * own SSL settings, you'll need to call setSSLSocketFactory early in your code, like this
-     *
+     * <p>
      * {@code
      * <pre>
      *     SGConfig.getInstance(context).setSSLSocketFactory(someCustomizedSocketFactory);
      * </pre>
      * }
-     *
+     * <p>
      * Your settings will be globally available to all Mixpanel instances, and will be used for
      * all SSL connections in the library. The call is thread safe, but should be done before
      * your first call to SugoAPI.getInstance to insure that the library never uses it's
      * default.
-     *
+     * <p>
      * The given socket factory may be used from multiple threads, which is safe for the system
      * SSLSocketFactory class, but if you pass a subclass you should ensure that it is thread-safe
      * before passing it to Mixpanel.
@@ -154,18 +153,18 @@ public class SGConfig {
      * {@link OfflineMode} allows Mixpanel to be in-sync with client offline internal logic.
      * If you want to integrate your own logic with Mixpanel you'll need to call
      * {@link #setOfflineMode(OfflineMode)} early in your code, like this
-     *
+     * <p>
      * {@code
      * <pre>
      *     SGConfig.getInstance(context).setOfflineMode(OfflineModeImplementation);
      * </pre>
      * }
-     *
+     * <p>
      * Your settings will be globally available to all Mixpanel instances, and will be used across
      * all the library. The call is thread safe, but should be done before
      * your first call to SugoAPI.getInstance to insure that the library never uses it's
      * default.
-     *
+     * <p>
      * The given {@link OfflineMode} may be used from multiple threads, you should ensure that
      * your implementation is thread-safe before passing it to Mixpanel.
      *
@@ -184,7 +183,7 @@ public class SGConfig {
         myHostnameVerifier hnv = new myHostnameVerifier();
         try {
             final SSLContext sslContext = SSLContext.getInstance("TLS");
-            X509TrustManager[] xtmArray = new X509TrustManager[] { xtm };
+            X509TrustManager[] xtmArray = new X509TrustManager[]{xtm};
             sslContext.init(null, xtmArray, new java.security.SecureRandom());
             foundSSLFactory = sslContext.getSocketFactory();
         } catch (final GeneralSecurityException e) {
@@ -197,7 +196,7 @@ public class SGConfig {
 
         if (metaData.containsKey("io.sugo.android.SGConfig.AutoCheckForSurveys")) {
             Log.w(LOGTAG, "io.sugo.android.SGConfig.AutoCheckForSurveys has been deprecated in favor of " +
-                          "io.sugo.android.SGConfig.AutoShowMixpanelUpdates. Please update this key as soon as possible.");
+                    "io.sugo.android.SGConfig.AutoShowMixpanelUpdates. Please update this key as soon as possible.");
         }
         if (metaData.containsKey("io.sugo.android.SGConfig.DebugFlushInterval")) {
             Log.w(LOGTAG, "We do not support io.sugo.android.SGConfig.DebugFlushInterval anymore. There will only be one flush interval. Please, update your AndroidManifest.xml.");
@@ -275,27 +274,27 @@ public class SGConfig {
 
         if (DEBUG) {
             Log.v(LOGTAG,
-                "Mixpanel (" + VERSION + ") configured with:\n" +
-                "    AutoShowMixpanelUpdates " + getAutoShowMixpanelUpdates() + "\n" +
-                "    BulkUploadLimit " + getBulkUploadLimit() + "\n" +
-                "    FlushInterval " + getFlushInterval() + "\n" +
-                "    DataExpiration " + getDataExpiration() + "\n" +
-                "    MinimumDatabaseLimit " + getMinimumDatabaseLimit() + "\n" +
-                "    DisableFallback " + getDisableFallback() + "\n" +
-                "    DisableAppOpenEvent " + getDisableAppOpenEvent() + "\n" +
-                "    DisableViewCrawler " + getDisableViewCrawler() + "\n" +
-                "    DisableDeviceUIBinding " + getDisableGestureBindingUI() + "\n" +
-                "    DisableEmulatorUIBinding " + getDisableEmulatorBindingUI() + "\n" +
-                "    EnableDebugLogging " + DEBUG + "\n" +
-                "    TestMode " + getTestMode() + "\n" +
-                "    EventsEndpoint " + getEventsEndpoint() + "\n" +
-                "    PeopleEndpoint " + getPeopleEndpoint() + "\n" +
-                "    DecideEndpoint " + getDecideEndpoint() + "\n" +
-                "    EventsFallbackEndpoint " + getEventsFallbackEndpoint() + "\n" +
-                "    PeopleFallbackEndpoint " + getPeopleFallbackEndpoint() + "\n" +
-                "    DecideFallbackEndpoint " + getDecideFallbackEndpoint() + "\n" +
-                "    EditorUrl " + getEditorUrl() + "\n" +
-                "    DisableDecideChecker " + getDisableDecideChecker() + "\n"
+                    "Mixpanel (" + VERSION + ") configured with:\n" +
+                            "    AutoShowMixpanelUpdates " + getAutoShowMixpanelUpdates() + "\n" +
+                            "    BulkUploadLimit " + getBulkUploadLimit() + "\n" +
+                            "    FlushInterval " + getFlushInterval() + "\n" +
+                            "    DataExpiration " + getDataExpiration() + "\n" +
+                            "    MinimumDatabaseLimit " + getMinimumDatabaseLimit() + "\n" +
+                            "    DisableFallback " + getDisableFallback() + "\n" +
+                            "    DisableAppOpenEvent " + getDisableAppOpenEvent() + "\n" +
+                            "    DisableViewCrawler " + getDisableViewCrawler() + "\n" +
+                            "    DisableDeviceUIBinding " + getDisableGestureBindingUI() + "\n" +
+                            "    DisableEmulatorUIBinding " + getDisableEmulatorBindingUI() + "\n" +
+                            "    EnableDebugLogging " + DEBUG + "\n" +
+                            "    TestMode " + getTestMode() + "\n" +
+                            "    EventsEndpoint " + getEventsEndpoint() + "\n" +
+                            "    PeopleEndpoint " + getPeopleEndpoint() + "\n" +
+                            "    DecideEndpoint " + getDecideEndpoint() + "\n" +
+                            "    EventsFallbackEndpoint " + getEventsFallbackEndpoint() + "\n" +
+                            "    PeopleFallbackEndpoint " + getPeopleFallbackEndpoint() + "\n" +
+                            "    DecideFallbackEndpoint " + getDecideFallbackEndpoint() + "\n" +
+                            "    EditorUrl " + getEditorUrl() + "\n" +
+                            "    DisableDecideChecker " + getDisableDecideChecker() + "\n"
             );
         }
     }
@@ -323,6 +322,7 @@ public class SGConfig {
             return true;
         }
     }
+
     // Max size of queue before we require a flush. Must be below the limit the service will accept.
     public int getBulkUploadLimit() {
         return mBulkUploadLimit;
@@ -338,7 +338,9 @@ public class SGConfig {
         return mDataExpiration;
     }
 
-    public int getMinimumDatabaseLimit() { return mMinimumDatabaseLimit; }
+    public int getMinimumDatabaseLimit() {
+        return mMinimumDatabaseLimit;
+    }
 
     public boolean getDisableFallback() {
         return mDisableFallback;
@@ -360,7 +362,9 @@ public class SGConfig {
         return mDisableViewCrawler;
     }
 
-    public String[] getDisableViewCrawlerForProjects() { return mDisableViewCrawlerForProjects; }
+    public String[] getDisableViewCrawlerForProjects() {
+        return mDisableViewCrawlerForProjects;
+    }
 
     public boolean getTestMode() {
         return mTestMode;
@@ -454,7 +458,8 @@ public class SGConfig {
     ///////////////////////////////////////////////
 
     // Package access for testing only- do not call directly in library code
-    /* package */ static SGConfig readConfig(Context appContext) {
+    /* package */
+    static SGConfig readConfig(Context appContext) {
         final String packageName = appContext.getPackageName();
         try {
             final ApplicationInfo appInfo = appContext.getPackageManager().getApplicationInfo(packageName, PackageManager.GET_META_DATA);
@@ -529,4 +534,5 @@ public class SGConfig {
     public static final String FIELD_TOKEN = "token";
     public static final String FIELD_PAGE = "path_name";
     public static final String FIELD_DURATION = "duration";
+    public static final String SESSION_ID = "session_id";
 }
