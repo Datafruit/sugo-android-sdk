@@ -2,13 +2,17 @@ package io.sugo.android.mpmetrics;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.xwalk.core.XWalkView;
+
+import io.sugo.android.viewcrawler.ViewCrawler;
 
 /**
  * Created by fengxj on 10/31/16.
@@ -341,6 +345,21 @@ public class SugoWebViewClient extends WebViewClient {
         String token = sugoInstance.getmConfig().getToken();
         String activityName = activity.getClass().getName();
         JSONArray eventBindings = SugoWebEventListener.getBindEvents(token);
+        if (eventBindings == null) {
+            final String sharedPrefsName = ViewCrawler.SHARED_PREF_EDITS_FILE + token;
+            SharedPreferences preferences = activity.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
+            final String storedBindings = preferences.getString(ViewCrawler.SHARED_PREF_H5_BINDINGS_KEY, null);
+            if (storedBindings != null && !storedBindings.equals("")) {
+                try {
+                    eventBindings = new JSONArray(storedBindings);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        if (eventBindings == null) {
+            eventBindings = new JSONArray();
+        }
         StringBuffer scriptBuf = new StringBuffer();
         scriptBuf.append(cssUtil);
         scriptBuf.append(initScript);
