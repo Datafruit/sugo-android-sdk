@@ -26,7 +26,7 @@ public class SugoWebEventListener {
     public void track(String eventId, String eventName, String props) {
         try {
             JSONObject jsonObject = new JSONObject(props);
-            if(eventId == null || eventId.trim() == "")
+            if (eventId == null || eventId.trim() == "")
                 sugoAPI.track(eventName, jsonObject);
             else
                 sugoAPI.track(eventId, eventName, jsonObject);
@@ -52,7 +52,7 @@ public class SugoWebEventListener {
         eventBindingsMap.put(token, eventBindings);
     }
 
-    public static JSONArray getBindEvents(String token){
+    public static JSONArray getBindEvents(String token) {
         return eventBindingsMap.get(token);
     }
 }

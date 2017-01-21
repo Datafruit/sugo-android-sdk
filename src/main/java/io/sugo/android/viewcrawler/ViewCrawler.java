@@ -20,17 +20,6 @@ import android.util.JsonWriter;
 import android.util.Log;
 import android.util.Pair;
 
-import io.sugo.android.mpmetrics.SGConfig;
-import io.sugo.android.mpmetrics.SugoAPI;
-import io.sugo.android.mpmetrics.OnMixpanelTweaksUpdatedListener;
-import io.sugo.android.mpmetrics.ResourceIds;
-import io.sugo.android.mpmetrics.ResourceReader;
-import io.sugo.android.mpmetrics.SugoWebEventListener;
-import io.sugo.android.mpmetrics.SuperPropertyUpdate;
-import io.sugo.android.mpmetrics.Tweaks;
-import io.sugo.android.util.ImageStore;
-import io.sugo.android.util.JSONUtils;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -53,6 +42,17 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.net.ssl.SSLSocketFactory;
+
+import io.sugo.android.mpmetrics.OnMixpanelTweaksUpdatedListener;
+import io.sugo.android.mpmetrics.ResourceIds;
+import io.sugo.android.mpmetrics.ResourceReader;
+import io.sugo.android.mpmetrics.SGConfig;
+import io.sugo.android.mpmetrics.SugoAPI;
+import io.sugo.android.mpmetrics.SugoWebEventListener;
+import io.sugo.android.mpmetrics.SuperPropertyUpdate;
+import io.sugo.android.mpmetrics.Tweaks;
+import io.sugo.android.util.ImageStore;
+import io.sugo.android.util.JSONUtils;
 
 /**
  * This class is for internal use by the Mixpanel API, and should
@@ -409,6 +409,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                     final SharedPreferences.Editor editor = preferences.edit();
                     editor.remove(SHARED_PREF_CHANGES_KEY);
                     editor.remove(SHARED_PREF_BINDINGS_KEY);
+                    editor.remove(SHARED_PREF_H5_BINDINGS_KEY);
                     editor.apply();
                 }
             }
@@ -476,6 +477,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                 final SharedPreferences.Editor editor = preferences.edit();
                 editor.remove(SHARED_PREF_CHANGES_KEY);
                 editor.remove(SHARED_PREF_BINDINGS_KEY);
+                editor.remove(SHARED_PREF_H5_BINDINGS_KEY);
                 editor.apply();
             }
 
@@ -840,6 +842,10 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
          */
         private void handleH5EventBindingsReceived(JSONArray eventBindings) {
             if (!SugoAPI.developmentMode) {
+                final SharedPreferences preferences = getSharedPreferences();
+                final SharedPreferences.Editor editor = preferences.edit();
+                editor.putString(SHARED_PREF_H5_BINDINGS_KEY, eventBindings.toString());
+                editor.apply();
                 SugoWebEventListener.bindEvents(mToken, eventBindings);
             }
         }
@@ -1230,9 +1236,10 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
 
     private final List<OnMixpanelTweaksUpdatedListener> mTweaksUpdatedListeners;
 
-    private static final String SHARED_PREF_EDITS_FILE = "mixpanel.viewcrawler.changes";
+    public static final String SHARED_PREF_EDITS_FILE = "mixpanel.viewcrawler.changes";
     private static final String SHARED_PREF_CHANGES_KEY = "mixpanel.viewcrawler.changes";
     private static final String SHARED_PREF_BINDINGS_KEY = "mixpanel.viewcrawler.bindings";
+    public static final String SHARED_PREF_H5_BINDINGS_KEY = "mixpanel.viewcrawler.h5_bindings";
 
     private static final int MESSAGE_INITIALIZE_CHANGES = 0;
     private static final int MESSAGE_CONNECT_TO_EDITOR = 1;
