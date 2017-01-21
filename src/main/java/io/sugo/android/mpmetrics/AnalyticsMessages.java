@@ -558,9 +558,7 @@ import io.sugo.android.util.RemoteService;
                     String key = (String) iter.next();
                     key = key.replace("|", "").replace(",", "");
                     final Object value = sendProperties.get(key);
-                    if(value instanceof Integer){
-                        eventObj.put("i|" + key, value);
-                    }else if(value instanceof Long){
+                    if(value instanceof Integer || value instanceof Long){
                         eventObj.put("l|" + key, value);
                     }else if(value instanceof Float || value instanceof Double || value instanceof BigDecimal){
                         eventObj.put("f|" + key, value);
