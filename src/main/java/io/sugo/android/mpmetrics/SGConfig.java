@@ -529,4 +529,5 @@ public class SGConfig {
     public static final String FIELD_TOKEN = "token";
     public static final String FIELD_PAGE = "page";
     public static final String FIELD_DURATION = "duration";
+    public static final String SESSION_ID = "session_id";
 }

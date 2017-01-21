@@ -18,10 +18,6 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Toast;
 
-import io.sugo.android.viewcrawler.TrackingDebug;
-import io.sugo.android.viewcrawler.UpdatesFromMixpanel;
-import io.sugo.android.viewcrawler.ViewCrawler;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,9 +33,14 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import io.sugo.android.viewcrawler.TrackingDebug;
+import io.sugo.android.viewcrawler.UpdatesFromMixpanel;
+import io.sugo.android.viewcrawler.ViewCrawler;
 
 /**
  * Core class for interacting with Mixpanel Analytics.
@@ -198,6 +199,7 @@ public class SugoAPI {
         mConfig = config;
         mToken = config.getToken();
         String token = mToken;
+        mSessionId = generateSessionId();       // SugoAPI 构造时生成不可变的 sessionId
 
         final Map<String, String> deviceInfo = new HashMap<String, String>();
         deviceInfo.put("$android_lib_version", SGConfig.VERSION);
@@ -284,7 +286,6 @@ public class SugoAPI {
      * </pre>
      *
      * @param context The application context you are tracking
-
      * @return an instance of SugoAPI associated with your project
      */
     public static SugoAPI getInstance(Context context) {
@@ -341,6 +342,14 @@ public class SugoAPI {
                         "    <meta-data android:name=\"io.sugo.android.SGConfig.DisableFallback\" android:value=\"false\" />\n" +
                         "    to the <application> section of your AndroidManifest.xml."
         );
+    }
+
+    private String generateSessionId() {
+        return UUID.randomUUID().toString().toUpperCase();
+    }
+
+    private String getCurrentSessionId() {
+        return mSessionId;
     }
 
     /**
@@ -478,6 +487,8 @@ public class SugoAPI {
         try {
             final JSONObject messageProps = new JSONObject();
 
+            messageProps.put(SGConfig.SESSION_ID, getCurrentSessionId());
+
             final Map<String, String> referrerProperties = mPersistentIdentity.getReferrerProperties();
             for (final Map.Entry<String, String> entry : referrerProperties.entrySet()) {
                 final String key = entry.getKey();
@@ -508,7 +519,7 @@ public class SugoAPI {
                 }
             }
 
-            if(SugoAPI.developmentMode){
+            if (SugoAPI.developmentMode) {
                 JSONArray events = new JSONArray();
                 JSONObject event = new JSONObject();
                 event.put(SGConfig.FIELD_EVENT_ID, eventId);
@@ -516,7 +527,7 @@ public class SugoAPI {
                 event.put("properties", messageProps);
                 events.put(event);
                 mUpdatesFromMixpanel.sendTestEvent(events);
-            }else {
+            } else {
                 final AnalyticsMessages.EventDescription eventDescription =
                         new AnalyticsMessages.EventDescription(eventId, eventName, messageProps, mToken);
                 mMessages.eventsMessage(eventDescription);
@@ -1072,34 +1083,37 @@ public class SugoAPI {
         addWebViewJavascriptInterface(webView);
     }
 
-    public void addWebViewJavascriptInterface(WebView webView){
+    public void addWebViewJavascriptInterface(WebView webView) {
         webView.addJavascriptInterface(new SugoWebEventListener(this), "sugoEventListener");
         SugoWebNodeReporter reporter = new SugoWebNodeReporter();
         webView.addJavascriptInterface(reporter, "sugoWebNodeReporter");
         setSugoWebNodeReporter(webView, reporter);
     }
 
-    public void addWebViewJavascriptInterface(WebViewDelegate delegate){
+    public void addWebViewJavascriptInterface(WebViewDelegate delegate) {
         delegate.addJavascriptInterface(new SugoWebEventListener(this), "sugoEventListener");
         SugoWebNodeReporter reporter = new SugoWebNodeReporter();
         delegate.addJavascriptInterface(reporter, "sugoWebNodeReporter");
         setSugoWebNodeReporter(delegate, reporter);
     }
 
-    public SGConfig getmConfig(){
+    public SGConfig getmConfig() {
         return mConfig;
     }
 
-    public static SugoWebNodeReporter getSugoWebNodeReporter(Object key){
+    public static SugoWebNodeReporter getSugoWebNodeReporter(Object key) {
         return sugoWNReporter.get(key);
     }
-    public static void setSugoWebNodeReporter(Object key,SugoWebNodeReporter sugoWebNodeReporter){
-         sugoWNReporter.put(key, sugoWebNodeReporter);
+
+    public static void setSugoWebNodeReporter(Object key, SugoWebNodeReporter sugoWebNodeReporter) {
+        sugoWNReporter.put(key, sugoWebNodeReporter);
     }
+
     private final Context mContext;
     private final AnalyticsMessages mMessages;
     private final SGConfig mConfig;
     private final String mToken;
+    private final String mSessionId;
     private final UpdatesFromMixpanel mUpdatesFromMixpanel;
     private final PersistentIdentity mPersistentIdentity;
     private final UpdatesListener mUpdatesListener;
