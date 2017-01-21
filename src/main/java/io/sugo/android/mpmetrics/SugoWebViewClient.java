@@ -197,8 +197,6 @@ public class SugoWebViewClient extends WebViewClient {
             "\n" +
             "};\n" +
             "sugo.isElementInViewport = function (rect) {\n" +
-            "  sugo.clientWidth = (window.innerWidth || document.documentElement.clientWidth);\n" +
-            "  sugo.clientHeight = (window.innerHeight || document.documentElement.clientHeight);\n" +
             "  return (\n" +
             "      rect.top >= 0 &&\n" +
             "      rect.left >= 0 &&\n" +
@@ -233,52 +231,57 @@ public class SugoWebViewClient extends WebViewClient {
             "    }\n" +
             "  }\n" +
             "};\n" +
-            "sugo.delegate = function(eventType, event)  \n" +
+            "sugo.delegate = function(eventType)  \n" +
             "{  \n" +
             "    function handle(e){\n" +
-            "        var evt = window.event ? window.event : e;  \n" +
-            "      \n" +
+            "        var evt = window.event ? window.event : e;\n" +
             "        var target = evt.target || evt.srcElement;  \n" +
             "        var currentTarget= e ? e.currentTarget : this; \n" +
-            "        var path = event.path.path;\n" +
-            "        if(event.similar === true){\n" +
-            "          path = path.replace(/:nth-child\\([0-9]*\\)/g, '');\n" +
-            "      }\n" +
-            "        var eles = document.querySelectorAll(path);\n" +
-            "        if(eles){\n" +
-            "        for (var eles_idx=0;eles_idx < eles.length; eles_idx ++){\n" +
-            "             var ele = eles[eles_idx];\n" +
-            "             var parentNode = target;\n" +
-            "             while(parentNode){\n" +
-            "                 if(parentNode === ele){\n" +
-            "                    var custom_props = {};\n" +
-            "                    if(event.code && event.code.replace(/(^\\s*)|(\\s*$)/g, '') != ''){\n" +
-            "                        var sugo_props = new Function(event.code);\n" +
-            "                        custom_props = sugo_props();\n" +
-            "                    }\n" +
-            "                    custom_props." + SGConfig.FIELD_FROM_BINDING + " = true;\n" +
-            "                    sugo.track(event.event_id, event.event_name, custom_props);\n" +
-            "                    break;\n" +
+            "        var paths = Object.keys(sugo.current_event_bindings);\n" +
+            "        for(var idx = 0;idx < paths.length; idx++) {\n" +
+            "            var path_str = paths[idx];\n" +
+            "            var event = sugo.current_event_bindings[path_str];\n" +
+            "            if(event.event_type != eventType){\n" +
+            "                continue;\n" +
+            "            }\n" +
+            "            var path = event.path.path;\n" +
+            "            if(event.similar === true){\n" +
+            "              path = path.replace(/:nth-child\\([0-9]*\\)/g, '');\n" +
+            "            }\n" +
+            "            var eles = document.querySelectorAll(path);\n" +
+            "            if(eles){\n" +
+            "            for (var eles_idx=0;eles_idx < eles.length; eles_idx ++){\n" +
+            "                 var ele = eles[eles_idx];\n" +
+            "                 var parentNode = target;\n" +
+            "                 while(parentNode){\n" +
+            "                     if(parentNode === ele){\n" +
+            "                        var custom_props = {};\n" +
+            "                        if(event.code && event.code.replace(/(^\\s*)|(\\s*$)/g, '') != ''){\n" +
+            "                            var sugo_props = new Function('e', 'element', 'conf', 'instance', event.code);\n" +
+            "                            custom_props = sugo_props(e, ele, event, sugo);\n" +
+            "                        }\n" +
+            "                        custom_props.from_binding = true;\n" +
+            "                        custom_props.event_label = ele.innerText;\n" +
+            "                        sugo.track(event.event_id, event.event_name, custom_props);\n" +
+            "                        break;\n" +
+            "                     }\n" +
+            "                     parentNode = parentNode.parentNode;\n" +
             "                 }\n" +
-            "                 parentNode = parentNode.parentNode\n" +
-            "             }\n" +
-            "             \n" +
-            "          }\n" +
+            "                 \n" +
+            "              }\n" +
+            "            } \n" +
             "        }\n" +
             "        \n" +
+            "        \n" +
             "    }  \n" +
-            "    document.body.addEventListener(eventType, handle);\n" +
-            "};  \n" +
-            "\n" +
-            "\n" +
+            "    \n" +
+            "    document.addEventListener(eventType, handle);\n" +
+            "};" +
             "sugo.bindEvent = function () {\n" +
-            "    var paths = Object.keys(sugo.current_event_bindings);\n" +
-            "    for(var idx = 0;idx < paths.length; idx++) {\n" +
-            "      var path_str = paths[idx];\n" +
-            "      var event = sugo.current_event_bindings[path_str];\n" +
-            "      sugo.delegate(event.event_type, event);  \n" +
-            "    }\n" +
-            "\n" +
+            "    sugo.delegate('click'); \n" +
+            "    sugo.delegate('focus'); \n" +
+            "    sugo.delegate('submit'); \n" +
+            "    sugo.delegate('change'); \n" +
             "};" +
             "sugo.bindEvent();\n" +
             "sugo.reportNodes = function () {\n" +
@@ -286,9 +289,9 @@ public class SugoWebViewClient extends WebViewClient {
             "  var body = document.getElementsByTagName('body')[0];\n" +
             "  var childrens = body.children;\n" +
             "  var parent_path = '';\n" +
-            "  sugo.handleNodeChild(childrens, jsonArry, parent_path, 'report');\n" +
             "  sugo.clientWidth = (window.innerWidth || document.documentElement.clientWidth);\n" +
             "  sugo.clientHeight = (window.innerHeight || document.documentElement.clientHeight);\n" +
+            "  sugo.handleNodeChild(childrens, jsonArry, parent_path, 'report');\n" +
             "  window.sugoWebNodeReporter.reportNodes(sugo.relative_path, JSON.stringify(jsonArry), sugo.clientWidth, sugo.clientHeight);\n" +
             "};";
     private static String initScript = "var sugo = {};\n" +

@@ -18,8 +18,10 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -548,10 +550,27 @@ import io.sugo.android.util.RemoteService;
                 }
                 String eventId = eventDescription.getEventId();
                 if(eventId != null)
-                    eventObj.put(SGConfig.FIELD_EVENT_ID, eventId);
+                    eventObj.put("s|" + SGConfig.FIELD_EVENT_ID, eventId);
 
-                eventObj.put(SGConfig.FIELD_EVENT_NAME, eventDescription.getEventName());
-                eventObj.put("properties", sendProperties);
+                eventObj.put("s|" + SGConfig.FIELD_EVENT_NAME, eventDescription.getEventName());
+
+                for (final Iterator<?> iter = sendProperties.keys(); iter.hasNext();) {
+                    String key = (String) iter.next();
+                    key = key.replace("|", "").replace(",", "");
+                    final Object value = sendProperties.get(key);
+                    if(value instanceof Integer){
+                        eventObj.put("i|" + key, value);
+                    }else if(value instanceof Long){
+                        eventObj.put("l|" + key, value);
+                    }else if(value instanceof Float || value instanceof Double || value instanceof BigDecimal){
+                        eventObj.put("f|" + key, value);
+                    }else if(value instanceof Date){
+                        eventObj.put("d|" + key, ((Date)value).getTime());
+                    }else{
+                        eventObj.put("s|" + key, value);
+                    }
+                }
+
                 return eventObj;
             }
 
