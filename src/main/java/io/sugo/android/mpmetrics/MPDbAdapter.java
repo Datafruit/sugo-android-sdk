@@ -1,6 +1,10 @@
 package io.sugo.android.mpmetrics;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -271,8 +275,64 @@ import android.util.Log;
                 }
             }
 
-            if (arr.length() > 0) {
-                data = arr.toString();
+
+            int length = arr.length();
+            if (length > 0) {
+                Map<String,String> dimMap = new HashMap<String,String>();
+                for (int i = 0; i < length; i++) {
+                    JSONObject event = arr.getJSONObject(i);
+                    for (final Iterator<?> iter = event.keys(); iter.hasNext();) {
+                        final String key = (String) iter.next();
+                        String[] keyFields = key.split("\\|");
+                        final String dim = keyFields[1];
+                        final String dimType = keyFields[0];
+                        if(dimMap.containsKey(dim) && !dimMap.get(dim).equals(dimType)){
+                            Log.w(LOGTAG, "维度(" + dim + ")类型不统一!!!");
+                            continue;
+                        }
+                        if(!dimMap.containsKey(dim)){
+                            dimMap.put(dim, dimType);
+                        }
+                    }
+                }
+                StringBuffer buf = new StringBuffer();
+                Set<String> keySet = dimMap.keySet();
+                int setSize = keySet.size();
+                int count = 0;
+                for (String dimName: keySet) {
+                    buf.append(dimMap.get(dimName)).append("|").append(dimName);
+                    if(count < setSize - 1) {
+                        buf.append(",");
+                    }
+                    count ++;
+                }
+                buf.append('\002');
+                for (int i = 0; i < length; i++) {
+                    JSONObject event = arr.getJSONObject(i);
+                    int dimCount = 0;
+                    for (String dimName : keySet) {
+                        final String type = dimMap.get(dimName);
+                        final String key = type + "|" + dimName;
+                        if (!event.has(key)) {
+                            switch (type) {
+                                case "s":
+                                    buf.append("");
+                                    break;
+                                default:
+                                    buf.append(0);
+                            }
+                        } else {
+                            Object value = event.get(key);
+                            buf.append(value);
+                        }
+                        if (dimCount < setSize - 1) {
+                            buf.append('\001');
+                        }
+                        dimCount++;
+                    }
+                    buf.append('\002');
+                }
+                data = buf.toString();
             }
         } catch (final SQLiteException e) {
             Log.e(LOGTAG, "Could not pull records for Mixpanel out of database " + tableName + ". Waiting to send.", e);
@@ -283,7 +343,9 @@ import android.util.Log;
             // A corrupted or disk-full DB will be cleaned up on the next write or clear call.
             last_id = null;
             data = null;
-        } finally {
+        } catch (JSONException e){
+            Log.e(LOGTAG, "", e);
+        }finally {
             mDb.close();
             if (c != null) {
                 c.close();

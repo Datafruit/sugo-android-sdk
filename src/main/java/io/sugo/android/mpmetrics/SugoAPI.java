@@ -28,8 +28,10 @@ import org.json.JSONObject;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -246,9 +248,7 @@ public class SugoAPI {
 
                 messageProps.put(SGConfig.FIELD_MP_LIB, "android");
                 messageProps.put(SGConfig.FIELD_DISTINCT_ID, token);
-                final double timeSecondsDouble = (System.currentTimeMillis()) / 1000.0;
-                final long timeSeconds = (long) timeSecondsDouble;
-                messageProps.put(SGConfig.FIELD_TIME, timeSeconds);
+                messageProps.put(SGConfig.FIELD_TIME, new Date());
 
                 final AnalyticsMessages.EventDescription eventDescription =
                         new AnalyticsMessages.EventDescription(null, "Integration", messageProps, token);
@@ -490,14 +490,14 @@ public class SugoAPI {
             // Don't allow super properties or referral properties to override these fields,
             // but DO allow the caller to override them in their given properties.
             final double timeSecondsDouble = (System.currentTimeMillis()) / 1000.0;
-            final long timeSeconds = (long) timeSecondsDouble;
-            messageProps.put(SGConfig.FIELD_TIME, timeSeconds);
+            //final long timeSeconds = (long) timeSecondsDouble;
+            messageProps.put(SGConfig.FIELD_TIME, new Date());
             messageProps.put(SGConfig.FIELD_DISTINCT_ID, getDistinctId());
 
             if (null != eventBegin) {
                 final double eventBeginDouble = ((double) eventBegin) / 1000.0;
                 final double secondsElapsed = timeSecondsDouble - eventBeginDouble;
-                messageProps.put(SGConfig.FIELD_DURATION, secondsElapsed);
+                messageProps.put(SGConfig.FIELD_DURATION, new BigDecimal(secondsElapsed).setScale(2, BigDecimal.ROUND_HALF_UP));
             }
 
             if (null != properties) {
