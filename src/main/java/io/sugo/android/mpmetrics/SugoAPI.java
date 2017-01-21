@@ -525,6 +525,14 @@ public class SugoAPI {
                 JSONObject event = new JSONObject();
                 event.put(SGConfig.FIELD_EVENT_ID, eventId);
                 event.put(SGConfig.FIELD_EVENT_NAME, eventName);
+                final Iterator<?> propIter = messageProps.keys();
+                while (propIter.hasNext()) {
+                    final String key = (String) propIter.next();
+                    Object value = messageProps.get(key);
+                    if (value instanceof Date){
+                        messageProps.put(key, ((Date)value).getTime());
+                    }
+                }
                 event.put("properties", messageProps);
                 events.put(event);
                 mUpdatesFromMixpanel.sendTestEvent(events);
