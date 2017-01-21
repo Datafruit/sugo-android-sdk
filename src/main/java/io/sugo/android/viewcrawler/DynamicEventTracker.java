@@ -12,6 +12,7 @@ import io.sugo.android.mpmetrics.SugoAPI;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -45,7 +46,7 @@ import java.util.Map;
 
             // We may call track much later, but we'll be tracking something
             // that happened right at moment.
-            properties.put(SGConfig.FIELD_TIME, moment / 1000);
+            properties.put(SGConfig.FIELD_TIME, new Date());
 
         } catch (JSONException e) {
             Log.e(LOGTAG, "Can't format properties from view due to JSON issue", e);
