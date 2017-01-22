@@ -6,6 +6,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,6 +18,7 @@ import java.util.Map;
 public class SugoWebEventListener {
     private final SugoAPI sugoAPI;
     private static Map<String, JSONArray> eventBindingsMap = new HashMap<String, JSONArray>();
+    public static String sCurrentWebUrl = "";
 
     SugoWebEventListener(SugoAPI sugoAPI) {
         this.sugoAPI = sugoAPI;
@@ -26,6 +29,12 @@ public class SugoWebEventListener {
     public void track(String eventId, String eventName, String props) {
         try {
             JSONObject jsonObject = new JSONObject(props);
+            if (sCurrentWebUrl.contains("http")) {
+                URL url = new URL(sCurrentWebUrl);
+                String path = url.getPath();
+                String pageName = SugoPageManager.getInstance().getCurrentPageName(path);
+                jsonObject.put(SGConfig.FIELD_PAGE_NAME, pageName);
+            }
             if (eventId == null || eventId.trim() == "")
                 sugoAPI.track(eventName, jsonObject);
             else
@@ -38,6 +47,8 @@ public class SugoWebEventListener {
                 e1.printStackTrace();
             }
             sugoAPI.track("Exception", jsonObject);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
         }
 
     }

@@ -62,6 +62,8 @@ import io.sugo.android.viewcrawler.GestureTracker;
             JSONObject props = new JSONObject();
             try {
                 props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
+                props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
+                        .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -71,6 +73,8 @@ import io.sugo.android.viewcrawler.GestureTracker;
         try {
             JSONObject props = new JSONObject();
             props.put(SGConfig.FIELD_PAGE,activity.getPackageName()+"."+activity.getLocalClassName());
+            props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
+                    .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
             mMpInstance.track("enter_page_event",props);
             mMpInstance.timeEvent("stay_event");
         } catch (JSONException e) {
@@ -96,6 +100,8 @@ import io.sugo.android.viewcrawler.GestureTracker;
                     JSONObject props = new JSONObject();
                     try {
                         props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
+                        props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
+                                .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -108,6 +114,8 @@ import io.sugo.android.viewcrawler.GestureTracker;
         try {
             JSONObject props = new JSONObject();
             props.put(SGConfig.FIELD_PAGE,activity.getPackageName()+"."+activity.getLocalClassName());
+            props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
+                    .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
             mMpInstance.track("stay_event",props);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -127,6 +135,8 @@ import io.sugo.android.viewcrawler.GestureTracker;
             JSONObject props = new JSONObject();
             try {
                 props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
+                props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
+                        .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
