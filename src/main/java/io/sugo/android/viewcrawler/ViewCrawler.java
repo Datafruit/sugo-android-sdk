@@ -48,6 +48,7 @@ import io.sugo.android.mpmetrics.ResourceIds;
 import io.sugo.android.mpmetrics.ResourceReader;
 import io.sugo.android.mpmetrics.SGConfig;
 import io.sugo.android.mpmetrics.SugoAPI;
+import io.sugo.android.mpmetrics.SugoPageManager;
 import io.sugo.android.mpmetrics.SugoWebEventListener;
 import io.sugo.android.mpmetrics.SuperPropertyUpdate;
 import io.sugo.android.mpmetrics.Tweaks;
@@ -132,6 +133,13 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
     public void setH5EventBindings(JSONArray bindings) {
         final Message msg = mMessageThreadHandler.obtainMessage(ViewCrawler.MESSAGE_H5_EVENT_BINDINGS_RECEIVED);
         msg.obj = bindings;
+        mMessageThreadHandler.sendMessage(msg);
+    }
+
+    @Override
+    public void setPageInfos(JSONArray pageInfos) {
+        final Message msg = mMessageThreadHandler.obtainMessage(ViewCrawler.MESSAGE_HANDLE_PAGE_INFO_EVENT);
+        msg.obj = pageInfos;
         mMessageThreadHandler.sendMessage(msg);
     }
 
@@ -363,6 +371,9 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                         break;
                     case MESSAGE_H5_EVENT_BINDINGS_RECEIVED:
                         handleH5EventBindingsReceived((JSONArray) msg.obj);
+                        break;
+                    case MESSAGE_HANDLE_PAGE_INFO_EVENT:
+                        handlePageInfoReceived((JSONArray) msg.obj);
                         break;
                     case MESSAGE_SEND_TEST_EVENT:
                         handleSendTestEvent((JSONArray) msg.obj);
@@ -850,6 +861,17 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
             }
         }
 
+        private void handlePageInfoReceived(JSONArray pageInfos) {
+            if (!SugoAPI.developmentMode) {
+                final SharedPreferences preferences = getSharedPreferences();
+                final SharedPreferences.Editor editor = preferences.edit();
+                editor.putString(SHARED_PREF_PAGE_INFO_KEY, pageInfos.toString());
+                editor.apply();
+                SugoPageManager.getInstance().setPageInfos(pageInfos);
+            }
+        }
+
+
         private void handleSendTestEvent(JSONArray events) {
             Log.i(LOGTAG, events.toString());
             if (mEditorConnection == null) {
@@ -1240,6 +1262,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
     private static final String SHARED_PREF_CHANGES_KEY = "mixpanel.viewcrawler.changes";
     private static final String SHARED_PREF_BINDINGS_KEY = "mixpanel.viewcrawler.bindings";
     public static final String SHARED_PREF_H5_BINDINGS_KEY = "mixpanel.viewcrawler.h5_bindings";
+    public static final String SHARED_PREF_PAGE_INFO_KEY = "mixpanel.viewcrawler.page_info";
 
     private static final int MESSAGE_INITIALIZE_CHANGES = 0;
     private static final int MESSAGE_CONNECT_TO_EDITOR = 1;
@@ -1256,6 +1279,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
     private static final int MESSAGE_SEND_LAYOUT_ERROR = 12;
     private static final int MESSAGE_H5_EVENT_BINDINGS_RECEIVED = 13;
     private static final int MESSAGE_SEND_TEST_EVENT = 14;
+    private static final int MESSAGE_HANDLE_PAGE_INFO_EVENT = 15;
     private static final int EMULATOR_CONNECT_ATTEMPT_INTERVAL_MILLIS = 1000 * 30;
 
     @SuppressWarnings("unused")

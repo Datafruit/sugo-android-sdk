@@ -315,6 +315,7 @@ public class SugoWebViewClient extends WebViewClient {
 
 
     public static void handlePageFinished(WebView view, String url) {
+        SugoWebEventListener.sCurrentWebUrl = url;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             view.setWebContentsDebuggingEnabled(true);
         }
@@ -328,6 +329,7 @@ public class SugoWebViewClient extends WebViewClient {
     }
 
     public static void handlePageFinished(XWalkView view, String url) {
+        SugoWebEventListener.sCurrentWebUrl = url;
         Context context = view.getContext();
         Activity activity = (Activity) context;
         String script = getInjectScript(activity);
@@ -336,6 +338,7 @@ public class SugoWebViewClient extends WebViewClient {
     }
 
     public static void handlePageFinished(WebViewDelegate delegate, Activity activity, String url) {
+        SugoWebEventListener.sCurrentWebUrl = url;
         String script = getInjectScript(activity);
         delegate.loadUrl("javascript:" + script);
     }
