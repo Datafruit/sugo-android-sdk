@@ -29,43 +29,80 @@ public class SugoPageManager {
     }
 
 
+    /**
+     * 用于 H5 界面
+     *
+     * @param currentPage 相对路径
+     * @return
+     */
     public String getCurrentPageName(String currentPage) {
         String currentPageName = "";
-        if (mPageInfos != null && !(mPageInfos.length() == 0)) {
-            for (int i = 0; i < mPageInfos.length(); i++) {
-                try {
-                    JSONObject pageObj = mPageInfos.getJSONObject(i);
-                    if (currentPage.equals(pageObj.optString("page"))) {
-                        currentPageName = pageObj.optString("page_name");
-                        break;
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
+        JSONObject pageObj = getCurrentPageInfo(currentPage);
+        if (pageObj != null) {
+            currentPageName = pageObj.optString("page_name", "");
         }
         return currentPageName;
     }
 
-    public String getCurrentPageName(Context context) {
-        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        String currentPage = activityManager.getRunningTasks(1).get(0).topActivity.getClassName();
-        String currentPageName = "";
+    /**
+     * 用于 H5 界面
+     *
+     * @param currentPage 相对路径
+     * @return
+     */
+    public JSONObject getCurrentPageInfo(String currentPage) {
         if (mPageInfos != null && !(mPageInfos.length() == 0)) {
-//            String currentPage = currentActivity.getClass().getCanonicalName();
             for (int i = 0; i < mPageInfos.length(); i++) {
                 try {
-                    JSONObject pageObj = mPageInfos.getJSONObject(i);
-                    if (currentPage.equals(pageObj.optString("page"))) {
-                        currentPageName = pageObj.optString("page_name");
-                        break;
+                    JSONObject obj = mPageInfos.getJSONObject(i);
+                    if (currentPage.equals(obj.optString("page"))) {
+                        return obj;
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
         }
+        return null;
+    }
+
+    /**
+     * 用于获取原生界面对应的名称
+     *
+     * @param context
+     * @return
+     */
+    public String getCurrentPageName(Context context) {
+        String currentPageName = "";
+        JSONObject pageObj = getCurrentPageInfo(context);
+        if (pageObj != null) {
+            currentPageName = pageObj.optString("page_name", "");
+        }
         return currentPageName;
+    }
+
+    /**
+     * 用于获取原生界面对应的名称
+     *
+     * @param context
+     * @return
+     */
+    public JSONObject getCurrentPageInfo(Context context) {
+        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        String currentPage = activityManager.getRunningTasks(1).get(0).topActivity.getClassName();
+        if (mPageInfos != null && !(mPageInfos.length() == 0)) {
+            for (int i = 0; i < mPageInfos.length(); i++) {
+                try {
+                    JSONObject obj = mPageInfos.getJSONObject(i);
+                    if (currentPage.equals(obj.optString("page"))) {
+                        return obj;
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return null;
     }
 
 }
