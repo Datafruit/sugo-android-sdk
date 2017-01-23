@@ -10,6 +10,7 @@ import android.webkit.WebViewClient;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.xwalk.core.XWalkView;
 
 import io.sugo.android.viewcrawler.ViewCrawler;
@@ -19,12 +20,12 @@ import io.sugo.android.viewcrawler.ViewCrawler;
  */
 
 public class SugoWebViewClient extends WebViewClient {
-    private static String pageViewScript = "sugo.track('', 'h5_enter_page_event', {" + SGConfig.FIELD_PAGE + ": sugo.relative_path});\n" +
+    private static String pageViewScript = "sugo.track('', 'h5_enter_page_event');\n" +
             "sugo.enter_time = new Date().getTime();\n" +
             "\n" +
             "window.addEventListener('beforeunload', function (e) {\n" +
             "\tvar duration = (new Date().getTime() - sugo.enter_time)/1000;\n" +
-            "    sugo.track('', 'h5_stay_event', {" + SGConfig.FIELD_PAGE + ": sugo.relative_path, " + SGConfig.FIELD_DURATION + ": duration});\n" +
+            "    sugo.track('', 'h5_stay_event', {" + SGConfig.FIELD_DURATION + ": duration});\n" +
             "});";
     private static String cssUtil = "var UTILS = {};\n" +
             "UTILS.cssPath = function(node, optimized)\n" +
@@ -298,14 +299,22 @@ public class SugoWebViewClient extends WebViewClient {
             "  sugo.handleNodeChild(childrens, jsonArry, parent_path, 'report');\n" +
             "  window.sugoWebNodeReporter.reportNodes(sugo.relative_path, JSON.stringify(jsonArry), sugo.clientWidth, sugo.clientHeight);\n" +
             "};";
-    private static String initScript = "var sugo = {};\n" +
-            "sugo.track = function(event_id, event_name, props){\n" +
+
+    private static String initScript = "sugo.track = function(event_id, event_name, props){\n" +
+            "    if(!props){\n" +
+            "        props = {};\n" +
+            "    }\n" +
+            "    props." + SGConfig.FIELD_PAGE_NAME + " = sugo.relative_path;\n" +
+            "    if(!props." + SGConfig.FIELD_PAGE_NAME + "){\n" +
+            "       props." + SGConfig.FIELD_PAGE_NAME + " = sugo.page_name;\n" +
+            "    }\n" +
             "    window.sugoEventListener.track(event_id, event_name, JSON.stringify(props));\n" +
-            "};\n" +
-            "\n" +
+            "};" +
             "sugo.timeEvent = function(event_name){\n" +
             "    window.sugoEventListener.timeEvent(event_name);\n" +
-            "};";
+            "};" +
+            "var init_code = new Function(sugo.init_code);\n" +
+            "init_code();";
 
     @Override
     public void onPageFinished(WebView view, String url) {
@@ -322,7 +331,7 @@ public class SugoWebViewClient extends WebViewClient {
         Context context = view.getContext();
 
         Activity activity = (Activity) context;
-        String script = getInjectScript(activity);
+        String script = getInjectScript(activity, url);
         view.loadUrl("javascript:" + script);
 
     }
@@ -330,17 +339,17 @@ public class SugoWebViewClient extends WebViewClient {
     public static void handlePageFinished(XWalkView view, String url) {
         Context context = view.getContext();
         Activity activity = (Activity) context;
-        String script = getInjectScript(activity);
+        String script = getInjectScript(activity, url);
         view.load("javascript:" + script, "");
 
     }
 
     public static void handlePageFinished(WebViewDelegate delegate, Activity activity, String url) {
-        String script = getInjectScript(activity);
+        String script = getInjectScript(activity, url);
         delegate.loadUrl("javascript:" + script);
     }
 
-    public static String getInjectScript(Activity activity) {
+    public static String getInjectScript(Activity activity, String url) {
         SugoAPI sugoInstance = SugoAPI.getInstance(activity);
         String token = sugoInstance.getmConfig().getToken();
         String activityName = activity.getClass().getName();
@@ -362,10 +371,20 @@ public class SugoWebViewClient extends WebViewClient {
         }
         StringBuffer scriptBuf = new StringBuffer();
         scriptBuf.append(cssUtil);
-        scriptBuf.append(initScript);
-        scriptBuf.append("sugo.relative_path = window.location.pathname.replace(")
+        scriptBuf.append("var sugo = {}; sugo.relative_path = window.location.pathname.replace(")
                 .append(sugoInstance.getmConfig().getWebRoot())
                 .append(", '');");
+        scriptBuf.append(initScript);
+        JSONObject pageInfo = SugoPageManager.getInstance().getCurrentPageInfo(url);
+        String pageName = "";
+        String initCode = "";
+        if(pageInfo != null){
+            pageName = pageInfo.optString("page_name", "");
+            initCode = pageInfo.optString("code", "");
+        }
+        scriptBuf.append("sugo.page_name = '").append(pageName).append("';");
+        scriptBuf.append("sugo.init_code = '").append(initCode).append("';");
+        scriptBuf.append(initScript);
         scriptBuf.append(pageViewScript);
         scriptBuf.append("sugo.current_page ='");
         scriptBuf.append(activityName);

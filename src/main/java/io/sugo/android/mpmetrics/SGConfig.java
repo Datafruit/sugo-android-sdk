@@ -510,7 +510,7 @@ public class SGConfig {
     public static final String FIELD_BLUETOOTH_ENABLED = "has_bluetooth";
     public static final String FIELD_BLUETOOTH_VERSION = "bluetooth_version";
     public static final String FIELD_BRAND = "device_brand";
-    public static final String FIELD_CARRIER = "sugo_operator";
+    public static final String FIELD_CARRIER = "carrier";
     public static final String FIELD_FROM_BINDING = "from_binding";
     public static final String FIELD_GOOGLE_PLAY_SERVICES = "google_play_services";
     public static final String FIELD_HAS_NFC = "has_nfc";
