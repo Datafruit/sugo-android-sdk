@@ -29,12 +29,6 @@ public class SugoPageManager {
     }
 
 
-    /**
-     * 用于 H5 界面
-     *
-     * @param currentPage 相对路径
-     * @return
-     */
     public String getCurrentPageName(String currentPage) {
         String currentPageName = "";
         JSONObject pageObj = getCurrentPageInfo(currentPage);
@@ -44,12 +38,6 @@ public class SugoPageManager {
         return currentPageName;
     }
 
-    /**
-     * 用于 H5 界面
-     *
-     * @param currentPage 相对路径
-     * @return
-     */
     public JSONObject getCurrentPageInfo(String currentPage) {
         if (mPageInfos != null && !(mPageInfos.length() == 0)) {
             for (int i = 0; i < mPageInfos.length(); i++) {
@@ -66,12 +54,6 @@ public class SugoPageManager {
         return null;
     }
 
-    /**
-     * 用于获取原生界面对应的名称
-     *
-     * @param context
-     * @return
-     */
     public String getCurrentPageName(Context context) {
         String currentPageName = "";
         JSONObject pageObj = getCurrentPageInfo(context);
@@ -81,12 +63,6 @@ public class SugoPageManager {
         return currentPageName;
     }
 
-    /**
-     * 用于获取原生界面对应的名称
-     *
-     * @param context
-     * @return
-     */
     public JSONObject getCurrentPageInfo(Context context) {
         ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         String currentPage = activityManager.getRunningTasks(1).get(0).topActivity.getClassName();
