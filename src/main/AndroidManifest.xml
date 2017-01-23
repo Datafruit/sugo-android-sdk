@@ -2,8 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="io.sugo.android">
     <uses-sdk android:minSdkVersion="9"
-              android:targetSdkVersion="21"
-              tools:overrideLibrary="org.xwalk.core" />
+              android:targetSdkVersion="21"/>
 
     <uses-permission android:name="android.permission.INTERNET" />
 
