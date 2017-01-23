@@ -9,9 +9,6 @@ import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
 
-import io.sugo.android.util.ImageStore;
-import io.sugo.android.util.RemoteService;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,6 +25,9 @@ import java.util.List;
 
 import javax.net.ssl.SSLSocketFactory;
 
+import io.sugo.android.util.ImageStore;
+import io.sugo.android.util.RemoteService;
+
 /* package */ class DecideChecker {
 
     /* package */ static class Result {
@@ -37,6 +37,7 @@ import javax.net.ssl.SSLSocketFactory;
             eventBindings = EMPTY_JSON_ARRAY;
             h5EventBindings = EMPTY_JSON_ARRAY;
             variants = EMPTY_JSON_ARRAY;
+            pageInfo = EMPTY_JSON_ARRAY;
         }
 
         public final List<Survey> surveys;
@@ -44,6 +45,7 @@ import javax.net.ssl.SSLSocketFactory;
         public JSONArray eventBindings;
         public JSONArray h5EventBindings;
         public JSONArray variants;
+        public JSONArray pageInfo;
     }
 
     public DecideChecker(final Context context, final SGConfig config, final SystemInformation systemInformation) {
@@ -69,7 +71,8 @@ import javax.net.ssl.SSLSocketFactory;
             final String distinctId = updates.getDistinctId();
             try {
                 final Result result = runDecideCheck(updates.getToken(), distinctId, poster);
-                updates.reportResults(result.surveys, result.notifications, result.eventBindings, result.h5EventBindings, result.variants);
+                updates.reportResults(result.surveys, result.notifications, result.eventBindings,
+                        result.h5EventBindings, result.variants, result.pageInfo);
             } catch (final UnintelligibleMessageException e) {
                 Log.e(LOGTAG, e.getMessage(), e);
             }
@@ -193,6 +196,14 @@ import javax.net.ssl.SSLSocketFactory;
                 ret.variants = response.getJSONArray("variants");
             } catch (final JSONException e) {
                 Log.e(LOGTAG, "Mixpanel endpoint returned non-array JSON for variants: " + response);
+            }
+        }
+
+        if (response.has("page_info")) {
+            try {
+                ret.pageInfo = response.getJSONArray("page_info");
+            } catch (final JSONException e) {
+                Log.e(LOGTAG, "Mixpanel endpoint returned non-array JSON for page_info: " + response);
             }
         }
 
