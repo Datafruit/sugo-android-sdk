@@ -2,8 +2,6 @@ package io.sugo.android.mpmetrics;
 
 import android.util.Log;
 
-import io.sugo.android.viewcrawler.UpdatesFromMixpanel;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -12,6 +10,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
+import io.sugo.android.viewcrawler.UpdatesFromMixpanel;
 
 // Will be called from both customer threads and the Mixpanel worker thread.
 /* package */ class DecideMessages {
@@ -53,10 +53,13 @@ import java.util.Set;
         return mDistinctId;
     }
 
-    public synchronized void reportResults(List<Survey> newSurveys, List<InAppNotification> newNotifications, JSONArray eventBindings, JSONArray h5EventBindings, JSONArray variants) {
+    public synchronized void reportResults(
+            List<Survey> newSurveys, List<InAppNotification> newNotifications, JSONArray eventBindings,
+            JSONArray h5EventBindings, JSONArray variants, JSONArray pageInfos) {
         boolean newContent = false;
         mUpdatesFromMixpanel.setEventBindings(eventBindings);
         mUpdatesFromMixpanel.setH5EventBindings(h5EventBindings);
+        mUpdatesFromMixpanel.setPageInfos(pageInfos);
         for (final Survey s : newSurveys) {
             final int id = s.getId();
             if (! mSurveyIds.contains(id)) {
