@@ -10,7 +10,6 @@ import android.webkit.WebViewClient;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.xwalk.core.XWalkView;
 
 import io.sugo.android.viewcrawler.ViewCrawler;
 
@@ -327,13 +326,6 @@ public class SugoWebViewClient extends WebViewClient {
 
     }
 
-    public static void handlePageFinished(XWalkView view, String url) {
-        Context context = view.getContext();
-        Activity activity = (Activity) context;
-        String script = getInjectScript(activity);
-        view.load("javascript:" + script, "");
-
-    }
 
     public static void handlePageFinished(WebViewDelegate delegate, Activity activity, String url) {
         String script = getInjectScript(activity);

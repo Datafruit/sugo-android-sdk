@@ -16,7 +16,6 @@ public class SugoWebNodeReporter {
     }
 
     @JavascriptInterface
-    @org.xwalk.core.JavascriptInterface
     public void reportNodes(String url,String nodeJson,int clientWidth,int clientHeight) {
         this.webNodeJson = nodeJson;
         this.url = url;

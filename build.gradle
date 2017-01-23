@@ -32,17 +32,10 @@ android {
     }
 }
 
-repositories {
-    maven {
-        url 'https://download.01.org/crosswalk/releases/crosswalk/android/maven2'
-    }
-}
-
 // Note- *all* dependencies are marked as optional in our final
 // pom! If you need a transitive dependency in the library, you'll
 // have to change the bit in uploadArchives that marks all dependencies as optional.
 dependencies {
-    compile 'org.xwalk:xwalk_core_library:22.52.561.4'
     compile 'com.google.android.gms:play-services-base:[7.5.0,)'
     compile 'com.google.android.gms:play-services-gcm:[7.5.0,)'
 }
