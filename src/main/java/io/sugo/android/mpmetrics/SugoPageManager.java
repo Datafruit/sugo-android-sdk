@@ -7,6 +7,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
+
 /**
  * Created by Administrator on 2017/1/22.
  */
@@ -14,7 +16,7 @@ import org.json.JSONObject;
 public class SugoPageManager {
 
     private static SugoPageManager sInstance = new SugoPageManager();
-    private JSONArray mPageInfos;
+    private HashMap<String, JSONObject> mPageInfos;
 
     private SugoPageManager() {
 
@@ -25,7 +27,20 @@ public class SugoPageManager {
     }
 
     public void setPageInfos(JSONArray pageInfos) {
-        this.mPageInfos = pageInfos;
+        if (mPageInfos == null) {
+            mPageInfos = new HashMap<>();
+        } else {
+            mPageInfos.clear();
+        }
+        JSONObject pageObj = null;
+        for (int i = 0; i < pageInfos.length(); i++) {
+            try {
+                pageObj = pageInfos.getJSONObject(i);
+                mPageInfos.put(pageObj.optString("page"), pageObj);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 
@@ -39,17 +54,8 @@ public class SugoPageManager {
     }
 
     public JSONObject getCurrentPageInfo(String currentPage) {
-        if (mPageInfos != null && !(mPageInfos.length() == 0)) {
-            for (int i = 0; i < mPageInfos.length(); i++) {
-                try {
-                    JSONObject obj = mPageInfos.getJSONObject(i);
-                    if (currentPage.equals(obj.optString("page"))) {
-                        return obj;
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
+        if (mPageInfos != null && (mPageInfos.size() != 0)) {
+            return mPageInfos.get(currentPage);
         }
         return null;
     }
@@ -66,17 +72,8 @@ public class SugoPageManager {
     public JSONObject getCurrentPageInfo(Context context) {
         ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         String currentPage = activityManager.getRunningTasks(1).get(0).topActivity.getClassName();
-        if (mPageInfos != null && !(mPageInfos.length() == 0)) {
-            for (int i = 0; i < mPageInfos.length(); i++) {
-                try {
-                    JSONObject obj = mPageInfos.getJSONObject(i);
-                    if (currentPage.equals(obj.optString("page"))) {
-                        return obj;
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
+        if (mPageInfos != null && (mPageInfos.size() != 0)) {
+            return mPageInfos.get(currentPage);
         }
         return null;
     }
