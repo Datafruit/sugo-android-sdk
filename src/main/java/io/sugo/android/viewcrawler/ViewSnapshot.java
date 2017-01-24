@@ -25,11 +25,6 @@ import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
-import io.sugo.android.mpmetrics.SGConfig;
-import io.sugo.android.mpmetrics.ResourceIds;
-import io.sugo.android.mpmetrics.SugoAPI;
-import io.sugo.android.mpmetrics.SugoWebNodeReporter;
-
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
@@ -49,6 +44,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import io.sugo.android.mpmetrics.ResourceIds;
+import io.sugo.android.mpmetrics.SGConfig;
+import io.sugo.android.mpmetrics.SugoAPI;
+import io.sugo.android.mpmetrics.SugoWebNodeReporter;
 
 @TargetApi(SGConfig.UI_FEATURES_MIN_API)
 /* package */ class ViewSnapshot {
@@ -216,9 +216,9 @@ import java.util.concurrent.TimeoutException;
             }
             j.endArray();
         }
-
         if (view instanceof WebView) {
             SugoWebNodeReporter sugoWebNodeReporter = SugoAPI.getSugoWebNodeReporter(view);
+            if (sugoWebNodeReporter != null) {
             final WebView webView = (WebView) view;
             int oldVersion = sugoWebNodeReporter.version;
             webView.post(new Runnable() {
@@ -245,6 +245,9 @@ import java.util.concurrent.TimeoutException;
                 j.name("clientHeight").value(sugoWebNodeReporter.clientHeight);
                 j.name("nodes").value(sugoWebNodeReporter.webNodeJson);
                 j.endObject();
+            }
+            } else {
+                Log.v(LOGTAG, "You can call SugoAPI.handlerWebView() before WebView.loadUrl() for snapshot html page");
             }
         }
 
