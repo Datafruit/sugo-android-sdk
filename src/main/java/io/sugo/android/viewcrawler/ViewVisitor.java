@@ -9,13 +9,12 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityEvent;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import io.sugo.android.mpmetrics.SGConfig;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -29,6 +28,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
+
+import io.sugo.android.mpmetrics.SGConfig;
 
 @TargetApi(SGConfig.UI_FEATURES_MIN_API)
 /* package */ abstract class ViewVisitor implements Pathfinder.Accumulator {
@@ -363,6 +364,11 @@ import java.util.WeakHashMap;
         public AddAccessibilityEventVisitor(List<Pathfinder.PathElement> path, int accessibilityEventType, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener) {
             super(path, eventId, eventName, dimMap, listener, false);
             mEventType = accessibilityEventType;
+            if (mEventType == AccessibilityEvent.TYPE_VIEW_CLICKED) {
+                setEventTypeString("click");
+            } else if (mEventType == AccessibilityEvent.TYPE_VIEW_SELECTED) {
+                setEventTypeString("selected");
+            }
             mWatching = new WeakHashMap<View, TrackingAccessibilityDelegate>();
         }
 
@@ -478,6 +484,7 @@ import java.util.WeakHashMap;
         public AddTextChangeListener(List<Pathfinder.PathElement> path, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener) {
             super(path, eventId, eventName, dimMap, listener, true);
             mWatching = new HashMap<TextView, TextWatcher>();
+            setEventTypeString("text_changed");
         }
 
         @Override
@@ -544,6 +551,7 @@ import java.util.WeakHashMap;
         public ViewDetectorVisitor(List<Pathfinder.PathElement> path, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener) {
             super(path, eventId, eventName, dimMap, listener, false);
             mSeen = false;
+            setEventTypeString("detected");
         }
 
         @Override
@@ -597,6 +605,11 @@ import java.util.WeakHashMap;
                     });
                 }
             }
+            try {
+                properties.put(SGConfig.FIELD_EVENT_TYPE, getEventTypeString());
+            } catch (JSONException e) {
+
+            }
             mListener.OnEvent(found, mEvenId, mEventName, properties, mDebounce);
         }
 
@@ -604,11 +617,20 @@ import java.util.WeakHashMap;
             return mEventName;
         }
 
+        protected String getEventTypeString() {
+            return mEventTypeString;
+        }
+
+        protected void setEventTypeString(String eventTypeString) {
+            mEventTypeString = eventTypeString;
+        }
+
         private final OnEventListener mListener;
         private final String mEventName;
         private final Map<String, List<Pathfinder.PathElement>> mDimMap;
         private final String mEvenId;
         private final boolean mDebounce;
+        private String mEventTypeString;
     }
 
     /**
