@@ -912,10 +912,13 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
         private void handleEditorBindingsReceived(JSONObject message) {
             final JSONArray eventBindings;
             final JSONArray h5EventBindings;
+            final JSONArray pageInfoBindings;
             try {
                 final JSONObject payload = message.getJSONObject("payload");
                 eventBindings = payload.getJSONArray("events");
                 h5EventBindings = payload.getJSONArray("h5_events");
+                pageInfoBindings = payload.getJSONArray("page_info");
+                SugoPageManager.getInstance().setPageInfos(pageInfoBindings);
                 SugoWebEventListener.bindEvents(mToken, h5EventBindings);
             } catch (final JSONException e) {
                 Log.e(LOGTAG, "Bad event bindings received", e);
