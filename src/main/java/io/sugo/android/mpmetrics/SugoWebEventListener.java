@@ -22,7 +22,6 @@ public class SugoWebEventListener {
     }
 
     @JavascriptInterface
-    @org.xwalk.core.JavascriptInterface
     public void track(String eventId, String eventName, String props) {
         try {
             JSONObject jsonObject = new JSONObject(props);
@@ -43,7 +42,6 @@ public class SugoWebEventListener {
     }
 
     @JavascriptInterface
-    @org.xwalk.core.JavascriptInterface
     public void timeEvent(String eventName) {
         sugoAPI.timeEvent(eventName);
     }
