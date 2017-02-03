@@ -27,6 +27,9 @@ public class SugoPageManager {
     }
 
     public void setPageInfos(JSONArray pageInfos) {
+        if (pageInfos == null) {
+            return;
+        }
         if (mPageInfos == null) {
             mPageInfos = new HashMap<>();
         } else {
