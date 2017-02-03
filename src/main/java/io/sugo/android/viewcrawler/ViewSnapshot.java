@@ -227,7 +227,7 @@ import io.sugo.android.mpmetrics.SugoWebNodeReporter;
                     webView.loadUrl("javascript:if(typeof sugo === 'object' && typeof sugo.reportNodes === 'function'){sugo.reportNodes();}");
                 }
             });
-            int max_attempt = 20;
+            int max_attempt = 40;
             int count = 0;
             while (oldVersion == sugoWebNodeReporter.version && count < max_attempt) {
                 try {

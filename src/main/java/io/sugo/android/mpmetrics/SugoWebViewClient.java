@@ -10,6 +10,12 @@ import android.webkit.WebViewClient;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
+import org.xwalk.core.XWalkView;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.regex.Pattern;
 
 import io.sugo.android.viewcrawler.ViewCrawler;
 
@@ -302,7 +308,7 @@ public class SugoWebViewClient extends WebViewClient {
             "    if(!props){\n" +
             "        props = {};\n" +
             "    }\n" +
-            "    props." + SGConfig.FIELD_PAGE_NAME + " = sugo.relative_path;\n" +
+            "    props." + SGConfig.FIELD_PAGE + " = sugo.relative_path;\n" +
             "    if(!props." + SGConfig.FIELD_PAGE_NAME + "){\n" +
             "       props." + SGConfig.FIELD_PAGE_NAME + " = sugo.page_name;\n" +
             "    }\n" +
@@ -334,6 +340,13 @@ public class SugoWebViewClient extends WebViewClient {
 
     }
 
+    public static void handlePageFinished(XWalkView view, String url) {
+        Context context = view.getContext();
+        Activity activity = (Activity) context;
+        String script = getInjectScript(activity, url);
+        view.load("javascript:" + script, "");
+
+    }
 
     public static void handlePageFinished(WebViewDelegate delegate, Activity activity, String url) {
         String script = getInjectScript(activity, url);
@@ -362,14 +375,24 @@ public class SugoWebViewClient extends WebViewClient {
         }
         StringBuffer scriptBuf = new StringBuffer();
         scriptBuf.append(cssUtil);
-        scriptBuf.append("var sugo = {}; sugo.relative_path = window.location.pathname.replace(")
+        scriptBuf.append("var sugo = {}; sugo.relative_path = window.location.pathname.replace(/")
                 .append(sugoInstance.getmConfig().getWebRoot())
-                .append(", '');");
-        scriptBuf.append(initScript);
-        JSONObject pageInfo = SugoPageManager.getInstance().getCurrentPageInfo(url);
+                .append("/g, '');");
+        String realPath = "";
+        try {
+            Pattern pattern = Pattern.compile("^[A-Za-z0-9]*://.*", Pattern.CASE_INSENSITIVE);
+            if (pattern.matcher(url).matches()) {
+                URL urlObj = new URL(url);
+                realPath = urlObj.getPath();
+            }
+            realPath = realPath.replace(sugoInstance.getmConfig().getWebRoot(), "");
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        JSONObject pageInfo = SugoPageManager.getInstance().getCurrentPageInfo(realPath);
         String pageName = "";
         String initCode = "";
-        if(pageInfo != null){
+        if (pageInfo != null) {
             pageName = pageInfo.optString("page_name", "");
             initCode = pageInfo.optString("code", "");
         }

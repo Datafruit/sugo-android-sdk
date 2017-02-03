@@ -382,8 +382,8 @@ public class SGConfig {
     }
 
     public String getWebRoot() {
-        if (webRoot == null || webRoot.trim().equals(""))
-            webRoot = "''";
+        if (webRoot == null || webRoot.equals(""))
+            webRoot = " ";
         return webRoot;
     }
 
