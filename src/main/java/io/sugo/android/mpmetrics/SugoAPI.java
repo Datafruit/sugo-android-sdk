@@ -21,7 +21,6 @@ import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.xwalk.core.XWalkView;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -1124,13 +1123,6 @@ public class SugoAPI {
         SugoWebNodeReporter reporter = new SugoWebNodeReporter();
         delegate.addJavascriptInterface(reporter, "sugoWebNodeReporter");
         setSugoWebNodeReporter(delegate, reporter);
-    }
-
-    public void addWebViewJavascriptInterface(XWalkView xWalkView) {
-        xWalkView.addJavascriptInterface(new SugoWebEventListener(this), "sugoEventListener");
-        SugoWebNodeReporter reporter = new SugoWebNodeReporter();
-        xWalkView.addJavascriptInterface(reporter, "sugoWebNodeReporter");
-        setSugoWebNodeReporter(xWalkView, reporter);
     }
 
     public SGConfig getmConfig() {
