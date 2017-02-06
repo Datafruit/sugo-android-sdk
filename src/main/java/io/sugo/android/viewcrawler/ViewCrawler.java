@@ -92,16 +92,6 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
             }
         });
 
-        Uri data = ((Activity) context).getIntent().getData();
-        if (data != null) {
-            String host = data.getHost();
-            if (host != null && host.equals("sugo")) {
-                secretKey = data.getQueryParameter("sKey");
-                final Message message = mMessageThreadHandler.obtainMessage(MESSAGE_CONNECT_TO_EDITOR);
-                mMessageThreadHandler.sendMessage(message);
-            }
-        }
-
     }
 
     @Override
@@ -235,6 +225,16 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
         public void onActivityResumed(Activity activity) {
             installConnectionSensor(activity);
             mEditState.add(activity);
+            Uri data = activity.getIntent().getData();
+            if (data != null) {
+                String host = data.getHost();
+                if (host != null && host.equals("sugo")) {
+                    secretKey = data.getQueryParameter("sKey");
+                    final Message message = mMessageThreadHandler.obtainMessage(MESSAGE_CONNECT_TO_EDITOR);
+                    mMessageThreadHandler.sendMessage(message);
+                    activity.getIntent().setData(null);     // 防止未再次扫码却自动连接的情况
+                }
+            }
         }
 
         @Override
