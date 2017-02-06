@@ -368,6 +368,8 @@ import io.sugo.android.mpmetrics.SGConfig;
                 setEventTypeString("click");
             } else if (mEventType == AccessibilityEvent.TYPE_VIEW_SELECTED) {
                 setEventTypeString("selected");
+            } else if (mEventType == AccessibilityEvent.TYPE_VIEW_FOCUSED) {
+                setEventTypeString("focus");
             }
             mWatching = new WeakHashMap<View, TrackingAccessibilityDelegate>();
         }
@@ -402,6 +404,9 @@ import io.sugo.android.mpmetrics.SGConfig;
             }
 
             // We aren't already in the tracking call chain of the view
+            // 将本SDK的代理设置进去，则表示 SDK 加入了该 View 事件变化的调用链，
+            // 事件发生时，将调用 newDelegate 的 sendAccessibilityEvent，从而实现监听事件并发送的逻辑
+            // 执行完将调用原本的 realDelegate，将事件继续传递下去原本的传递链
             final TrackingAccessibilityDelegate newDelegate = new TrackingAccessibilityDelegate(realDelegate);
             found.setAccessibilityDelegate(newDelegate);
             mWatching.put(found, newDelegate);
@@ -416,6 +421,7 @@ import io.sugo.android.mpmetrics.SGConfig;
             View.AccessibilityDelegate ret = null;
             try {
                 Class<?> klass = v.getClass();
+                // 通过反射调用的方法，所以，这个方法不能被混淆，否则将找不到该方法而引发 BUG
                 Method m = klass.getMethod("getAccessibilityDelegate");
                 ret = (View.AccessibilityDelegate) m.invoke(v);
             } catch (NoSuchMethodException e) {

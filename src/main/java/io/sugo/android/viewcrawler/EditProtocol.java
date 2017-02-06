@@ -10,10 +10,6 @@ import android.util.Pair;
 import android.view.accessibility.AccessibilityEvent;
 import android.widget.RelativeLayout;
 
-import io.sugo.android.mpmetrics.ResourceIds;
-import io.sugo.android.util.ImageStore;
-import io.sugo.android.util.JSONUtils;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,6 +20,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import io.sugo.android.mpmetrics.ResourceIds;
+import io.sugo.android.util.ImageStore;
+import io.sugo.android.util.JSONUtils;
 
 /* package */ class EditProtocol {
 
@@ -114,6 +114,15 @@ import java.util.Map;
                     eventName,
                     dimMap,
                     listener
+                );
+            } else if ("focus".equals(eventType)) {
+                return new ViewVisitor.AddAccessibilityEventVisitor(
+                        path,
+                        AccessibilityEvent.TYPE_VIEW_FOCUSED,
+                        eventId,
+                        eventName,
+                        dimMap,
+                        listener
                 );
             } else if ("text_changed".equals(eventType)) {
                 return new ViewVisitor.AddTextChangeListener(path, eventId, eventName, dimMap, listener);
