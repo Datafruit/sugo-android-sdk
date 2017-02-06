@@ -160,6 +160,8 @@ import java.util.Set;
             }
             // ELSE View is alive and we are alive
 
+            // 找到这个 View ，并绑定对应的 View 观察者
+            // （ViewVisitor 内部执行的代码，将替换 该View 的 AccessibilityDelegate 实现监听）
             mEdit.visit(viewRoot);
             mHandler.removeCallbacks(this);
             mHandler.postDelayed(this, 1000);
