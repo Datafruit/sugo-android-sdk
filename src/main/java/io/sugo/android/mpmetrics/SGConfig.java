@@ -225,7 +225,12 @@ public class SGConfig {
 
         String eventsEndpoint = metaData.getString("io.sugo.android.SGConfig.EventsEndpoint");
         if (null == eventsEndpoint) {
-            eventsEndpoint = "https://api.mixpanel.com/track?ip=1";
+            String projectId = metaData.getString("io.sugo.android.SGConfig.ProjectId");
+            if (null == projectId || projectId.trim().equals("")) {
+                eventsEndpoint = "https://api.mixpanel.com/track?ip=1";
+            } else {
+                eventsEndpoint = "https://collect.sugo.net/post?locate=" + projectId;
+            }
         }
         mEventsEndpoint = eventsEndpoint;
 
