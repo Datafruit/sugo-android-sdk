@@ -534,6 +534,10 @@ import io.sugo.android.util.RemoteService;
                 if (bluetoothVersion != null)
                     ret.put(SGConfig.FIELD_BLUETOOTH_VERSION, bluetoothVersion);
 
+                final String deviceId = mSystemInformation.getDeviceId();
+                if (null != networkType) {
+                    ret.put(SGConfig.FIELD_DEVICE_ID, deviceId);
+                }
                 return ret;
             }
 
