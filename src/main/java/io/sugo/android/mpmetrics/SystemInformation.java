@@ -1,8 +1,5 @@
 package io.sugo.android.mpmetrics;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
@@ -11,11 +8,19 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.wifi.WifiManager;
+import android.provider.Settings;
 import android.telephony.TelephonyManager;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
+
+import org.json.JSONObject;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * Abstracts away possibly non-present system information classes,
@@ -73,40 +78,70 @@ import android.view.WindowManager;
         display.getMetrics(mDisplayMetrics);
     }
 
-    public String getAppVersionName() { return mAppVersionName; }
+    public String getAppVersionName() {
+        return mAppVersionName;
+    }
 
-    public Integer getAppVersionCode() { return mAppVersionCode; }
+    public Integer getAppVersionCode() {
+        return mAppVersionCode;
+    }
 
-    public boolean hasNFC() { return mHasNFC; }
+    public boolean hasNFC() {
+        return mHasNFC;
+    }
 
-    public boolean hasTelephony() { return mHasTelephony; }
+    public boolean hasTelephony() {
+        return mHasTelephony;
+    }
 
-    public DisplayMetrics getDisplayMetrics() { return mDisplayMetrics; }
+    public DisplayMetrics getDisplayMetrics() {
+        return mDisplayMetrics;
+    }
 
     public String getPhoneRadioType() {
         String ret = null;
 
         TelephonyManager telephonyManager = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
         if (null != telephonyManager) {
-            switch(telephonyManager.getPhoneType()) {
-            case 0x00000000: // TelephonyManager.PHONE_TYPE_NONE
-                ret = "none";
-                break;
-            case 0x00000001: // TelephonyManager.PHONE_TYPE_GSM
-                ret = "gsm";
-                break;
-            case 0x00000002: // TelephonyManager.PHONE_TYPE_CDMA
-                ret = "cdma";
-                break;
-            case 0x00000003: // TelephonyManager.PHONE_TYPE_SIP
-                ret = "sip";
-                break;
-            default:
-                ret = null;
+            switch (telephonyManager.getPhoneType()) {
+                case 0x00000000: // TelephonyManager.PHONE_TYPE_NONE
+                    ret = "none";
+                    break;
+                case 0x00000001: // TelephonyManager.PHONE_TYPE_GSM
+                    ret = "gsm";
+                    break;
+                case 0x00000002: // TelephonyManager.PHONE_TYPE_CDMA
+                    ret = "cdma";
+                    break;
+                case 0x00000003: // TelephonyManager.PHONE_TYPE_SIP
+                    ret = "sip";
+                    break;
+                default:
+                    ret = null;
             }
         }
 
         return ret;
+    }
+
+    public String getDeviceId() {
+        String deviceId = null;
+        try {
+            TelephonyManager tm = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
+            deviceId = tm.getDeviceId();
+
+            if (TextUtils.isEmpty(deviceId)) {
+                WifiManager wifi = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+                String mac = wifi.getConnectionInfo().getMacAddress();
+                deviceId = mac;
+            }
+            if (TextUtils.isEmpty(deviceId)) {
+                deviceId = Settings.Secure.getString(mContext.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return deviceId;
     }
 
     // Note this is the *current*, not the canonical network, because it
@@ -214,10 +249,10 @@ import android.view.WindowManager;
         String bluetoothVersion = null;
         if (android.os.Build.VERSION.SDK_INT >= 8) {
             bluetoothVersion = "none";
-            if(android.os.Build.VERSION.SDK_INT >= 18 &&
+            if (android.os.Build.VERSION.SDK_INT >= 18 &&
                     mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
                 bluetoothVersion = "ble";
-            } else if(mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)) {
+            } else if (mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)) {
                 bluetoothVersion = "classic";
             }
         }

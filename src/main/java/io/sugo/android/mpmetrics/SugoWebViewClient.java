@@ -283,7 +283,7 @@ public class SugoWebViewClient extends WebViewClient {
             "        \n" +
             "    }  \n" +
             "    \n" +
-            "    document.addEventListener(eventType, handle);\n" +
+            "    document.addEventListener(eventType, handle, true);\n" +
             "};" +
             "sugo.bindEvent = function () {\n" +
             "    sugo.delegate('click'); \n" +

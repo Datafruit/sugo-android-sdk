@@ -537,4 +537,5 @@ public class SGConfig {
     public static final String SESSION_ID = "session_id";
     public static final String FIELD_PAGE_NAME = "page_name";
     public static final String FIELD_EVENT_TYPE = "event_type";
+    public static final String FIELD_DEVICE_ID = "device_id";
 }
