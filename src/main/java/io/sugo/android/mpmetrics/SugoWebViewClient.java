@@ -299,8 +299,13 @@ public class SugoWebViewClient extends WebViewClient {
             "  sugo.clientWidth = (window.innerWidth || document.documentElement.clientWidth);\n" +
             "  sugo.clientHeight = (window.innerHeight || document.documentElement.clientHeight);\n" +
             "  sugo.handleNodeChild(childrens, jsonArry, parent_path);\n" +
-            "  window.sugoWebNodeReporter.reportNodes(sugo.relative_path, JSON.stringify(jsonArry), sugo.clientWidth, sugo.clientHeight);\n" +
-            "};";
+            "  if(window.sugoWebNodeReporter){\n" +
+            "    window.sugoWebNodeReporter.reportNodes(sugo.relative_path, JSON.stringify(jsonArry), sugo.clientWidth, sugo.clientHeight);\n" +
+            "  }" +
+            "};" +
+            "if (sugo && sugo.reportNodes) {\n" +
+            "  sugo.reportNodes();\n" +
+            "}";
 
     private static String initScript = "sugo.track = function(event_name, props){\n" +
             "    if(!props){\n" +
