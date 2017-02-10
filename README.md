@@ -281,7 +281,7 @@ SugoSDK 也设置了一些默认的`默认属性`，[点这里查看]()
 
 想要设置`默认属性`，调用`SugoAPI.registerSuperProperties`
 ```Java
-SugoAPI sugoAPI = SugoAPI.getInstance(context, MIXPANEL_TOKEN);
+SugoAPI sugoAPI = SugoAPI.getInstance(context);
 
 // Send a "User Type: Paid" property will be sent with all future track calls.
 JSONObject props = new JSONObject();
