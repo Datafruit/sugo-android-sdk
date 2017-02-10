@@ -17,4 +17,5 @@ public interface UpdatesFromMixpanel {
     public Tweaks getTweaks();
     public void addOnMixpanelTweaksUpdatedListener(OnMixpanelTweaksUpdatedListener listener);
     public void removeOnMixpanelTweaksUpdatedListener(OnMixpanelTweaksUpdatedListener listener);
+    void sendConnectEditor();
 }
