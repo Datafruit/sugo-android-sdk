@@ -1,5 +1,7 @@
 package io.sugo.android.viewcrawler;
 
+import android.net.Uri;
+
 import org.json.JSONArray;
 
 import io.sugo.android.mpmetrics.OnMixpanelTweaksUpdatedListener;
@@ -17,5 +19,5 @@ public interface UpdatesFromMixpanel {
     public Tweaks getTweaks();
     public void addOnMixpanelTweaksUpdatedListener(OnMixpanelTweaksUpdatedListener listener);
     public void removeOnMixpanelTweaksUpdatedListener(OnMixpanelTweaksUpdatedListener listener);
-    void sendConnectEditor();
+    void sendConnectEditor(Uri data);
 }
