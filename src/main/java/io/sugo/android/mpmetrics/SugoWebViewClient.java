@@ -24,12 +24,12 @@ import io.sugo.android.viewcrawler.ViewCrawler;
  */
 
 public class SugoWebViewClient extends WebViewClient {
-    private static String pageViewScript = "sugo.track('', 'h5_enter_page_event');\n" +
+    private static String pageViewScript = "sugo.track('h5_enter_page_event');\n" +
             "sugo.enter_time = new Date().getTime();\n" +
             "\n" +
             "window.addEventListener('beforeunload', function (e) {\n" +
             "\tvar duration = (new Date().getTime() - sugo.enter_time)/1000;\n" +
-            "    sugo.track('', 'h5_stay_event', {" + SGConfig.FIELD_DURATION + ": duration});\n" +
+            "    sugo.track('h5_stay_event', {" + SGConfig.FIELD_DURATION + ": duration});\n" +
             "});";
     private static String cssUtil = "var UTILS = {};\n" +
             "UTILS.cssPath = function(node, optimized)\n" +
@@ -213,7 +213,7 @@ public class SugoWebViewClient extends WebViewClient {
             "      rect.right <= sugo.clientWidth\n" +
             "  );\n" +
             "};" +
-            "sugo.handleNodeChild = function (childrens, jsonArry, parent_path, type) {\n" +
+            "sugo.handleNodeChild = function (childrens, jsonArry, parent_path) {\n" +
             "  var index_map = {};\n" +
             "  for (var i = 0; i < childrens.length; i++) {\n" +
             "    var children = childrens[i];\n" +
@@ -221,7 +221,6 @@ public class SugoWebViewClient extends WebViewClient {
             "    var htmlNode = {};\n" +
             "    htmlNode.innerText = children.innerText;\n" +
             "    htmlNode.path = path;\n" +
-            "    if (type === 'report') {\n" +
             "      var rect = children.getBoundingClientRect();\n" +
             "      if (sugo.isElementInViewport(rect) == true) {\n" +
             "        var temp_rect = {\n" +
@@ -233,10 +232,9 @@ public class SugoWebViewClient extends WebViewClient {
             "        htmlNode.rect = temp_rect;\n" +
             "        jsonArry.push(htmlNode);\n" +
             "      }\n" +
-            "    }\n" +
             "\n" +
             "    if (children.children) {\n" +
-            "      sugo.handleNodeChild(children.children, jsonArry, path, type);\n" +
+            "      sugo.handleNodeChild(children.children, jsonArry, path);\n" +
             "    }\n" +
             "  }\n" +
             "};\n" +
@@ -271,7 +269,7 @@ public class SugoWebViewClient extends WebViewClient {
             "                        }\n" +
             "                        custom_props.from_binding = true;\n" +
             "                        custom_props.event_label = ele.innerText;\n" +
-            "                        sugo.track(event.event_id, event.event_name, custom_props);\n" +
+            "                        window.sugoEventListener.track(event.event_id, event.event_name, JSON.stringify(custom_props));\n" +
             "                        break;\n" +
             "                     }\n" +
             "                     parentNode = parentNode.parentNode;\n" +
@@ -300,11 +298,16 @@ public class SugoWebViewClient extends WebViewClient {
             "  var parent_path = '';\n" +
             "  sugo.clientWidth = (window.innerWidth || document.documentElement.clientWidth);\n" +
             "  sugo.clientHeight = (window.innerHeight || document.documentElement.clientHeight);\n" +
-            "  sugo.handleNodeChild(childrens, jsonArry, parent_path, 'report');\n" +
-            "  window.sugoWebNodeReporter.reportNodes(sugo.relative_path, JSON.stringify(jsonArry), sugo.clientWidth, sugo.clientHeight);\n" +
-            "};";
+            "  sugo.handleNodeChild(childrens, jsonArry, parent_path);\n" +
+            "  if(window.sugoWebNodeReporter){\n" +
+            "    window.sugoWebNodeReporter.reportNodes(sugo.relative_path, JSON.stringify(jsonArry), sugo.clientWidth, sugo.clientHeight);\n" +
+            "  }" +
+            "};" +
+            "if (sugo && sugo.reportNodes) {\n" +
+            "  sugo.reportNodes();\n" +
+            "}";
 
-    private static String initScript = "sugo.track = function(event_id, event_name, props){\n" +
+    private static String initScript = "sugo.track = function(event_name, props){\n" +
             "    if(!props){\n" +
             "        props = {};\n" +
             "    }\n" +
@@ -312,7 +315,7 @@ public class SugoWebViewClient extends WebViewClient {
             "    if(!props." + SGConfig.FIELD_PAGE_NAME + "){\n" +
             "       props." + SGConfig.FIELD_PAGE_NAME + " = sugo.page_name;\n" +
             "    }\n" +
-            "    window.sugoEventListener.track(event_id, event_name, JSON.stringify(props));\n" +
+            "    window.sugoEventListener.track('', event_name, JSON.stringify(props));\n" +
             "};" +
             "sugo.timeEvent = function(event_name){\n" +
             "    window.sugoEventListener.timeEvent(event_name);\n" +
