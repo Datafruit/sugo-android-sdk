@@ -1004,6 +1004,11 @@ public class SugoAPI {
             // No op
         }
 
+        @Override
+        public void sendConnectEditor() {
+
+        }
+
         private final Tweaks mTweaks;
     }
 
@@ -1143,6 +1148,13 @@ public class SugoAPI {
 
     public static void setSugoWebNodeReporter(Object key, SugoWebNodeReporter sugoWebNodeReporter) {
         sugoWNReporter.put(key, sugoWebNodeReporter);
+    }
+
+    /**
+     * 可能需要在 Resume-Pause 之间调用
+     */
+    public void connectEditor() {
+        mUpdatesFromMixpanel.sendConnectEditor();
     }
 
     private final Context mContext;
