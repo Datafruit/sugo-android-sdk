@@ -1144,11 +1144,11 @@ public class SugoAPI {
     }
 
     public static SugoWebNodeReporter getSugoWebNodeReporter(Object key) {
-        return sugoWNReporter.get(key);
+        return SugoWebEventListener.sugoWNReporter.get(key);
     }
 
     public static void setSugoWebNodeReporter(Object key, SugoWebNodeReporter sugoWebNodeReporter) {
-        sugoWNReporter.put(key, sugoWebNodeReporter);
+        SugoWebEventListener.sugoWNReporter.put(key, sugoWebNodeReporter);
     }
 
     /**
@@ -1184,5 +1184,4 @@ public class SugoAPI {
 
     private boolean mDisableDecideChecker;
 
-    private static Map<Object, SugoWebNodeReporter> sugoWNReporter = new HashMap<Object, SugoWebNodeReporter>();
 }
