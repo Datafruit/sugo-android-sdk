@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -1004,6 +1005,11 @@ public class SugoAPI {
             // No op
         }
 
+        @Override
+        public void sendConnectEditor(Uri data) {
+
+        }
+
         private final Tweaks mTweaks;
     }
 
@@ -1143,6 +1149,14 @@ public class SugoAPI {
 
     public static void setSugoWebNodeReporter(Object key, SugoWebNodeReporter sugoWebNodeReporter) {
         sugoWNReporter.put(key, sugoWebNodeReporter);
+    }
+
+    /**
+     * 连接到 Editor
+     * @param data 例如: sugo.9db31f867e0b54b2744e48dde0a3d1bb://sugo/?sKey=e628da6c344acf503bc1b0574326f3b4
+     */
+    public void connectEditor(Uri data) {
+        mUpdatesFromMixpanel.sendConnectEditor(data);
     }
 
     private final Context mContext;

@@ -171,6 +171,19 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
         mMessageThreadHandler.sendMessage(m);
     }
 
+    public void sendConnectEditor(Uri data) {
+        if (mMessageThreadHandler != null) {
+            if (data != null) {
+                String host = data.getHost();
+                if (host != null && host.equals("sugo")) {
+                    secretKey = data.getQueryParameter("sKey");
+                    final Message message = mMessageThreadHandler.obtainMessage(MESSAGE_CONNECT_TO_EDITOR);
+                    mMessageThreadHandler.sendMessage(message);
+                }
+            }
+        }
+    }
+
     private class EmulatorConnector implements Runnable {
         public EmulatorConnector() {
             mStopped = true;
@@ -209,8 +222,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
         @Override
         public void onFlipGesture() {
             //mMixpanel.track("$ab_gesture3");
-            final Message message = mMessageThreadHandler.obtainMessage(MESSAGE_CONNECT_TO_EDITOR);
-            mMessageThreadHandler.sendMessage(message);
+//            sendConnectEditor();      // 不再支持手势进入连接
         }
 
         @Override
