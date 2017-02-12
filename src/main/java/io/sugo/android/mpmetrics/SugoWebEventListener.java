@@ -9,6 +9,7 @@ import android.webkit.WebView;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xwalk.core.XWalkView;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,6 +24,7 @@ public class SugoWebEventListener {
     private final SugoAPI sugoAPI;
     private static Map<String, JSONArray> eventBindingsMap = new HashMap<String, JSONArray>();
     protected static HashSet<WebView> sCurrentWebView = new HashSet<>();
+    protected static HashSet<XWalkView> sCurrentXWalkView = new HashSet<>();
     public static Map<Object, SugoWebNodeReporter> sugoWNReporter = new HashMap<Object, SugoWebNodeReporter>();
 
     SugoWebEventListener(SugoAPI sugoAPI) {
@@ -60,6 +62,7 @@ public class SugoWebEventListener {
         eventBindingsMap.put(token, eventBindings);
         if (SugoAPI.developmentMode) {      // 只在连接编辑器模式下操作
             updateWebViewInject();
+            updateXWalkViewInject();
         } else {
             sCurrentWebView.clear();
         }
@@ -81,6 +84,17 @@ public class SugoWebEventListener {
 
     }
 
+    public static void addCurrentXWalkView(XWalkView currentXWalkView) {
+        if (!SugoAPI.developmentMode) {
+            return;
+        }
+        sCurrentXWalkView.add(currentXWalkView);
+        if (SGConfig.DEBUG) {
+            Log.d("SugoWebEventListener", "addCurrentXWalkView : " + currentXWalkView.toString());
+        }
+
+    }
+
     private static void updateWebViewInject() {
         Iterator<WebView> webViewIterator = sCurrentWebView.iterator();
         while (webViewIterator.hasNext()) {
@@ -94,6 +108,26 @@ public class SugoWebEventListener {
                     webView.reload();
                     if (SGConfig.DEBUG) {
                         Log.d("SugoWebEventListener", "webview reload : " + webView.toString());
+                    }
+                }
+            });
+
+        }
+    }
+
+    private static void updateXWalkViewInject() {
+        Iterator<XWalkView> viewIterator = sCurrentXWalkView.iterator();
+        while (viewIterator.hasNext()) {
+            final XWalkView xWalkView = viewIterator.next();
+            if (xWalkView == null) {
+                return;
+            }
+            ((Activity) xWalkView.getContext()).runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    xWalkView.reload(XWalkView.RELOAD_NORMAL);
+                    if (SGConfig.DEBUG) {
+                        Log.d("SugoWebEventListener", "XWalkView reload : " + xWalkView.toString());
                     }
                 }
             });
@@ -124,6 +158,27 @@ public class SugoWebEventListener {
                 }
             }
         }
+
+        Iterator<XWalkView> xWalkViewIterator = sCurrentXWalkView.iterator();
+        XWalkView xWalkView = null;
+        while (xWalkViewIterator.hasNext()) {
+            xWalkView = xWalkViewIterator.next();
+            Activity activity = (Activity) xWalkView.getContext();
+            if (activity == null || activity == deadActivity) {
+                removeXWalkViewReference(xWalkView);
+            } else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                    if (activity.isDestroyed() || activity.isFinishing()) {
+                        removeXWalkViewReference(xWalkView);
+                    }
+                } else {
+                    if (activity.isFinishing()) {
+                        removeXWalkViewReference(xWalkView);
+                    }
+                }
+            }
+        }
+
     }
 
     private static void removeWebViewReference(WebView webView) {
@@ -131,6 +186,14 @@ public class SugoWebEventListener {
         sugoWNReporter.remove(webView);
         if (SGConfig.DEBUG) {
             Log.d("SugoWebEventListener", "removeWebViewReference : " + webView.toString());
+        }
+    }
+
+    private static void removeXWalkViewReference(XWalkView xWalkView) {
+        sCurrentXWalkView.remove(xWalkView);
+        sugoWNReporter.remove(xWalkView);
+        if (SGConfig.DEBUG) {
+            Log.d("SugoWebEventListener", "removeXWalkViewReference : " + xWalkView.toString());
         }
     }
 
