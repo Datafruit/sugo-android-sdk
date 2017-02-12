@@ -1,12 +1,18 @@
 package io.sugo.android.mpmetrics;
 
+import android.app.Activity;
+import android.os.Build;
+import android.util.Log;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -16,6 +22,8 @@ import java.util.Map;
 public class SugoWebEventListener {
     private final SugoAPI sugoAPI;
     private static Map<String, JSONArray> eventBindingsMap = new HashMap<String, JSONArray>();
+    protected static HashSet<WebView> sCurrentWebView = new HashSet<>();
+    public static Map<Object, SugoWebNodeReporter> sugoWNReporter = new HashMap<Object, SugoWebNodeReporter>();
 
     SugoWebEventListener(SugoAPI sugoAPI) {
         this.sugoAPI = sugoAPI;
@@ -50,9 +58,80 @@ public class SugoWebEventListener {
 
     public static void bindEvents(String token, JSONArray eventBindings) {
         eventBindingsMap.put(token, eventBindings);
+        if (SugoAPI.developmentMode) {      // 只在连接编辑器模式下操作
+            updateWebViewInject();
+        } else {
+            sCurrentWebView.clear();
+        }
     }
 
     public static JSONArray getBindEvents(String token) {
         return eventBindingsMap.get(token);
     }
+
+
+    public static void addCurrentWebView(WebView currentWebView) {
+        if (!SugoAPI.developmentMode) {
+            return;
+        }
+        sCurrentWebView.add(currentWebView);
+        if (SGConfig.DEBUG) {
+            Log.d("SugoWebEventListener", "addCurrentWebView : " + currentWebView.toString());
+        }
+
+    }
+
+    private static void updateWebViewInject() {
+        Iterator<WebView> webViewIterator = sCurrentWebView.iterator();
+        while (webViewIterator.hasNext()) {
+            final WebView webView = webViewIterator.next();
+            if (webView == null) {
+                return;
+            }
+            ((Activity) webView.getContext()).runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    webView.reload();
+                    if (SGConfig.DEBUG) {
+                        Log.d("SugoWebEventListener", "webview reload : " + webView.toString());
+                    }
+                }
+            });
+
+        }
+    }
+
+    /**
+     * 移除 webview 引用，即移除对 Activity 的引用，避免内存泄漏
+     */
+    public static void cleanUnuseWebView(Activity deadActivity) {
+        Iterator<WebView> webViewIterator = sCurrentWebView.iterator();
+        WebView webView = null;
+        while (webViewIterator.hasNext()) {
+            webView = webViewIterator.next();
+            Activity activity = (Activity) webView.getContext();
+            if (activity == null || activity == deadActivity) {
+                removeWebViewReference(webView);
+            } else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                    if (activity.isDestroyed() || activity.isFinishing()) {
+                        removeWebViewReference(webView);
+                    }
+                } else {
+                    if (activity.isFinishing()) {
+                        removeWebViewReference(webView);
+                    }
+                }
+            }
+        }
+    }
+
+    private static void removeWebViewReference(WebView webView) {
+        sCurrentWebView.remove(webView);
+        sugoWNReporter.remove(webView);
+        if (SGConfig.DEBUG) {
+            Log.d("SugoWebEventListener", "removeWebViewReference : " + webView.toString());
+        }
+    }
+
 }

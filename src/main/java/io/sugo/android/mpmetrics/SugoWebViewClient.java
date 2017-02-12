@@ -341,6 +341,7 @@ public class SugoWebViewClient extends WebViewClient {
         String script = getInjectScript(activity, url);
         view.loadUrl("javascript:" + script);
 
+        SugoWebEventListener.addCurrentWebView(view);
     }
 
     public static void handlePageFinished(XWalkView view, String url) {
