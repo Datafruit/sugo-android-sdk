@@ -267,6 +267,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
 
         @Override
         public void onActivityDestroyed(Activity activity) {
+            SugoWebEventListener.cleanUnuseWebView(activity);
         }
 
         private void installConnectionSensor(final Activity activity) {
@@ -715,6 +716,8 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                     Log.e(LOGTAG, "Can't close writer.", e);
                 }
             }
+
+            SugoAPI.developmentMode = true;
         }
 
         /**
@@ -973,6 +976,8 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
             for (final String assetUrl : mEditorAssetUrls) {
                 mImageStore.deleteStorage(assetUrl);
             }
+
+            SugoAPI.developmentMode = false;
         }
 
         /**

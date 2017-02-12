@@ -340,6 +340,7 @@ public class SugoWebViewClient extends WebViewClient {
         String script = getInjectScript(activity, url);
         view.loadUrl("javascript:" + script);
 
+        SugoWebEventListener.addCurrentWebView(view);
     }
 
     public static void handlePageFinished(WebViewDelegate delegate, Activity activity, String url) {
