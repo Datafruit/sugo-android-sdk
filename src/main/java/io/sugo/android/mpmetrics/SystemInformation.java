@@ -129,12 +129,19 @@ import java.lang.reflect.Method;
         try {
             TelephonyManager tm = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
             deviceId = tm.getDeviceId();
-
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
             if (TextUtils.isEmpty(deviceId)) {
                 WifiManager wifi = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
                 String mac = wifi.getConnectionInfo().getMacAddress();
                 deviceId = mac;
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
             if (TextUtils.isEmpty(deviceId)) {
                 deviceId = Settings.Secure.getString(mContext.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
             }
