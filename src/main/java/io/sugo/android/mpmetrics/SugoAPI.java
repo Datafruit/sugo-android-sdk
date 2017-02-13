@@ -256,7 +256,7 @@ public class SugoAPI {
                 messageProps.put(SGConfig.FIELD_TIME, new Date());
 
                 final AnalyticsMessages.EventDescription eventDescription =
-                        new AnalyticsMessages.EventDescription(null, "Integration", messageProps, token);
+                        new AnalyticsMessages.EventDescription(null, "安装", messageProps, token);
                 mMessages.eventsMessage(eventDescription);
                 flush();
                 mPersistentIdentity.setTrackedIntegration(true);
@@ -436,7 +436,11 @@ public class SugoAPI {
      * @param eventName the name of the event to track with timing.
      */
     public void timeEvent(final String eventName) {
-        final long writeTime = System.currentTimeMillis();
+        timeEvent(eventName, 0);
+    }
+
+    public void timeEvent(final String eventName, long offset) {
+        final long writeTime = System.currentTimeMillis() + offset;
         synchronized (mEventTimings) {
             mEventTimings.put(eventName, writeTime);
             mPersistentIdentity.addTimeEvent(eventName, writeTime);
@@ -545,8 +549,8 @@ public class SugoAPI {
                 while (propIter.hasNext()) {
                     final String key = (String) propIter.next();
                     Object value = messageProps.get(key);
-                    if (value instanceof Date){
-                        messageProps.put(key, ((Date)value).getTime());
+                    if (value instanceof Date) {
+                        messageProps.put(key, ((Date) value).getTime());
                     }
                 }
                 event.put("properties", messageProps);
@@ -1153,6 +1157,7 @@ public class SugoAPI {
 
     /**
      * 连接到 Editor
+     *
      * @param data 例如: sugo.9db31f867e0b54b2744e48dde0a3d1bb://sugo/?sKey=e628da6c344acf503bc1b0574326f3b4
      */
     public void connectEditor(Uri data) {
