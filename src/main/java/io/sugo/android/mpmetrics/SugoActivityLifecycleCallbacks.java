@@ -29,7 +29,8 @@ import io.sugo.android.viewcrawler.GestureTracker;
         mMpInstance = mpInstance;
         mConfig = config;
 
-        mMpInstance.track("launch_event");    // 第一个界面正在启动
+        mMpInstance.track("启动");    // 第一个界面正在启动
+        mMpInstance.timeEvent("APP停留");
     }
 
     @Override
@@ -67,16 +68,17 @@ import io.sugo.android.viewcrawler.GestureTracker;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            mMpInstance.track("awake_event", props);
+            mMpInstance.track("唤醒", props);
+            mMpInstance.track("后台停留", props);
         }
 
         try {
             JSONObject props = new JSONObject();
-            props.put(SGConfig.FIELD_PAGE,activity.getPackageName()+"."+activity.getLocalClassName());
+            props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
             props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
                     .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
-            mMpInstance.track("enter_page_event",props);
-            mMpInstance.timeEvent("stay_event");
+            mMpInstance.track("浏览", props);
+            mMpInstance.timeEvent("窗口停留");
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -105,7 +107,8 @@ import io.sugo.android.viewcrawler.GestureTracker;
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                    mMpInstance.track("in_background_event", props);        // App 进入后台运行状态
+                    mMpInstance.timeEvent("后台停留", -CHECK_DELAY);// 程序延迟了，需要补回
+                    mMpInstance.track("后台", props);        // App 进入后台运行状态
                     mMpInstance.flush();
                 }
             }
@@ -113,24 +116,25 @@ import io.sugo.android.viewcrawler.GestureTracker;
 
         try {
             JSONObject props = new JSONObject();
-            props.put(SGConfig.FIELD_PAGE,activity.getPackageName()+"."+activity.getLocalClassName());
+            props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
             props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
                     .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
-            mMpInstance.track("stay_event",props);
+            mMpInstance.track("窗口停留", props);
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void onActivityStopped(Activity activity) { }
+    public void onActivityStopped(Activity activity) {
+    }
 
     @Override
     public void onActivityDestroyed(Activity activity) {
         if (activity.isTaskRoot()) {     // 最后一个被摧毁的 Activity，是应用被退出
             if (mCheckInBackground != null) {
                 mHandler.removeCallbacks(mCheckInBackground);
-            }     // 程序正在退出，避免 in_background_event 事件
+            }     // 程序正在退出，避免 后台 事件
 
             JSONObject props = new JSONObject();
             try {
@@ -140,13 +144,25 @@ import io.sugo.android.viewcrawler.GestureTracker;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            mMpInstance.track("exit_event", props);
+            mMpInstance.track("退出", props);
+            mMpInstance.track("APP停留");
             mMpInstance.flush();
+        } else {
+            JSONObject props = new JSONObject();
+            try {
+                props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
+                props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
+                        .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            mMpInstance.track("窗口退出", props);
         }
     }
 
     @Override
-    public void onActivitySaveInstanceState(Activity activity, Bundle outState) { }
+    public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+    }
 
 
 }

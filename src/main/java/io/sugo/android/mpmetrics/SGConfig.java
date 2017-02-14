@@ -515,7 +515,7 @@ public class SGConfig {
     public static final String FIELD_GOOGLE_PLAY_SERVICES = "google_play_services";
     public static final String FIELD_HAS_NFC = "has_nfc";
     public static final String FIELD_HAS_TELEPHONE = "has_telephone";
-    public static final String FIELD_LIB_VERSION = "sugo_lib_version";
+    public static final String FIELD_LIB_VERSION = "sdk_version";
     public static final String FIELD_MANUFACTURER = "manufacturer";
     public static final String FIELD_MODEL = "device_model";
     public static final String FIELD_OS = "system_name";

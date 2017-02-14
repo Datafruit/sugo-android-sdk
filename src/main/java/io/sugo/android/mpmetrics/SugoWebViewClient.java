@@ -23,12 +23,13 @@ import io.sugo.android.viewcrawler.ViewCrawler;
  */
 
 public class SugoWebViewClient extends WebViewClient {
-    private static String pageViewScript = "sugo.track('h5_enter_page_event');\n" +
+    private static String pageViewScript = "sugo.track('浏览');\n" +
             "sugo.enter_time = new Date().getTime();\n" +
             "\n" +
             "window.addEventListener('beforeunload', function (e) {\n" +
             "\tvar duration = (new Date().getTime() - sugo.enter_time)/1000;\n" +
-            "    sugo.track('h5_stay_event', {" + SGConfig.FIELD_DURATION + ": duration});\n" +
+            "    sugo.track('停留', {" + SGConfig.FIELD_DURATION + ": duration});\n" +
+            "    sugo.track('页面退出');\n" +
             "});";
     private static String cssUtil = "var UTILS = {};\n" +
             "UTILS.cssPath = function(node, optimized)\n" +
@@ -267,6 +268,7 @@ public class SugoWebViewClient extends WebViewClient {
             "                            custom_props = sugo_props(e, ele, event, sugo);\n" +
             "                        }\n" +
             "                        custom_props.from_binding = true;\n" +
+            "                        custom_props.event_type = eventType;\n" +
             "                        custom_props.event_label = ele.innerText;\n" +
             "                        window.sugoEventListener.track(event.event_id, event.event_name, JSON.stringify(custom_props));\n" +
             "                        break;\n" +

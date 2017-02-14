@@ -23,6 +23,7 @@ public class SugoWebEventListener {
     private final SugoAPI sugoAPI;
     private static Map<String, JSONArray> eventBindingsMap = new HashMap<String, JSONArray>();
     protected static HashSet<WebView> sCurrentWebView = new HashSet<>();
+    
     public static Map<Object, SugoWebNodeReporter> sugoWNReporter = new HashMap<Object, SugoWebNodeReporter>();
 
     SugoWebEventListener(SugoAPI sugoAPI) {
@@ -58,6 +59,7 @@ public class SugoWebEventListener {
         eventBindingsMap.put(token, eventBindings);
         if (SugoAPI.developmentMode) {      // 只在连接编辑器模式下操作
             updateWebViewInject();
+            updateXWalkViewInject();
         } else {
             sCurrentWebView.clear();
         }
@@ -122,6 +124,7 @@ public class SugoWebEventListener {
                 }
             }
         }
+
     }
 
     private static void removeWebViewReference(WebView webView) {
