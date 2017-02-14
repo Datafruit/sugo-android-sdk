@@ -13,6 +13,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.webkit.WebSettings;
@@ -538,6 +539,28 @@ public class SugoAPI {
                     final String key = (String) propIter.next();
                     messageProps.put(key, properties.get(key));
                 }
+            }
+
+            final String eventTypeValue = messageProps.optString(SGConfig.FIELD_EVENT_TYPE);
+            if (TextUtils.isEmpty(eventTypeValue)) {
+                messageProps.put(SGConfig.FIELD_EVENT_TYPE, eventName);
+            } else {
+                String newValue;
+                switch (eventTypeValue) {
+                    case "click":
+                        newValue = "点击";
+                        break;
+                    case "focus":
+                        newValue = "聚焦";
+                        break;
+                    case "change":
+                        newValue = "改变";
+                        break;
+                    default:
+                        newValue = eventTypeValue;
+                        break;
+                }
+                messageProps.put(SGConfig.FIELD_EVENT_TYPE, newValue);
             }
 
             if (SugoAPI.developmentMode) {
