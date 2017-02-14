@@ -24,14 +24,14 @@ import io.sugo.android.viewcrawler.ViewCrawler;
  */
 
 public class SugoWebViewClient extends WebViewClient {
-    private static String pageViewScript = "sugo.track('浏览');\n" +
+    private static String pageViewScript = "sugo.track('浏览', sugo.view_props);\n" +
             "sugo.enter_time = new Date().getTime();\n" +
             "\n" +
             "window.addEventListener('beforeunload', function (e) {\n" +
-            "\tvar duration = (new Date().getTime() - sugo.enter_time)/1000;\n" +
+            "var duration = (new Date().getTime() - sugo.enter_time)/1000;\n" +
             "    sugo.track('停留', {" + SGConfig.FIELD_DURATION + ": duration});\n" +
             "    sugo.track('页面退出');\n" +
-            "});";
+            "});\n";
     private static String cssUtil = "var UTILS = {};\n" +
             "UTILS.cssPath = function(node, optimized)\n" +
             "{\n" +
@@ -213,7 +213,7 @@ public class SugoWebViewClient extends WebViewClient {
             "      rect.bottom <= sugo.clientHeight &&\n" +
             "      rect.right <= sugo.clientWidth\n" +
             "  );\n" +
-            "};" +
+            "};\n" +
             "sugo.handleNodeChild = function (childrens, jsonArry, parent_path) {\n" +
             "  var index_map = {};\n" +
             "  for (var i = 0; i < childrens.length; i++) {\n" +
@@ -285,13 +285,13 @@ public class SugoWebViewClient extends WebViewClient {
             "    }  \n" +
             "    \n" +
             "    document.addEventListener(eventType, handle, true);\n" +
-            "};" +
+            "};\n" +
             "sugo.bindEvent = function () {\n" +
             "    sugo.delegate('click'); \n" +
             "    sugo.delegate('focus'); \n" +
             "    sugo.delegate('submit'); \n" +
             "    sugo.delegate('change'); \n" +
-            "};" +
+            "};\n" +
             "sugo.bindEvent();\n" +
             "sugo.reportNodes = function () {\n" +
             "  var jsonArry = [];\n" +
@@ -304,12 +304,13 @@ public class SugoWebViewClient extends WebViewClient {
             "  if(window.sugoWebNodeReporter){\n" +
             "    window.sugoWebNodeReporter.reportNodes(sugo.relative_path, JSON.stringify(jsonArry), sugo.clientWidth, sugo.clientHeight);\n" +
             "  }" +
-            "};" +
+            "};\n" +
             "if (sugo && sugo.reportNodes) {\n" +
             "  sugo.reportNodes();\n" +
-            "}";
+            "}\n";
 
-    private static String initScript = "sugo.track = function(event_name, props){\n" +
+    private static String initScript = "sugo.view_props = {};\n" +
+            "sugo.track = function(event_name, props){\n" +
             "    if(!props){\n" +
             "        props = {};\n" +
             "    }\n" +
@@ -318,12 +319,12 @@ public class SugoWebViewClient extends WebViewClient {
             "       props." + SGConfig.FIELD_PAGE_NAME + " = sugo.page_name;\n" +
             "    }\n" +
             "    window.sugoEventListener.track('', event_name, JSON.stringify(props));\n" +
-            "};" +
+            "};\n" +
             "sugo.timeEvent = function(event_name){\n" +
             "    window.sugoEventListener.timeEvent(event_name);\n" +
-            "};" +
+            "};\n" +
             "var init_code = new Function(sugo.init_code);\n" +
-            "init_code();";
+            "init_code();\n";
 
     @Override
     public void onPageFinished(WebView view, String url) {
@@ -403,8 +404,8 @@ public class SugoWebViewClient extends WebViewClient {
             pageName = pageInfo.optString("page_name", "");
             initCode = pageInfo.optString("code", "");
         }
-        scriptBuf.append("sugo.page_name = '").append(pageName).append("';");
-        scriptBuf.append("sugo.init_code = '").append(initCode).append("';");
+        scriptBuf.append("sugo.page_name = '").append(pageName).append("';\n");
+        scriptBuf.append("sugo.init_code = '").append(initCode).append("';\n");
         scriptBuf.append(initScript);
         scriptBuf.append(pageViewScript);
         scriptBuf.append("sugo.current_page ='");
