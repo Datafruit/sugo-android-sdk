@@ -188,20 +188,24 @@ public class SugoAPI {
      * You shouldn't instantiate SugoAPI objects directly.
      * Use SugoAPI.getInstance to get an instance.
      */
-    SugoAPI(Context context, Future<SharedPreferences> referrerPreferences) {
-        this(context, referrerPreferences, SGConfig.getInstance(context));
+    SugoAPI(Context context, Future<SharedPreferences> referrerPreferences, String token) {
+        this(context, referrerPreferences, token, SGConfig.getInstance(context));
     }
 
     /**
      * You shouldn't instantiate SugoAPI objects directly.
      * Use SugoAPI.getInstance to get an instance.
      */
-    SugoAPI(Context context, Future<SharedPreferences> referrerPreferences, SGConfig config) {
+    SugoAPI(Context context, Future<SharedPreferences> referrerPreferences, final String token, SGConfig config) {
         Context appContext = context.getApplicationContext();
         mContext = appContext;
         mConfig = config;
-        mToken = config.getToken();
-        String token = mToken;
+        if (TextUtils.isEmpty(token)) {
+            mToken = config.getToken();
+        } else {
+            mToken = token;
+            config.setToken(token);
+        }
         mSessionId = generateSessionId();
         restorePageInfo();
 
@@ -292,7 +296,12 @@ public class SugoAPI {
      * @param context The application context you are tracking
      * @return an instance of SugoAPI associated with your project
      */
+
     public static SugoAPI getInstance(Context context) {
+        return getInstance(context, null);
+    }
+
+    public static SugoAPI getInstance(Context context, String token) {
         if (null == context) {
             return null;
         }
@@ -305,7 +314,7 @@ public class SugoAPI {
 
             SugoAPI instance = sInstanceMap.get(appContext);
             if (null == instance && ConfigurationChecker.checkBasicConfiguration(appContext)) {
-                instance = new SugoAPI(context, sReferrerPrefs);
+                instance = new SugoAPI(context, sReferrerPrefs, token);
                 registerAppLinksListeners(context, instance);
                 sInstanceMap.put(appContext, instance);
             }
@@ -509,6 +518,7 @@ public class SugoAPI {
             final JSONObject messageProps = new JSONObject();
 
             messageProps.put(SGConfig.SESSION_ID, getCurrentSessionId());
+            messageProps.put(SGConfig.FIELD_PAGE, SugoPageManager.getInstance().getCurrentPage(mContext));
             messageProps.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance().getCurrentPageName(mContext));
 
             final Map<String, String> referrerProperties = mPersistentIdentity.getReferrerProperties();
