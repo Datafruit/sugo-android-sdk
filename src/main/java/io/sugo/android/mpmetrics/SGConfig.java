@@ -396,6 +396,10 @@ public class SGConfig {
         return mToken;
     }
 
+    void setToken(String token) {
+        mToken = token;
+    }
+
     // Fallback URL for tracking events if post to preferred URL fails
     public String getEventsFallbackEndpoint() {
         return mEventsFallbackEndpoint;
@@ -495,7 +499,7 @@ public class SGConfig {
     private final String mResourcePackageName;
     private final boolean mDisableDecideChecker;
     private final int mImageCacheMaxMemoryFactor;
-    private final String mToken;
+    private String mToken;
     private String webRoot;
     // Mutable, with synchronized accessor and mutator
     private SSLSocketFactory mSSLSocketFactory;
