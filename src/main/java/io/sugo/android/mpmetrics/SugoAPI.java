@@ -518,6 +518,7 @@ public class SugoAPI {
             final JSONObject messageProps = new JSONObject();
 
             messageProps.put(SGConfig.SESSION_ID, getCurrentSessionId());
+            messageProps.put(SGConfig.FIELD_PAGE, SugoPageManager.getInstance().getCurrentPage(mContext));
             messageProps.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance().getCurrentPageName(mContext));
 
             final Map<String, String> referrerProperties = mPersistentIdentity.getReferrerProperties();
