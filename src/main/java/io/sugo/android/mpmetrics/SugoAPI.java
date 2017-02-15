@@ -300,7 +300,7 @@ public class SugoAPI {
     public static SugoAPI getInstance(Context context) {
         return getInstance(context, null);
     }
-    
+
     public static SugoAPI getInstance(Context context, String token) {
         if (null == context) {
             return null;

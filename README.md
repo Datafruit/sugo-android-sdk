@@ -161,6 +161,9 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle saved) {
         // 获取 SugoAPI 实例，在第一次调用时，SDK 将会初始化
         mSugo = SugoAPI.getInstance(this);
+
+        // 若传递了 token 参数，该值将覆盖前面 2.1.2 Token 中的设置
+        // mSugo = SugoAPI.getInstance(this, token);
         ...
     }
 
@@ -301,4 +304,18 @@ sugoAPI.registerSuperProperties(props);
 
 ---
 
-## 4 Q&A
+
+## 4 连接可视化埋点编辑器
+
+### 4.1 使用第三方扫码工具扫描
+> 可直接跳转并连接
+
+### 4.2 使用 APP 内部扫码并连接
+> 若集成了 SugoAndroidSDK 的 APP 内已有扫码功能，Sugo 也提供了连接编辑器的 API
+
+```Java
+SugoAPI.connectEditor(uri);
+```
+
+注意配置过程中的 EditorUrl 和 Token 要填写正确
+
