@@ -38,6 +38,7 @@ import io.sugo.android.util.RemoteService;
             h5EventBindings = EMPTY_JSON_ARRAY;
             variants = EMPTY_JSON_ARRAY;
             pageInfo = EMPTY_JSON_ARRAY;
+            dimensions = EMPTY_JSON_ARRAY;
         }
 
         public final List<Survey> surveys;
@@ -46,6 +47,7 @@ import io.sugo.android.util.RemoteService;
         public JSONArray h5EventBindings;
         public JSONArray variants;
         public JSONArray pageInfo;
+        public JSONArray dimensions;
     }
 
     public DecideChecker(final Context context, final SGConfig config, final SystemInformation systemInformation) {
@@ -72,7 +74,7 @@ import io.sugo.android.util.RemoteService;
             try {
                 final Result result = runDecideCheck(updates.getToken(), distinctId, poster);
                 updates.reportResults(result.surveys, result.notifications, result.eventBindings,
-                        result.h5EventBindings, result.variants, result.pageInfo);
+                        result.h5EventBindings, result.variants, result.pageInfo, result.dimensions);
             } catch (final UnintelligibleMessageException e) {
                 Log.e(LOGTAG, e.getMessage(), e);
             }
@@ -88,7 +90,7 @@ import io.sugo.android.util.RemoteService;
     }
 
     private Result runDecideCheck(final String token, final String distinctId, final RemoteService poster)
-        throws RemoteService.ServiceUnavailableException, UnintelligibleMessageException {
+            throws RemoteService.ServiceUnavailableException, UnintelligibleMessageException {
         final String responseString = getDecideResponseFromServer(token, distinctId, poster);
         if (SGConfig.DEBUG) {
             Log.v(LOGTAG, "Mixpanel decide server response was:\n" + responseString);
@@ -115,7 +117,8 @@ import io.sugo.android.util.RemoteService;
         return parsed;
     }// runDecideCheck
 
-    /* package */ static Result parseDecideResponse(String responseString)
+    /* package */
+    static Result parseDecideResponse(String responseString)
             throws UnintelligibleMessageException {
         JSONObject response;
         final Result ret = new Result();
@@ -207,6 +210,15 @@ import io.sugo.android.util.RemoteService;
             }
         }
 
+        if (response.has("dimensions")) {
+            try {
+                ret.dimensions = response.getJSONArray("dimensions");
+            } catch (JSONException e) {
+                e.printStackTrace();
+                Log.e(LOGTAG, "Sugo endpoint returned non-array JSON for dimensions: " + response);
+            }
+        }
+
         return ret;
     }
 
@@ -227,7 +239,8 @@ import io.sugo.android.util.RemoteService;
 
         final StringBuilder queryBuilder = new StringBuilder()
                 .append("?version=1&lib=android&token=")
-                .append(escapedToken);
+                .append(escapedToken)
+                .append("&projectId=").append(SGConfig.getInstance(mContext).getProjectId());
 
         if (null != escapedId) {
             queryBuilder.append("&distinct_id=").append(escapedId);
@@ -279,7 +292,7 @@ import io.sugo.android.util.RemoteService;
     }
 
     private Bitmap getNotificationImage(InAppNotification notification, Context context, RemoteService poster)
-        throws RemoteService.ServiceUnavailableException {
+            throws RemoteService.ServiceUnavailableException {
         String[] urls = {notification.getImage2xUrl(), notification.getImageUrl()};
 
         final WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
@@ -314,7 +327,7 @@ import io.sugo.android.util.RemoteService;
     }
 
     private static byte[] getUrls(RemoteService poster, Context context, String[] urls)
-        throws RemoteService.ServiceUnavailableException {
+            throws RemoteService.ServiceUnavailableException {
         final SGConfig config = SGConfig.getInstance(context);
 
         if (!poster.isOnline(context, config.getOfflineMode())) {

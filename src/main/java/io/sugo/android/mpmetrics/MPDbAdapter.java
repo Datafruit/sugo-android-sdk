@@ -1,15 +1,5 @@
 package io.sugo.android.mpmetrics;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -17,6 +7,14 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * SQLite database adapter for SugoAPI.
@@ -278,23 +276,7 @@ import android.util.Log;
 
             int length = arr.length();
             if (length > 0) {
-                Map<String,String> dimMap = new HashMap<String,String>();
-                for (int i = 0; i < length; i++) {
-                    JSONObject event = arr.getJSONObject(i);
-                    for (final Iterator<?> iter = event.keys(); iter.hasNext();) {
-                        final String key = (String) iter.next();
-                        String[] keyFields = key.split("\\|");
-                        final String dim = keyFields[1];
-                        final String dimType = keyFields[0];
-                        if(dimMap.containsKey(dim) && !dimMap.get(dim).equals(dimType)){
-                            Log.w(LOGTAG, "维度(" + dim + ")类型不统一!!!");
-                            continue;
-                        }
-                        if(!dimMap.containsKey(dim)){
-                            dimMap.put(dim, dimType);
-                        }
-                    }
-                }
+                Map<String,String> dimMap = SugoDimensionManager.getInstance().getDimensionTypes();
                 StringBuffer buf = new StringBuffer();
                 Set<String> keySet = dimMap.keySet();
                 int setSize = keySet.size();
@@ -313,7 +295,10 @@ import android.util.Log;
                     for (String dimName : keySet) {
                         final String type = dimMap.get(dimName);
                         final String key = type + "|" + dimName;
-                        if (!event.has(key)) {
+                        if (event.has(key)) {
+                            Object value = event.get(key);
+                            buf.append(value);
+                        } else {
                             switch (type) {
                                 case "s":
                                     buf.append("");
@@ -321,9 +306,6 @@ import android.util.Log;
                                 default:
                                     buf.append(0);
                             }
-                        } else {
-                            Object value = event.get(key);
-                            buf.append(value);
                         }
                         if (dimCount < setSize - 1) {
                             buf.append('\001');
