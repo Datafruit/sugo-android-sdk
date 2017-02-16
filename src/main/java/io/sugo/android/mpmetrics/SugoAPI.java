@@ -208,6 +208,7 @@ public class SugoAPI {
         }
         mSessionId = generateSessionId();
         restorePageInfo();
+        restoreDimensions();
 
         final Map<String, String> deviceInfo = new HashMap<String, String>();
         deviceInfo.put("$android_lib_version", SGConfig.VERSION);
@@ -377,6 +378,20 @@ public class SugoAPI {
             }
         }
     }
+
+    private void restoreDimensions() {
+        final String sharedPrefsName = ViewCrawler.SHARED_PREF_EDITS_FILE + mToken;
+        SharedPreferences preferences = mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
+        final String storeInfo = preferences.getString(ViewCrawler.SHARED_PREF_DIMENSIONS_KEY, null);
+        if (storeInfo != null && !storeInfo.equals("")) {
+            try {
+                SugoDimensionManager.getInstance().setDimensions(new JSONArray(storeInfo));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 
     /**
      * This function creates a distinct_id alias from alias to original. If original is null, then it will create an alias
@@ -1019,6 +1034,11 @@ public class SugoAPI {
 
         @Override
         public void setPageInfos(JSONArray pageInfos) {
+
+        }
+
+        @Override
+        public void setDimensions(JSONArray dimensions) {
 
         }
 

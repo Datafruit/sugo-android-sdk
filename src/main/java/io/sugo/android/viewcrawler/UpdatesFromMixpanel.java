@@ -15,6 +15,7 @@ public interface UpdatesFromMixpanel {
     public void setEventBindings(JSONArray bindings);
     public void setH5EventBindings(JSONArray bindings);
     public void setPageInfos(JSONArray pageInfos);
+    void setDimensions(JSONArray dimensions);
     public void setVariants(JSONArray variants);
     public Tweaks getTweaks();
     public void addOnMixpanelTweaksUpdatedListener(OnMixpanelTweaksUpdatedListener listener);
