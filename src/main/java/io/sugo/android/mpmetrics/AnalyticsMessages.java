@@ -1,6 +1,7 @@
 package io.sugo.android.mpmetrics;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -18,10 +19,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -31,6 +30,7 @@ import javax.net.ssl.SSLSocketFactory;
 import io.sugo.android.util.Base64Coder;
 import io.sugo.android.util.HttpService;
 import io.sugo.android.util.RemoteService;
+import io.sugo.android.viewcrawler.ViewCrawler;
 
 /**
  * Manage communication of events with the internal database and the Mixpanel servers.
@@ -263,6 +263,14 @@ import io.sugo.android.util.RemoteService;
                             Log.e(LOGTAG, "Exception tracking event " + eventDescription.getEventName(), e);
                         }
                     } else if (msg.what == FLUSH_QUEUE) {
+                        // 没有 dimensions 配置，则不发送数据
+                        final String sharedPrefsName = ViewCrawler.SHARED_PREF_EDITS_FILE + SGConfig.getInstance(mContext).getToken();
+                        SharedPreferences preferences = mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
+                        final String storeInfo = preferences.getString(ViewCrawler.SHARED_PREF_DIMENSIONS_KEY, null);
+                        if (storeInfo != null && !storeInfo.equals("")) {
+                            logAboutMessageToMixpanel("empty dimensions, flush failure !!!");
+                            return;
+                        }
                         logAboutMessageToMixpanel("Flushing queue due to scheduled or forced flush");
                         updateFlushFrequency();
                         sendAllData(mDbAdapter);
@@ -542,7 +550,6 @@ import io.sugo.android.util.RemoteService;
             }
 
             private JSONObject prepareEventObject(EventDescription eventDescription) throws JSONException {
-                final JSONObject eventObj = new JSONObject();
                 final JSONObject eventProperties = eventDescription.getProperties();
                 final JSONObject sendProperties = getDefaultEventProperties();
                 sendProperties.put(SGConfig.FIELD_TOKEN, eventDescription.getToken());
@@ -554,26 +561,11 @@ import io.sugo.android.util.RemoteService;
                 }
                 String eventId = eventDescription.getEventId();
                 if(eventId != null)
-                    eventObj.put("s|" + SGConfig.FIELD_EVENT_ID, eventId);
+                    sendProperties.put("s|" + SGConfig.FIELD_EVENT_ID, eventId);
 
-                eventObj.put("s|" + SGConfig.FIELD_EVENT_NAME, eventDescription.getEventName());
+                sendProperties.put("s|" + SGConfig.FIELD_EVENT_NAME, eventDescription.getEventName());
 
-                for (final Iterator<?> iter = sendProperties.keys(); iter.hasNext();) {
-                    String key = (String) iter.next();
-                    key = key.replace("|", "").replace(",", "");
-                    final Object value = sendProperties.get(key);
-                    if(value instanceof Integer || value instanceof Long){
-                        eventObj.put("l|" + key, value);
-                    }else if(value instanceof Float || value instanceof Double || value instanceof BigDecimal){
-                        eventObj.put("f|" + key, value);
-                    }else if(value instanceof Date){
-                        eventObj.put("d|" + key, ((Date)value).getTime());
-                    }else{
-                        eventObj.put("s|" + key, value);
-                    }
-                }
-
-                return eventObj;
+                return sendProperties;
             }
 
             private MPDbAdapter mDbAdapter;
