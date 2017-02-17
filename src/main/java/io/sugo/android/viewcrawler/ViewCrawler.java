@@ -48,6 +48,7 @@ import io.sugo.android.mpmetrics.ResourceIds;
 import io.sugo.android.mpmetrics.ResourceReader;
 import io.sugo.android.mpmetrics.SGConfig;
 import io.sugo.android.mpmetrics.SugoAPI;
+import io.sugo.android.mpmetrics.SugoDimensionManager;
 import io.sugo.android.mpmetrics.SugoPageManager;
 import io.sugo.android.mpmetrics.SugoWebEventListener;
 import io.sugo.android.mpmetrics.SuperPropertyUpdate;
@@ -130,6 +131,13 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
     public void setPageInfos(JSONArray pageInfos) {
         final Message msg = mMessageThreadHandler.obtainMessage(ViewCrawler.MESSAGE_HANDLE_PAGE_INFO_EVENT);
         msg.obj = pageInfos;
+        mMessageThreadHandler.sendMessage(msg);
+    }
+
+    @Override
+    public void setDimensions(JSONArray dimensions) {
+        final Message msg = mMessageThreadHandler.obtainMessage(ViewCrawler.MESSAGE_HANDLE_DIMENSIONS_EVENT);
+        msg.obj = dimensions;
         mMessageThreadHandler.sendMessage(msg);
     }
 
@@ -405,6 +413,9 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                         break;
                     case MESSAGE_HANDLE_PAGE_INFO_EVENT:
                         handlePageInfoReceived((JSONArray) msg.obj);
+                        break;
+                    case MESSAGE_HANDLE_DIMENSIONS_EVENT:
+                        handleDimensions((JSONArray) msg.obj);
                         break;
                     case MESSAGE_SEND_TEST_EVENT:
                         handleSendTestEvent((JSONArray) msg.obj);
@@ -904,6 +915,15 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
             }
         }
 
+        private void handleDimensions(JSONArray array) {
+            if (!SugoAPI.developmentMode) {
+                final SharedPreferences preferences = getSharedPreferences();
+                final SharedPreferences.Editor editor = preferences.edit();
+                editor.putString(SHARED_PREF_DIMENSIONS_KEY, array.toString());
+                editor.apply();
+                SugoDimensionManager.getInstance().setDimensions(array);
+            }
+        }
 
         private void handleSendTestEvent(JSONArray events) {
             Log.i(LOGTAG, events.toString());
@@ -946,13 +966,16 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
             final JSONArray eventBindings;
             final JSONArray h5EventBindings;
             final JSONArray pageInfoBindings;
+            final JSONArray dimensionsBindings;
             try {
                 final JSONObject payload = message.getJSONObject("payload");
                 eventBindings = payload.getJSONArray("events");
                 h5EventBindings = payload.getJSONArray("h5_events");
                 pageInfoBindings = payload.getJSONArray("page_info");
+                dimensionsBindings = payload.getJSONArray("dimensions");
                 SugoPageManager.getInstance().setPageInfos(pageInfoBindings);
                 SugoWebEventListener.bindEvents(mToken, h5EventBindings);
+                SugoDimensionManager.getInstance().setDimensions(dimensionsBindings);
             } catch (final JSONException e) {
                 Log.e(LOGTAG, "Bad event bindings received", e);
                 return;
@@ -1301,6 +1324,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
     private static final String SHARED_PREF_BINDINGS_KEY = "mixpanel.viewcrawler.bindings";
     public static final String SHARED_PREF_H5_BINDINGS_KEY = "mixpanel.viewcrawler.h5_bindings";
     public static final String SHARED_PREF_PAGE_INFO_KEY = "mixpanel.viewcrawler.page_info";
+    public static final String SHARED_PREF_DIMENSIONS_KEY = "mixpanel.viewcrawler.dimensions";
 
     private static final int MESSAGE_INITIALIZE_CHANGES = 0;
     private static final int MESSAGE_CONNECT_TO_EDITOR = 1;
@@ -1318,6 +1342,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
     private static final int MESSAGE_H5_EVENT_BINDINGS_RECEIVED = 13;
     private static final int MESSAGE_SEND_TEST_EVENT = 14;
     private static final int MESSAGE_HANDLE_PAGE_INFO_EVENT = 15;
+    private static final int MESSAGE_HANDLE_DIMENSIONS_EVENT = 16;
     private static final int EMULATOR_CONNECT_ATTEMPT_INTERVAL_MILLIS = 1000 * 30;
 
     @SuppressWarnings("unused")
