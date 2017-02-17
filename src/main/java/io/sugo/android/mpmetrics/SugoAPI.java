@@ -227,12 +227,12 @@ public class SugoAPI {
         }
         mDeviceInfo = Collections.unmodifiableMap(deviceInfo);
 
-        mUpdatesFromMixpanel = constructUpdatesFromMixpanel(context, token);
+        mUpdatesFromMixpanel = constructUpdatesFromMixpanel(context, mToken);
         mTrackingDebug = constructTrackingDebug();
-        mPersistentIdentity = getPersistentIdentity(appContext, referrerPreferences, token);
+        mPersistentIdentity = getPersistentIdentity(appContext, referrerPreferences, mToken);
         mEventTimings = mPersistentIdentity.getTimeEvents();
         mUpdatesListener = constructUpdatesListener();
-        mDecideMessages = constructDecideUpdates(token, mUpdatesListener, mUpdatesFromMixpanel);
+        mDecideMessages = constructDecideUpdates(mToken, mUpdatesListener, mUpdatesFromMixpanel);
 
         // TODO reading persistent identify immediately forces the lazy load of the preferences, and defeats the
         // purpose of PersistentIdentity's laziness.
@@ -258,11 +258,11 @@ public class SugoAPI {
                 final JSONObject messageProps = new JSONObject();
 
                 messageProps.put(SGConfig.FIELD_MP_LIB, "android");
-                messageProps.put(SGConfig.FIELD_DISTINCT_ID, token);
-                messageProps.put(SGConfig.FIELD_TIME, new Date());
-
+                messageProps.put(SGConfig.FIELD_DISTINCT_ID, mToken);
+                messageProps.put(SGConfig.FIELD_TIME, System.currentTimeMillis());
+                messageProps.put(SGConfig.FIELD_EVENT_TYPE, "安装");
                 final AnalyticsMessages.EventDescription eventDescription =
-                        new AnalyticsMessages.EventDescription(null, "安装", messageProps, token);
+                        new AnalyticsMessages.EventDescription(null, "安装", messageProps, mToken);
                 mMessages.eventsMessage(eventDescription);
                 flush();
                 mPersistentIdentity.setTrackedIntegration(true);
@@ -549,7 +549,7 @@ public class SugoAPI {
             // but DO allow the caller to override them in their given properties.
             final double timeSecondsDouble = (System.currentTimeMillis()) / 1000.0;
             //final long timeSeconds = (long) timeSecondsDouble;
-            messageProps.put(SGConfig.FIELD_TIME, new Date());
+            messageProps.put(SGConfig.FIELD_TIME, System.currentTimeMillis());
             messageProps.put(SGConfig.FIELD_DISTINCT_ID, getDistinctId());
 
             if (null != eventBegin) {

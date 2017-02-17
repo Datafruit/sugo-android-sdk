@@ -230,7 +230,7 @@ public class SGConfig {
         if (!TextUtils.isEmpty(eventsEndpoint)) {       // eventsEndpoint 完整 url 优先
             projectId = Uri.parse(eventsEndpoint).getQueryParameter("locate");
         } else if (!TextUtils.isEmpty(projectId)) {
-            eventsEndpoint = "https://collect.sugo.net/post?locate=" + projectId;
+            eventsEndpoint = "http://collect.sugo.net/post?locate=" + projectId;
         } else {
             Log.e("SGConfig ", "no Project Id, it do not work !!!");
         }

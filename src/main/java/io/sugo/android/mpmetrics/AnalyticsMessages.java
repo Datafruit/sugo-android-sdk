@@ -267,8 +267,8 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                         final String sharedPrefsName = ViewCrawler.SHARED_PREF_EDITS_FILE + SGConfig.getInstance(mContext).getToken();
                         SharedPreferences preferences = mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
                         final String storeInfo = preferences.getString(ViewCrawler.SHARED_PREF_DIMENSIONS_KEY, null);
-                        if (storeInfo != null && !storeInfo.equals("")) {
-                            logAboutMessageToMixpanel("empty dimensions, flush failure !!!");
+                        if (storeInfo == null || !storeInfo.equals("") || storeInfo.equals("[]")) {
+                            logAboutMessageToMixpanel("empty dimensions, flush stop !!!");
                             return;
                         }
                         logAboutMessageToMixpanel("Flushing queue due to scheduled or forced flush");
@@ -560,10 +560,10 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                     }
                 }
                 String eventId = eventDescription.getEventId();
-                if(eventId != null)
-                    sendProperties.put("s|" + SGConfig.FIELD_EVENT_ID, eventId);
-
-                sendProperties.put("s|" + SGConfig.FIELD_EVENT_NAME, eventDescription.getEventName());
+                if(eventId != null) {
+                    sendProperties.put(SGConfig.FIELD_EVENT_ID, eventId);
+                }
+                sendProperties.put(SGConfig.FIELD_EVENT_NAME, eventDescription.getEventName());
 
                 return sendProperties;
             }

@@ -13,6 +13,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -276,7 +278,19 @@ import java.util.Set;
 
             int length = arr.length();
             if (length > 0) {
-                Map<String,String> dimMap = SugoDimensionManager.getInstance().getDimensionTypes();
+                Map<String, String> dimMap = new HashMap<>();
+                Map<String, String> configDimMap = new HashMap<>(SugoDimensionManager.getInstance().getDimensionTypes());
+                for (int i = 0; i < length; i++) {
+                    JSONObject event = arr.getJSONObject(i);
+                    for (final Iterator<?> iter = event.keys(); iter.hasNext(); ) {
+                        final String dimName = (String) iter.next();
+                        final String dimType = configDimMap.get(dimName);
+                        if (!dimMap.containsKey(dimName) && configDimMap.containsKey(dimName)) {
+                            dimMap.put(dimName, dimType);
+                        }
+                    }
+                }
+
                 StringBuffer buf = new StringBuffer();
                 Set<String> keySet = dimMap.keySet();
                 int setSize = keySet.size();
@@ -293,12 +307,11 @@ import java.util.Set;
                     JSONObject event = arr.getJSONObject(i);
                     int dimCount = 0;
                     for (String dimName : keySet) {
-                        final String type = dimMap.get(dimName);
-                        final String key = type + "|" + dimName;
-                        if (event.has(key)) {
-                            Object value = event.get(key);
+                        if (event.has(dimName)) {
+                            Object value = event.get(dimName);
                             buf.append(value);
                         } else {
+                        final String type = dimMap.get(dimName);
                             switch (type) {
                                 case "s":
                                     buf.append("");
