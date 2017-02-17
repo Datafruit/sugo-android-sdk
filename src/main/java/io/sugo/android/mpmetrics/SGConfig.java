@@ -4,7 +4,9 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.security.GeneralSecurityException;
@@ -225,14 +227,15 @@ public class SGConfig {
         mTestMode = metaData.getBoolean("io.sugo.android.SGConfig.TestMode", false);
 
         String eventsEndpoint = metaData.getString("io.sugo.android.SGConfig.EventsEndpoint");
-        if (null == eventsEndpoint) {
-            String projectId = metaData.getString("io.sugo.android.SGConfig.ProjectId");
-            if (null == projectId || projectId.trim().equals("")) {
-                eventsEndpoint = "https://api.mixpanel.com/track?ip=1";
-            } else {
-                eventsEndpoint = "https://collect.sugo.net/post?locate=" + projectId;
-            }
+        String projectId = metaData.getString("io.sugo.android.SGConfig.ProjectId");
+        if (!TextUtils.isEmpty(eventsEndpoint)) {       // eventsEndpoint 完整 url 优先
+            projectId = Uri.parse(eventsEndpoint).getQueryParameter("locate");
+        } else if (!TextUtils.isEmpty(projectId)) {
+            eventsEndpoint = "http://collect.sugo.net/post?locate=" + projectId;
+        } else {
+            Log.e("SGConfig ", "no Project Id, it do not work !!!");
         }
+        mProjectId = projectId;
         mEventsEndpoint = eventsEndpoint;
 
         String eventsFallbackEndpoint = metaData.getString("io.sugo.android.SGConfig.EventsFallbackEndpoint");
@@ -371,6 +374,11 @@ public class SGConfig {
         return mTestMode;
     }
 
+    public String getProjectId() {
+        return mProjectId;
+    }
+
+
     // Preferred URL for tracking events
     public String getEventsEndpoint() {
         return mEventsEndpoint;
@@ -488,6 +496,7 @@ public class SGConfig {
     private final boolean mDisableAppOpenEvent;
     private final boolean mDisableViewCrawler;
     private final String[] mDisableViewCrawlerForProjects;
+    private final String mProjectId;
     private final String mEventsEndpoint;
     private final String mEventsFallbackEndpoint;
     private final String mPeopleEndpoint;
