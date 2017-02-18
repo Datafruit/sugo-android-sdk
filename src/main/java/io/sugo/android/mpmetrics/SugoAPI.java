@@ -254,20 +254,9 @@ public class SugoAPI {
         }
 
         if (!mPersistentIdentity.hasTrackedIntegration()) {
-            try {
-                final JSONObject messageProps = new JSONObject();
-
-                messageProps.put(SGConfig.FIELD_MP_LIB, "android");
-                messageProps.put(SGConfig.FIELD_DISTINCT_ID, mToken);
-                messageProps.put(SGConfig.FIELD_TIME, System.currentTimeMillis());
-                messageProps.put(SGConfig.FIELD_EVENT_TYPE, "安装");
-                final AnalyticsMessages.EventDescription eventDescription =
-                        new AnalyticsMessages.EventDescription(null, "安装", messageProps, mToken);
-                mMessages.eventsMessage(eventDescription);
-                flush();
-                mPersistentIdentity.setTrackedIntegration(true);
-            } catch (JSONException e) {
-            }
+            track("APP安装");
+            flush();
+            mPersistentIdentity.setTrackedIntegration(true);
         }
 
         mUpdatesFromMixpanel.startUpdates();

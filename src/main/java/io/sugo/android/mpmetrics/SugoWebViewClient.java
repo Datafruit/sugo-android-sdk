@@ -323,6 +323,10 @@ public class SugoWebViewClient extends WebViewClient {
             "sugo.timeEvent = function(event_name){\n" +
             "    window.sugoEventListener.timeEvent(event_name);\n" +
             "};\n" +
+            "var sugoio = {\n" +
+            "    track: sugo.track,\n" +
+            "    time_event: sugo.timeEvent\n" +
+            "};\n" +
             "var init_code = new Function(sugo.init_code);\n" +
             "init_code();\n";
 
