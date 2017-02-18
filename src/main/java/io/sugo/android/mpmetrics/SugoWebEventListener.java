@@ -144,17 +144,17 @@ public class SugoWebEventListener {
         while (webViewIterator.hasNext()) {
             webView = webViewIterator.next();
             Activity activity = (Activity) webView.getContext();
-            if (activity == null || activity == deadActivity) {
-                removeWebViewReference(webView);
-            } else {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                    if (activity.isDestroyed() || activity.isFinishing()) {
-                        removeWebViewReference(webView);
-                    }
-                } else {
-                    if (activity.isFinishing()) {
-                        removeWebViewReference(webView);
-                    }
+            if (activity == null || activity == deadActivity || activity.isFinishing()) {
+                webViewIterator.remove();
+                sugoWNReporter.remove(webView);
+                if (SGConfig.DEBUG) {
+                    Log.d("SugoWebEventListener", "removeWebViewReference : " + webView.toString());
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed()) {
+                webViewIterator.remove();
+                sugoWNReporter.remove(webView);
+                if (SGConfig.DEBUG) {
+                    Log.d("SugoWebEventListener", "removeWebViewReference : " + webView.toString());
                 }
             }
         }
@@ -164,37 +164,21 @@ public class SugoWebEventListener {
         while (xWalkViewIterator.hasNext()) {
             xWalkView = xWalkViewIterator.next();
             Activity activity = (Activity) xWalkView.getContext();
-            if (activity == null || activity == deadActivity) {
-                removeXWalkViewReference(xWalkView);
-            } else {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                    if (activity.isDestroyed() || activity.isFinishing()) {
-                        removeXWalkViewReference(xWalkView);
-                    }
-                } else {
-                    if (activity.isFinishing()) {
-                        removeXWalkViewReference(xWalkView);
-                    }
+            if (activity == null || activity == deadActivity || activity.isFinishing()) {
+                xWalkViewIterator.remove();
+                sugoWNReporter.remove(xWalkView);
+                if (SGConfig.DEBUG) {
+                    Log.d("SugoWebEventListener", "removeXWalkViewReference : " + xWalkView.toString());
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed()) {
+                xWalkViewIterator.remove();
+                sugoWNReporter.remove(xWalkView);
+                if (SGConfig.DEBUG) {
+                    Log.d("SugoWebEventListener", "removeXWalkViewReference : " + xWalkView.toString());
                 }
             }
         }
 
-    }
-
-    private static void removeWebViewReference(WebView webView) {
-        sCurrentWebView.remove(webView);
-        sugoWNReporter.remove(webView);
-        if (SGConfig.DEBUG) {
-            Log.d("SugoWebEventListener", "removeWebViewReference : " + webView.toString());
-        }
-    }
-
-    private static void removeXWalkViewReference(XWalkView xWalkView) {
-        sCurrentXWalkView.remove(xWalkView);
-        sugoWNReporter.remove(xWalkView);
-        if (SGConfig.DEBUG) {
-            Log.d("SugoWebEventListener", "removeXWalkViewReference : " + xWalkView.toString());
-        }
     }
 
 }
