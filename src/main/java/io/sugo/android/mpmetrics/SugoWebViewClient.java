@@ -275,7 +275,7 @@ public class SugoWebViewClient extends WebViewClient {
             "                        custom_props.from_binding = true;\n" +
             "                        custom_props.event_type = eventType;\n" +
             "                        custom_props.event_label = ele.innerText;\n" +
-            "                        window.sugoEventListener.track(event.event_id, event.event_name, JSON.stringify(custom_props));\n" +
+            "                        sugo.rawTrack(event.event_id, event.event_name, custom_props);\n" +
             "                        break;\n" +
             "                     }\n" +
             "                     parentNode = parentNode.parentNode;\n" +
@@ -310,14 +310,13 @@ public class SugoWebViewClient extends WebViewClient {
             "  }" +
             "};\n" +
             "window.sugo = sugo;\n" +
-            "\n" +
             "})(window.sugo||{});\n" +
             "if (sugo && sugo.reportNodes) {\n" +
             "  sugo.reportNodes();\n" +
             "}\n";
 
     private static String initScript = "sugo.view_props = {};\n" +
-            "sugo.track = function(event_name, props){\n" +
+            "sugo.rawTrack = function(event_id, event_name, props){\n" +
             "    if(!props){\n" +
             "        props = {};\n" +
             "    }\n" +
@@ -325,8 +324,11 @@ public class SugoWebViewClient extends WebViewClient {
             "    if(!props." + SGConfig.FIELD_PAGE_NAME + "&& sugo.init.page_name"+"){\n" +
             "       props." + SGConfig.FIELD_PAGE_NAME + " = sugo.init.page_name;\n" +
             "    }\n" +
-            "    window.sugoEventListener.track('', event_name, JSON.stringify(props));\n" +
+            "    window.sugoEventListener.track(event_id, event_name, JSON.stringify(props));\n" +
             "};\n" +
+            "sugo.track = function (event_name, props) {\n" +
+            "    sugo.rawTrack('', event_name, props);\n" +
+            "};\n"+
             "sugo.timeEvent = function(event_name){\n" +
             "    window.sugoEventListener.timeEvent(event_name);\n" +
             "};\n" +
@@ -430,7 +432,7 @@ public class SugoWebViewClient extends WebViewClient {
             e.printStackTrace();
         }
         String initStr = jsonObject.toString();
-        scriptBuf.append("sugo.init=").append(initStr);
+        scriptBuf.append("sugo.init=").append(initStr).append(";\n");
         scriptBuf.append(initScript);
         scriptBuf.append(pageViewScript);
         scriptBuf.append("sugo.current_page ='");
