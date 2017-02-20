@@ -969,10 +969,10 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
             final JSONArray dimensionsBindings;
             try {
                 final JSONObject payload = message.getJSONObject("payload");
-                eventBindings = payload.getJSONArray("events");
-                h5EventBindings = payload.getJSONArray("h5_events");
-                pageInfoBindings = payload.getJSONArray("page_info");
-                dimensionsBindings = payload.getJSONArray("dimensions");
+                eventBindings = payload.optJSONArray("events");
+                h5EventBindings = payload.optJSONArray("h5_events");
+                pageInfoBindings = payload.optJSONArray("page_info");
+                dimensionsBindings = payload.optJSONArray("dimensions");
                 SugoPageManager.getInstance().setPageInfos(pageInfoBindings);
                 SugoWebEventListener.bindEvents(mToken, h5EventBindings);
                 SugoDimensionManager.getInstance().setDimensions(dimensionsBindings);
