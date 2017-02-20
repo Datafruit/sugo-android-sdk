@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<me.owj.android_xwalkview_demo.view.pulltorefresh.PullToRefreshScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ptr="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/swipe_refresh_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    ptr:ptrAnimationStyle="rotate"
+    ptr:ptrDrawable="@drawable/ic_search"
+    ptr:ptrHeaderSubTextColor="#767676"
+    ptr:ptrHeaderTextColor="#767676"
+    ptr:ptrMode="pullFromStart">
+
+    <include layout="@layout/frag_my_content"/>
+
+</me.owj.android_xwalkview_demo.view.pulltorefresh.PullToRefreshScrollView>

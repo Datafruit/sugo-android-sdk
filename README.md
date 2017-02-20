@@ -22,11 +22,6 @@ dependencies {
 下载 SDK 压缩包，解压后将其中的 sugo-android-sdk.jar 导入你的项目 libs 目录中
 > 如果需要支持`XWalkView`，请导入`sugo-android-sdk-xwalk.jar`
 
-
-**1.3 直接 clone 本[仓库](https://github.com/Datafruit/sugo-android-sdk.git)，作为 `mobule` 引用**
-
-> 如果需要支持`XwalkView`，请 clone `xwalk`分支
-
 ---
 
 ## 2. SDK 配置
@@ -133,13 +128,18 @@ dependencies {
 
 
 ```
--keepclassmembers class * {
-   public <init> (org.json.JSONObject);
+
+#保护注解
+-keepattributes *Annotation*
+#不混淆资源类
+-keepclassmembers class **.R$* {
+    public static <fields>;
 }
 -keepclassmembers enum * {
     public static **[] values();
     public static ** valueOf(java.lang.String);
 }
+-keepattributes *JavascriptInterface*
 
 -keep class io.sugo.android.mpmetrics.SugoAPI { *; }
 -keep class io.sugo.android.mpmetrics.SugoWebEventListener { *; }
@@ -161,9 +161,6 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle saved) {
         // 获取 SugoAPI 实例，在第一次调用时，SDK 将会初始化
         mSugo = SugoAPI.getInstance(this);
-
-        // 若传递了 token 参数，该值将覆盖前面 2.1.2 Token 中的设置
-        // mSugo = SugoAPI.getInstance(this, token);
         ...
     }
 
@@ -241,21 +238,35 @@ webView.setWebViewClient(new WebViewClient() {
 ```
 
 ##### 3.1.3.2 XWalkView 支持
-> 如果您的项目使用了 XWalkView 替代 WebView ，可以使用以下代码
+> 如果您想要在项目中支持 XWalkView 的可视化埋点 ，可以使用以下代码
+> (先要引用 sugo android sdk 的 xwalk 扩展库)
 
+- 1   初始化 SugoAPI 是，使能 XWalkView
 ```Java
-XWalkView mXWalkView = (XWalkView) findViewById(R.id.xwalkview);
-    SugoAPI sugoAPI = SugoAPI.getInstance(this);
-    mXWalkView.setResourceClient(new XWalkResourceClient(mXWalkView) {
-        @Override
-        public void onLoadFinished(XWalkView view, String url) {
-            super.onLoadFinished(view, url);
-            SugoWebViewClient.handlePageFinished(view, url);
-        }
-    });
-    sugoAPI.addWebViewJavascriptInterface(mXWalkView);
-    mXWalkView.load("http://sugo.io", null);
+    // 首先，在第一次初始化 SugoAPI 的时候，使能 XWalkView 功能
+    mSugoAPI = SugoAPI.getInstance(this);
+    SugoXWalkViewSupport.enableXWalkView(mSugoAPI, true);
 ```
+- 2   然后，在 XWalkView 使用的 Activity (继承了 XWalkActivity ) 中, 调用`SugoXWalkViewSupport.handleXWalkView`
+- 3   接着，调用`XWalkView.setResourceClient` 重写 `onLoadFinished`方法，调用`SugoXWalkViewClient.handlePageFinished` 即可完成
+```Java
+    @Override
+    protected void onXWalkReady() {
+        mXWalkView = (XWalkView) findViewById(R.id.xwalkview);
+        SugoXWalkViewSupport.handleXWalkView(SugoAPI.getInstance(this), mXWalkView);
+        mXWalkView.setResourceClient(new XWalkResourceClient(mXWalkView) {
+                    @Override
+                    public void onLoadFinished(XWalkView view, String url) {
+                        super.onLoadFinished(view, url);
+                        SugoXWalkViewClient.handlePageFinished(view, url);
+                    }
+                });
+        mXWalkView.load("http://sugo.io", null);
+    }
+```
+- 4  最后，在`onCreate` 中调用`XWalkPreferences.setValue(XWalkPreferences.ANIMATABLE_XWALK_VIEW, true);`
+才能使得 XWalkView 的网页内容被上传至可视化埋点
+
 
 ##### 3.1.3.3 H5 代码埋点
 
@@ -271,7 +282,7 @@ XWalkView mXWalkView = (XWalkView) findViewById(R.id.xwalkview);
 sugo.track(event_id, event_name, props);
 ```
 
-时长事件
+时长事件（可参照 3.1.2）
 ```JavaScript
 sugo.timeEvent(event_name);
 ```
@@ -304,18 +315,4 @@ sugoAPI.registerSuperProperties(props);
 
 ---
 
-
-## 4 连接可视化埋点编辑器
-
-### 4.1 使用第三方扫码工具扫描
-> 可直接跳转并连接
-
-### 4.2 使用 APP 内部扫码并连接
-> 若集成了 SugoAndroidSDK 的 APP 内已有扫码功能，Sugo 也提供了连接编辑器的 API
-
-```Java
-SugoAPI.connectEditor(uri);
-```
-
-注意配置过程中的 EditorUrl 和 Token 要填写正确
-
+## 4 Q&A

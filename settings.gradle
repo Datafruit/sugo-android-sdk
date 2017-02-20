@@ -1,2 +1,1 @@
-include ":"
-rootProject.name = "sugo-android-sdk"
+include ':app', ':library', ':library-xwalk', ':sugoandroidsdk-xwalkview-demo'
