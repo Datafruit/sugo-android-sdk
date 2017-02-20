@@ -40,7 +40,7 @@ public class SugoDimensionManager {
                     continue;
                 }
                 String typeStr = "s";
-                switch (dataType) {      /** 维度类型：0=long,1=float,2=string;3=dateString;4=date */
+                switch (dataType) {      /** 维度类型：0=long,1=float,2=string;3=dateString;4=date; 5=int */
                     case 0:
                         typeStr = "l";
                         break;
@@ -52,6 +52,9 @@ public class SugoDimensionManager {
                         break;
                     case 4:
                         typeStr = "d";
+                        break;
+                    case 5:
+                        typeStr = "i";
                         break;
                     default:
                         break;
