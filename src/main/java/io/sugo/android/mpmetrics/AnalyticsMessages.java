@@ -267,7 +267,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                         final String sharedPrefsName = ViewCrawler.SHARED_PREF_EDITS_FILE + SGConfig.getInstance(mContext).getToken();
                         SharedPreferences preferences = mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
                         final String storeInfo = preferences.getString(ViewCrawler.SHARED_PREF_DIMENSIONS_KEY, null);
-                        if (storeInfo == null || !storeInfo.equals("") || storeInfo.equals("[]")) {
+                        if (storeInfo == null || storeInfo.equals("") || storeInfo.equals("[]")) {
                             logAboutMessageToMixpanel("empty dimensions, flush stop !!!");
                             return;
                         }

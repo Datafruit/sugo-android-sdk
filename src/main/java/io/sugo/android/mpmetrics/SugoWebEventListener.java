@@ -108,29 +108,21 @@ public class SugoWebEventListener {
         while (webViewIterator.hasNext()) {
             webView = webViewIterator.next();
             Activity activity = (Activity) webView.getContext();
-            if (activity == null || activity == deadActivity) {
-                removeWebViewReference(webView);
-            } else {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                    if (activity.isDestroyed() || activity.isFinishing()) {
-                        removeWebViewReference(webView);
-                    }
-                } else {
-                    if (activity.isFinishing()) {
-                        removeWebViewReference(webView);
-                    }
+            if (activity == null || activity == deadActivity || activity.isFinishing()) {
+                webViewIterator.remove();
+                sugoWNReporter.remove(webView);
+                if (SGConfig.DEBUG) {
+                    Log.d("SugoWebEventListener", "removeWebViewReference : " + webView.toString());
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed()) {
+                webViewIterator.remove();
+                sugoWNReporter.remove(webView);
+                if (SGConfig.DEBUG) {
+                    Log.d("SugoWebEventListener", "removeWebViewReference : " + webView.toString());
                 }
             }
         }
 
-    }
-
-    private static void removeWebViewReference(WebView webView) {
-        sCurrentWebView.remove(webView);
-        sugoWNReporter.remove(webView);
-        if (SGConfig.DEBUG) {
-            Log.d("SugoWebEventListener", "removeWebViewReference : " + webView.toString());
-        }
     }
 
 }
