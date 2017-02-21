@@ -13,7 +13,7 @@ android {
         versionName "1.0"
 
         resValue("string", "growingio_project_id", "a4584892dab02dcc")
-        resValue("string", "growingio_url_scheme", "growing.ecf19d0070e4c4b3")
+        resValue("string", "growingio_url_scheme", "growing.1b01725f4854c4e2")
 
     }
 

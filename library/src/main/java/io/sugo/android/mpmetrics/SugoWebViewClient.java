@@ -310,7 +310,7 @@ public class SugoWebViewClient extends WebViewClient {
             "})(window.sugo||{});\n"+
             "if (sugo && sugo.reportNodes) {\n" +
             "  sugo.reportNodes();\n" +
-            "}";
+            "}\n";
 
     private static String initScript = "sugo.view_props = {};\n" +
             "sugo.rawTrack = function(event_id, event_name, props){\n" +
@@ -328,7 +328,7 @@ public class SugoWebViewClient extends WebViewClient {
             "};\n" +
             "sugo.timeEvent = function(event_name){\n" +
             "    window.sugoEventListener.timeEvent(event_name);\n" +
-            "};" +
+            "};\n" +
             "var sugoio = {\n" +
             "    track: sugo.track,\n" +
             "    time_event: sugo.timeEvent\n" +

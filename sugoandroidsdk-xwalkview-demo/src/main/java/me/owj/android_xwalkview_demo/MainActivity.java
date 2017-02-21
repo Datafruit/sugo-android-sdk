@@ -7,6 +7,7 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -14,6 +15,9 @@ import android.view.View;
 
 import com.uuzuche.lib_zxing.activity.CaptureActivity;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import io.sugo.android.mpmetrics.SugoAPI;
 import io.sugo.android.xwalk.SugoXWalkViewSupport;
@@ -61,6 +65,19 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(intent, REQUEST_CODE);
             }
         });
+
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("Param1", "str1s");
+            obj.put("Param2", "str2");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        mSugoAPI.track("Test Track Method", obj);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("SugoSDK 内测版");
     }
 
     @Override

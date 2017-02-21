@@ -39,7 +39,7 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
             </intent-filter>
             <intent-filter>
-                <data android:scheme="growing.ecf19d0070e4c4b3"/>
+                <data android:scheme="growing.1b01725f4854c4e2"/>
 
                 <action android:name="android.intent.action.VIEW"/>
 

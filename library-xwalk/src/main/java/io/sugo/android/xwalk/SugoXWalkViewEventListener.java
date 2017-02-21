@@ -89,13 +89,8 @@ public class SugoXWalkViewEventListener extends SugoWebEventListener {
         while (xWalkViewIterator.hasNext()) {
             xWalkView = xWalkViewIterator.next();
             Activity activity = (Activity) xWalkView.getContext();
-            if (activity == null || activity == deadActivity || activity.isFinishing()) {
-                xWalkViewIterator.remove();
-                sugoWNReporter.remove(xWalkView);
-                if (SGConfig.DEBUG) {
-                    Log.d("SugoWebEventListener", "removeXWalkViewReference : " + xWalkView.toString());
-                }
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed()) {
+            if (activity == null || activity == deadActivity || activity.isFinishing() ||
+                    (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed())) {
                 xWalkViewIterator.remove();
                 sugoWNReporter.remove(xWalkView);
                 if (SGConfig.DEBUG) {

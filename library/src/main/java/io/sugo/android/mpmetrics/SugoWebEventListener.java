@@ -34,6 +34,9 @@ public class SugoWebEventListener {
     public void track(String eventId, String eventName, String props) {
         try {
             JSONObject jsonObject = new JSONObject(props);
+            if (!jsonObject.has(SGConfig.FIELD_PAGE_NAME)) {
+                jsonObject.put(SGConfig.FIELD_PAGE_NAME, "");
+            }
             if (eventId == null || eventId.trim() == "")
                 sugoAPI.track(eventName, jsonObject);
             else
@@ -108,19 +111,12 @@ public class SugoWebEventListener {
         while (webViewIterator.hasNext()) {
             webView = webViewIterator.next();
             Activity activity = (Activity) webView.getContext();
-            if (activity == null || activity == deadActivity || activity.isFinishing()) {
+            if (activity == null || activity == deadActivity || activity.isFinishing() ||
+                    (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed())) {
                 webViewIterator.remove();
                 sugoWNReporter.remove(webView);
                 if (SGConfig.DEBUG) {
                     Log.d("SugoWebEventListener", "removeWebViewReference : " + webView.toString());
-                }
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                if (activity.isDestroyed()) {
-                    webViewIterator.remove();
-                    sugoWNReporter.remove(webView);
-                    if (SGConfig.DEBUG) {
-                        Log.d("SugoWebEventListener", "removeWebViewReference : " + webView.toString());
-                    }
                 }
             }
         }
