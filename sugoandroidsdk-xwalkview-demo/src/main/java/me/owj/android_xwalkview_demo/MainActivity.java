@@ -1,17 +1,20 @@
 package me.owj.android_xwalkview_demo;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.uuzuche.lib_zxing.activity.CaptureActivity;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
@@ -66,6 +69,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        findViewById(R.id.show_dialog_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showMyDialog();
+            }
+        });
         JSONObject obj = new JSONObject();
         try {
             obj.put("Param1", "str1s");
@@ -78,6 +87,28 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle("SugoSDK 内测版");
+    }
+
+    private void showMyDialog() {
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("Title")
+                .setView(R.layout.dialog_custom_view)
+                .setPositiveButton("确认", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(MainActivity.this, "确认", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                    }
+                })
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(MainActivity.this, "取消", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                    }
+                })
+                .create();
+        dialog.show();
     }
 
     @Override
@@ -103,6 +134,18 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
     }
 
     public String getDeviceId() {
