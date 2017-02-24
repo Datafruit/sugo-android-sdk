@@ -395,6 +395,7 @@ public class SugoWebViewClient extends WebViewClient {
         scriptBuf.append("sugo.relative_path = window.location.pathname.replace(/")
                 .append(sugoInstance.getmConfig().getWebRoot())
                 .append("/g, '');\n");
+        scriptBuf.append("sugo.relative_path += window.location.hash;\n");
         String realPath = "";
         try {
             Pattern pattern = Pattern.compile("^[A-Za-z0-9]*://.*", Pattern.CASE_INSENSITIVE);

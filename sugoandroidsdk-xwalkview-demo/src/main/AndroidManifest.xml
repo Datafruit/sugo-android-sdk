@@ -31,7 +31,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
             <intent-filter>
-                <data android:scheme="sugo.a873497737bc71ba9ce4633191a922a3"/>
+                <data android:scheme="sugo.c48d19fe57c67d4b6d80c6ec1a5e1a44"/>
 
                 <action android:name="android.intent.action.VIEW"/>
 
@@ -61,10 +61,10 @@
             android:value="http://192.168.0.212:8000/api/sdk/decide"/>
         <meta-data
             android:name="io.sugo.android.SGConfig.token"
-            android:value="a873497737bc71ba9ce4633191a922a3"/>
+            android:value="c48d19fe57c67d4b6d80c6ec1a5e1a44"/>
         <meta-data
             android:name="io.sugo.android.SGConfig.ProjectId"
-            android:value="com_HyoaKhQMl_project_rybecIYKx"/>
+            android:value="com_HyoaKhQMl_project_S1HWEfaFx"/>
         <meta-data
             android:name="io.sugo.android.SGConfig.webRoot"
             android:value=""/>
