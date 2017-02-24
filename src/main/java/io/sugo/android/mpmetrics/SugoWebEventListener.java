@@ -36,6 +36,9 @@ public class SugoWebEventListener {
     public void track(String eventId, String eventName, String props) {
         try {
             JSONObject jsonObject = new JSONObject(props);
+            if (!jsonObject.has(SGConfig.FIELD_PAGE_NAME)) {
+                jsonObject.put(SGConfig.FIELD_PAGE_NAME, "");
+            }
             if (eventId == null || eventId.trim() == "")
                 sugoAPI.track(eventName, jsonObject);
             else
