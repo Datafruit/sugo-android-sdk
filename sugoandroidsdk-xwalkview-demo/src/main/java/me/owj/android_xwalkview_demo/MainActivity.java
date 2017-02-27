@@ -22,6 +22,7 @@ import com.uuzuche.lib_zxing.activity.CodeUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import io.sugo.android.mpmetrics.SGConfig;
 import io.sugo.android.mpmetrics.SugoAPI;
 import io.sugo.android.xwalk.SugoXWalkViewSupport;
 
@@ -35,7 +36,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        SugoAPI.startSugo(this, SGConfig.getInstance(this)
+                .setToken("38c07f58b8f6e1df82ea29f794b6e097")
+                .setProjectId("com_HyoaKhQMl_project_B1GjJOHFg")
+                .logConfig());
+
         mSugoAPI = SugoAPI.getInstance(this);
+
         SugoXWalkViewSupport.enableXWalkView(mSugoAPI, true);
 
         findViewById(R.id.one_btn).setOnClickListener(new View.OnClickListener() {
