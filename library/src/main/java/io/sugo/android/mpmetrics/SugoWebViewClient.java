@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.text.TextUtils;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -402,6 +403,10 @@ public class SugoWebViewClient extends WebViewClient {
             if (pattern.matcher(url).matches()) {
                 URL urlObj = new URL(url);
                 realPath = urlObj.getPath();
+                String ref = urlObj.getRef();
+                if (!TextUtils.isEmpty(ref)) {
+                    realPath = realPath + "#" + ref;
+                }
             }
             realPath = realPath.replace(sugoInstance.getmConfig().getWebRoot(), "");
         } catch (MalformedURLException e) {
