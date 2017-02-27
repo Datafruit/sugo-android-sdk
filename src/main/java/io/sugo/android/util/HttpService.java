@@ -6,8 +6,6 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.util.Log;
 
-import io.sugo.android.mpmetrics.SGConfig;
-
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
@@ -21,6 +19,8 @@ import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
+
+import io.sugo.android.mpmetrics.SGConfig;
 
 /**
  * An HTTP utility class for internal use in the Mixpanel library. Not thread-safe.
@@ -156,6 +156,8 @@ public class HttpService implements RemoteService {
                 } else {
                     throw e;
                 }
+            } catch (NoClassDefFoundError error) {
+                error.printStackTrace();
             } finally {
                 if (null != bout)
                     try {

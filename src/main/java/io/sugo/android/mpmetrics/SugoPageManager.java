@@ -80,6 +80,7 @@ public class SugoPageManager {
         return null;
     }
 
+    @SuppressWarnings("deprecation")
     public String getCurrentPage(Context context) {
         ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         return activityManager.getRunningTasks(1).get(0).topActivity.getClassName();

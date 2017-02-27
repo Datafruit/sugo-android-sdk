@@ -46,6 +46,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
     /* package */ AnalyticsMessages(final Context context) {
         mContext = context;
         mConfig = getConfig(context);
+        mSystemInformation = new SystemInformation(mContext);
         mWorker = createWorker();
         getPoster().checkIsMixpanelBlocked();
     }
@@ -186,6 +187,103 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         }
     }
 
+    public JSONObject getDefaultEventProperties()
+            throws JSONException {
+        final JSONObject ret = new JSONObject();
+
+        ret.put(SGConfig.FIELD_MP_LIB, "android");
+        ret.put(SGConfig.FIELD_LIB_VERSION, SGConfig.VERSION);
+
+        // For querying together with data from other libraries
+        ret.put(SGConfig.FIELD_OS, "Android");
+        ret.put(SGConfig.FIELD_OS_VERSION, Build.VERSION.RELEASE == null ? "UNKNOWN" : Build.VERSION.RELEASE);
+
+        ret.put(SGConfig.FIELD_MANUFACTURER, Build.MANUFACTURER == null ? "UNKNOWN" : Build.MANUFACTURER);
+        ret.put(SGConfig.FIELD_BRAND, Build.BRAND == null ? "UNKNOWN" : Build.BRAND);
+        ret.put(SGConfig.FIELD_MODEL, Build.MODEL == null ? "UNKNOWN" : Build.MODEL);
+
+        try {
+            try {
+                final int servicesAvailable = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(mContext);
+                switch (servicesAvailable) {
+                    case ConnectionResult.SUCCESS:
+                        ret.put(SGConfig.FIELD_GOOGLE_PLAY_SERVICES, "available");
+                        break;
+                    case ConnectionResult.SERVICE_MISSING:
+                        ret.put(SGConfig.FIELD_GOOGLE_PLAY_SERVICES, "missing");
+                        break;
+                    case ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED:
+                        ret.put(SGConfig.FIELD_GOOGLE_PLAY_SERVICES, "out of date");
+                        break;
+                    case ConnectionResult.SERVICE_DISABLED:
+                        ret.put(SGConfig.FIELD_GOOGLE_PLAY_SERVICES, "disabled");
+                        break;
+                    case ConnectionResult.SERVICE_INVALID:
+                        ret.put(SGConfig.FIELD_GOOGLE_PLAY_SERVICES, "invalid");
+                        break;
+                }
+            } catch (RuntimeException e) {
+                // Turns out even checking for the service will cause explosions
+                // unless we've set up meta-data
+                ret.put(SGConfig.FIELD_GOOGLE_PLAY_SERVICES, "not configured");
+            }
+
+        } catch (NoClassDefFoundError e) {
+            ret.put(SGConfig.FIELD_GOOGLE_PLAY_SERVICES, "not included");
+        }
+
+        final DisplayMetrics displayMetrics = mSystemInformation.getDisplayMetrics();
+        ret.put(SGConfig.FIELD_SCREEN_DPI, displayMetrics.densityDpi);
+        ret.put(SGConfig.FIELD_SCREEN_HEIGHT, displayMetrics.heightPixels);
+        ret.put(SGConfig.FIELD_SCREEN_WIDTH, displayMetrics.widthPixels);
+
+        final String applicationVersionName = mSystemInformation.getAppVersionName();
+        if (null != applicationVersionName) {
+            //ret.put("app_version", applicationVersionName);
+            ret.put(SGConfig.FIELD_APP_VERSION_STRING, applicationVersionName);
+        }
+
+        final Integer applicationVersionCode = mSystemInformation.getAppVersionCode();
+        if (null != applicationVersionCode) {
+            //ret.put("app_release", applicationVersionCode);
+            ret.put(SGConfig.FIELD_APP_BUILD_NUMBER, applicationVersionCode);
+        }
+
+        final Boolean hasNFC = mSystemInformation.hasNFC();
+        if (null != hasNFC)
+            ret.put(SGConfig.FIELD_HAS_NFC, hasNFC.booleanValue());
+
+        final Boolean hasTelephony = mSystemInformation.hasTelephony();
+        if (null != hasTelephony)
+            ret.put(SGConfig.FIELD_HAS_TELEPHONE, hasTelephony.booleanValue());
+
+        final String carrier = mSystemInformation.getCurrentNetworkOperator();
+        if (null != carrier)
+            ret.put(SGConfig.FIELD_CARRIER, carrier);
+
+        final String networkType = mSystemInformation.getNetworkType();
+        if (null != networkType) {
+            ret.put(SGConfig.FIELD_CLIENT_NETWORK, networkType);
+        }
+
+        final Boolean isWifi = mSystemInformation.isWifiConnected();
+        if (null != isWifi)
+            ret.put(SGConfig.FIELD_WIFI, isWifi.booleanValue());
+
+        final Boolean isBluetoothEnabled = mSystemInformation.isBluetoothEnabled();
+        if (isBluetoothEnabled != null)
+            ret.put(SGConfig.FIELD_BLUETOOTH_ENABLED, isBluetoothEnabled);
+
+        final String bluetoothVersion = mSystemInformation.getBluetoothVersion();
+        if (bluetoothVersion != null)
+            ret.put(SGConfig.FIELD_BLUETOOTH_VERSION, bluetoothVersion);
+
+        final String deviceId = mSystemInformation.getDeviceId();
+        if (null != deviceId) {
+            ret.put(SGConfig.FIELD_DEVICE_ID, deviceId);
+        }
+        return ret;
+    }
     // Worker will manage the (at most single) IO thread associated with
     // this AnalyticsMessages instance.
     // XXX: Worker class is unnecessary, should be just a subclass of HandlerThread
@@ -224,7 +322,6 @@ import io.sugo.android.viewcrawler.ViewCrawler;
             public AnalyticsMessageHandler(Looper looper) {
                 super(looper);
                 mDbAdapter = null;
-                mSystemInformation = new SystemInformation(mContext);
                 mDecideChecker = createDecideChecker();
                 mDisableFallback = mConfig.getDisableFallback();
                 mFlushInterval = mConfig.getFlushInterval();
@@ -451,103 +548,6 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                 }
             }
 
-            private JSONObject getDefaultEventProperties()
-                    throws JSONException {
-                final JSONObject ret = new JSONObject();
-
-                ret.put(SGConfig.FIELD_MP_LIB, "android");
-                ret.put(SGConfig.FIELD_LIB_VERSION, SGConfig.VERSION);
-
-                // For querying together with data from other libraries
-                ret.put(SGConfig.FIELD_OS, "Android");
-                ret.put(SGConfig.FIELD_OS_VERSION, Build.VERSION.RELEASE == null ? "UNKNOWN" : Build.VERSION.RELEASE);
-
-                ret.put(SGConfig.FIELD_MANUFACTURER, Build.MANUFACTURER == null ? "UNKNOWN" : Build.MANUFACTURER);
-                ret.put(SGConfig.FIELD_BRAND, Build.BRAND == null ? "UNKNOWN" : Build.BRAND);
-                ret.put(SGConfig.FIELD_MODEL, Build.MODEL == null ? "UNKNOWN" : Build.MODEL);
-
-                try {
-                    try {
-                        final int servicesAvailable = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(mContext);
-                        switch (servicesAvailable) {
-                            case ConnectionResult.SUCCESS:
-                                ret.put(SGConfig.FIELD_GOOGLE_PLAY_SERVICES, "available");
-                                break;
-                            case ConnectionResult.SERVICE_MISSING:
-                                ret.put(SGConfig.FIELD_GOOGLE_PLAY_SERVICES, "missing");
-                                break;
-                            case ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED:
-                                ret.put(SGConfig.FIELD_GOOGLE_PLAY_SERVICES, "out of date");
-                                break;
-                            case ConnectionResult.SERVICE_DISABLED:
-                                ret.put(SGConfig.FIELD_GOOGLE_PLAY_SERVICES, "disabled");
-                                break;
-                            case ConnectionResult.SERVICE_INVALID:
-                                ret.put(SGConfig.FIELD_GOOGLE_PLAY_SERVICES, "invalid");
-                                break;
-                        }
-                    } catch (RuntimeException e) {
-                        // Turns out even checking for the service will cause explosions
-                        // unless we've set up meta-data
-                        ret.put(SGConfig.FIELD_GOOGLE_PLAY_SERVICES, "not configured");
-                    }
-
-                } catch (NoClassDefFoundError e) {
-                    ret.put(SGConfig.FIELD_GOOGLE_PLAY_SERVICES, "not included");
-                }
-
-                final DisplayMetrics displayMetrics = mSystemInformation.getDisplayMetrics();
-                ret.put(SGConfig.FIELD_SCREEN_DPI, displayMetrics.densityDpi);
-                ret.put(SGConfig.FIELD_SCREEN_HEIGHT, displayMetrics.heightPixels);
-                ret.put(SGConfig.FIELD_SCREEN_WIDTH, displayMetrics.widthPixels);
-
-                final String applicationVersionName = mSystemInformation.getAppVersionName();
-                if (null != applicationVersionName) {
-                    //ret.put("app_version", applicationVersionName);
-                    ret.put(SGConfig.FIELD_APP_VERSION_STRING, applicationVersionName);
-                }
-
-                 final Integer applicationVersionCode = mSystemInformation.getAppVersionCode();
-                 if (null != applicationVersionCode) {
-                    //ret.put("app_release", applicationVersionCode);
-                    ret.put(SGConfig.FIELD_APP_BUILD_NUMBER, applicationVersionCode);
-                }
-
-                final Boolean hasNFC = mSystemInformation.hasNFC();
-                if (null != hasNFC)
-                    ret.put(SGConfig.FIELD_HAS_NFC, hasNFC.booleanValue());
-
-                final Boolean hasTelephony = mSystemInformation.hasTelephony();
-                if (null != hasTelephony)
-                    ret.put(SGConfig.FIELD_HAS_TELEPHONE, hasTelephony.booleanValue());
-
-                final String carrier = mSystemInformation.getCurrentNetworkOperator();
-                if (null != carrier)
-                    ret.put(SGConfig.FIELD_CARRIER, carrier);
-
-                final String networkType = mSystemInformation.getNetworkType();
-                if (null != networkType) {
-                    ret.put(SGConfig.FIELD_CLIENT_NETWORK, networkType);
-                }
-
-                final Boolean isWifi = mSystemInformation.isWifiConnected();
-                if (null != isWifi)
-                    ret.put(SGConfig.FIELD_WIFI, isWifi.booleanValue());
-
-                final Boolean isBluetoothEnabled = mSystemInformation.isBluetoothEnabled();
-                if (isBluetoothEnabled != null)
-                    ret.put(SGConfig.FIELD_BLUETOOTH_ENABLED, isBluetoothEnabled);
-
-                final String bluetoothVersion = mSystemInformation.getBluetoothVersion();
-                if (bluetoothVersion != null)
-                    ret.put(SGConfig.FIELD_BLUETOOTH_VERSION, bluetoothVersion);
-
-                final String deviceId = mSystemInformation.getDeviceId();
-                if (null != deviceId) {
-                    ret.put(SGConfig.FIELD_DEVICE_ID, deviceId);
-                }
-                return ret;
-            }
 
             private JSONObject prepareEventObject(EventDescription eventDescription) throws JSONException {
                 final JSONObject eventProperties = eventDescription.getProperties();
@@ -599,7 +599,6 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         private long mFlushCount = 0;
         private long mAveFlushFrequency = 0;
         private long mLastFlushTime = -1;
-        private SystemInformation mSystemInformation;
     }
 
     public long getTrackEngageRetryAfter() {
@@ -611,6 +610,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
     private final Worker mWorker;
     protected final Context mContext;
     protected final SGConfig mConfig;
+    private SystemInformation mSystemInformation;
 
     // Messages for our thread
     private static final int ENQUEUE_PEOPLE = 0; // submit events and people data

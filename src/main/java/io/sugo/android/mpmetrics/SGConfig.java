@@ -232,7 +232,7 @@ public class SGConfig {
         } else if (!TextUtils.isEmpty(projectId)) {
             eventsEndpoint = "http://collect.sugo.net/post?locate=" + projectId;
         } else {
-            Log.e("SGConfig ", "no Project Id, it do not work !!!");
+            Log.v("SGConfig ", "AndroidManifest 中未设置 Project Id, 可以在代码中添加");
         }
         mProjectId = projectId;
         mEventsEndpoint = eventsEndpoint;
@@ -280,6 +280,30 @@ public class SGConfig {
             mDisableViewCrawlerForProjects = new String[0];
         }
 
+    }
+
+    public String getToken() {
+        return mToken;
+    }
+
+    public SGConfig setToken(String token) {
+        mToken = token;
+        return this;
+    }
+
+    public SGConfig setProjectId(String projectId) {
+        mProjectId = projectId;
+        mEventsEndpoint = "http://collect.sugo.net/post?locate=" + projectId;
+        return this;
+    }
+
+    public SGConfig setEventsEndPoint(String eventEndPoint) {
+        mEventsEndpoint = eventEndPoint;
+        mProjectId = Uri.parse(mEventsEndpoint).getQueryParameter("locate");
+        return this;
+    }
+
+    public SGConfig logConfig() {
         if (DEBUG) {
             Log.v(LOGTAG,
                     "Mixpanel (" + VERSION + ") configured with:\n" +
@@ -305,6 +329,7 @@ public class SGConfig {
                             "    DisableDecideChecker " + getDisableDecideChecker() + "\n"
             );
         }
+        return this;
     }
 
     class myX509TrustManager implements X509TrustManager {
@@ -404,14 +429,6 @@ public class SGConfig {
         return webRoot;
     }
 
-    public String getToken() {
-        return mToken;
-    }
-
-    void setToken(String token) {
-        mToken = token;
-    }
-
     // Fallback URL for tracking events if post to preferred URL fails
     public String getEventsFallbackEndpoint() {
         return mEventsFallbackEndpoint;
@@ -501,8 +518,8 @@ public class SGConfig {
     private final boolean mDisableAppOpenEvent;
     private final boolean mDisableViewCrawler;
     private final String[] mDisableViewCrawlerForProjects;
-    private final String mProjectId;
-    private final String mEventsEndpoint;
+    private String mProjectId;
+    private String mEventsEndpoint;
     private final String mEventsFallbackEndpoint;
     private final String mPeopleEndpoint;
     private final String mPeopleFallbackEndpoint;
