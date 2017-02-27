@@ -156,6 +156,8 @@ public class HttpService implements RemoteService {
                 } else {
                     throw e;
                 }
+            } catch (NoClassDefFoundError error) {
+                error.printStackTrace();
             } finally {
                 if (null != bout)
                     try {

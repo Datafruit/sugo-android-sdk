@@ -189,24 +189,19 @@ public class SugoAPI {
      * Use SugoAPI.getInstance to get an instance.
      */
 
-    SugoAPI(Context context, Future<SharedPreferences> referrerPreferences, String token) {
-        this(context, referrerPreferences, token, SGConfig.getInstance(context));
+    SugoAPI(Context context, Future<SharedPreferences> referrerPreferences) {
+        this(context, referrerPreferences, SGConfig.getInstance(context));
     }
 
     /**
      * You shouldn't instantiate SugoAPI objects directly.
      * Use SugoAPI.getInstance to get an instance.
      */
-    SugoAPI(Context context, Future<SharedPreferences> referrerPreferences, final String token, SGConfig config) {
+    SugoAPI(Context context, Future<SharedPreferences> referrerPreferences, SGConfig config) {
         Context appContext = context.getApplicationContext();
         mContext = appContext;
         mConfig = config;
-        if (TextUtils.isEmpty(token)) {
-            mToken = config.getToken();
-        } else {
-            mToken = token;
-            config.setToken(mToken);
-        }
+        mToken = config.getToken();
 
         mSessionId = generateSessionId();
         restorePageInfo();
@@ -289,10 +284,6 @@ public class SugoAPI {
      * @return an instance of SugoAPI associated with your project
      */
     public static SugoAPI getInstance(Context context) {
-        return getInstance(context, null);
-    }
-
-    public static SugoAPI getInstance(Context context, String token) {
         if (null == context) {
             return null;
         }
@@ -305,7 +296,7 @@ public class SugoAPI {
 
             SugoAPI instance = sInstanceMap.get(appContext);
             if (null == instance && ConfigurationChecker.checkBasicConfiguration(appContext)) {
-                instance = new SugoAPI(context, sReferrerPrefs, token);
+                instance = new SugoAPI(context, sReferrerPrefs);
                 registerAppLinksListeners(context, instance);
                 sInstanceMap.put(appContext, instance);
             }
@@ -314,6 +305,30 @@ public class SugoAPI {
 
             return instance;
         }
+    }
+
+    public static void startSugo(Context context, SGConfig sgConfig) {
+        if (null == context) {
+            Log.e(LOGTAG, "startSugo 失败，context 为空");
+            return;
+        }
+        synchronized (sInstanceMap) {
+            if (sInstanceMap.get(context.getApplicationContext()) != null) {
+                Log.e(LOGTAG, "Sugo SDK 已经初始化，不能再次初始化");
+                return;
+            }
+        }
+        if (TextUtils.isEmpty(sgConfig.getToken())) {
+            Log.e(LOGTAG, "未检测到 SugoSDK 的 Token，请正确设置 SGConfig.setToken");
+            return;
+        }
+        if (TextUtils.isEmpty(sgConfig.getProjectId())) {
+            Log.e(LOGTAG, "未检测到 SugoSDK 的 ProjectId，请正确设置 SGConfig.setProjectId");
+            return;
+        }
+
+        SugoAPI.getInstance(context);
+        Log.i("Sugo", "SugoSDK 初始化成功！");
     }
 
     /**
@@ -592,6 +607,17 @@ public class SugoAPI {
                     Object value = messageProps.get(key);
                     if (value instanceof Date) {
                         messageProps.put(key, ((Date) value).getTime());
+                    }
+                }
+                JSONObject defaultDimensions = mMessages.getDefaultEventProperties();
+                final Iterator<String> defaultPropIter = defaultDimensions.keys();
+                while (defaultPropIter.hasNext()) {
+                    final String key = defaultPropIter.next();
+                    Object value = defaultDimensions.get(key);
+                    if (value instanceof Date) {
+                        messageProps.put(key, ((Date) value).getTime());
+                    } else {
+                        messageProps.put(key, value);
                     }
                 }
                 event.put("properties", messageProps);
