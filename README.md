@@ -59,6 +59,7 @@ dependencies {
             android:name="io.sugo.android.SGConfig.EnableDebugLogging"
             android:value="false"/>
 
+    <!-- 也可以在代码中设置 Token 和 ProjectId -->
     <meta-data
             android:name="io.sugo.android.SGConfig.token"
             android:value="{YOUR_TOKEN}" />
@@ -141,6 +142,7 @@ dependencies {
     public static ** valueOf(java.lang.String);
 }
 
+-keep class io.sugo.* { *; }
 -keep class io.sugo.android.mpmetrics.SugoAPI { *; }
 -keep class io.sugo.android.mpmetrics.SugoWebEventListener { *; }
 -keep class io.sugo.android.mpmetrics.SugoWebNodeReporter { *; }
@@ -159,7 +161,13 @@ public class MainActivity extends Activity {
     SugoAPI mSugo;
 
     public void onCreate(Bundle saved) {
-        // 获取 SugoAPI 实例，在第一次调用时，SDK 将会初始化
+        // SDK 将会初始化，此处若设置 Token 、 ProjectId，将覆盖 AndroidManifest 中的设置
+        SugoAPI.startSugo(this, SGConfig.getInstance(this)
+            .setToken("38c07f58b8f6e1df82ea29f794b6e097")
+            .setProjectId("com_HyoaKhQMl_project_B1GjJOHFg")
+            .logConfig());
+
+        // 获取 SugoAPI 实例，在第一次调用时，
         mSugo = SugoAPI.getInstance(this);
 
         // 若传递了 token 参数，该值将覆盖前面 2.1.2 Token 中的设置
