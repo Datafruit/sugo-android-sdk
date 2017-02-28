@@ -28,7 +28,7 @@ public class WebActivity extends AppCompatActivity {
         });
 
         webView.setWebChromeClient(new WebChromeClient());
-        webView.loadUrl("https://m.jd.com/?a=b#123");
+        webView.loadUrl("https://m.jd.com/?a=b#123#234");
 
     }
 
