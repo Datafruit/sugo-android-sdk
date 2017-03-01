@@ -6,21 +6,21 @@
 **1.1 Gradle 集成**
 ```Groovy
 dependencies {
-    compile 'io.sugo.android:sugo-android-sdk:1.0.3'
+    compile 'io.sugo.android:sugo-android-sdk:2.0.0'
 }
 ```
 
-> 如果需要支持`XWalkView`，请使用
+> 如果需要支持`XWalkView`，请另外再添加
 
 ```Groovy
 dependencies {
-    compile 'io.sugo.android:sugo-android-sdk-xwalk:1.0.3'
+    compile 'io.sugo.android:sugo-xwalkview-support:2.0.0'
 }
 ```
 
 **1.2 下载 SDK 并集成**
 下载 SDK 压缩包，解压后将其中的 sugo-android-sdk.jar 导入你的项目 libs 目录中
-> 如果需要支持`XWalkView`，请导入`sugo-android-sdk-xwalk.jar`
+> 如果需要支持`XWalkView`，请另外再导入`sugo-android-sdk-xwalk.jar`
 
 ---
 
