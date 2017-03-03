@@ -3,7 +3,12 @@
     package="io.sugo.android">
     <uses-sdk android:minSdkVersion="9"
               android:targetSdkVersion="21"
-              tools:overrideLibrary="org.xwalk.core" />
+              tools:overrideLibrary="org.xwalk.core,
+              com.google.android.gms,
+              com.google.android.gms.base,
+              com.google.android.gms.tasks,
+              com.google.android.gms.gcm,
+              com.google.android.gms.iid" />
 
     <uses-permission android:name="android.permission.INTERNET" />
 
