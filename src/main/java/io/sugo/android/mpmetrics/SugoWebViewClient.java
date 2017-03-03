@@ -405,6 +405,12 @@ public class SugoWebViewClient extends WebViewClient {
         scriptBuf.append("sugo.relative_path = window.location.pathname.replace(/")
                 .append(sugoInstance.getmConfig().getWebRoot())
                 .append("/g, '');\n");
+        String filePath = activity.getFilesDir().getPath(); // /data/user/0/io.sugo.xxx/files
+        String packageName = activity.getApplicationContext().getPackageName();     // io.sugo.xxx
+        String dataDataPath = filePath.substring(0, filePath.indexOf("/" + packageName));      // /data/user/0
+        scriptBuf.append("sugo.relative_path = sugo.relative_path.replace('")
+                .append(dataDataPath)
+                .append("','');\n");
         scriptBuf.append("sugo.hash = window.location.hash;\n")
                 .append("sugo.hash = sugo.hash.indexOf('?') < 0 ? sugo.hash : sugo.hash.substring(0, sugo.hash.indexOf('?'));\n");
         scriptBuf.append("sugo.relative_path += sugo.hash;\n");

@@ -37,3 +37,4 @@ proguard/
 *.iws
 .idea/
 /gradle/
+*/*.properties
