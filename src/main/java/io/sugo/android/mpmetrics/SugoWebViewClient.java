@@ -30,7 +30,6 @@ public class SugoWebViewClient extends WebViewClient {
             "window.addEventListener('beforeunload', function (e) {\n" +
             "var duration = (new Date().getTime() - sugo.enter_time)/1000;\n" +
             "    sugo.track('停留', {" + SGConfig.FIELD_DURATION + ": duration});\n" +
-            "    sugo.track('页面退出');\n" +
             "});\n";
     private static String cssUtil = "var UTILS = {};\n" +
             "UTILS.cssPath = function(node, optimized)\n" +
@@ -321,14 +320,14 @@ public class SugoWebViewClient extends WebViewClient {
             "        props = {};\n" +
             "    }\n" +
             "    props." + SGConfig.FIELD_PAGE + " = sugo.relative_path;\n" +
-            "    if(!props." + SGConfig.FIELD_PAGE_NAME + "&& sugo.init.page_name"+"){\n" +
+            "    if(!props." + SGConfig.FIELD_PAGE_NAME + "&& sugo.init.page_name" + "){\n" +
             "       props." + SGConfig.FIELD_PAGE_NAME + " = sugo.init.page_name;\n" +
             "    }\n" +
             "    window.sugoEventListener.track(event_id, event_name, JSON.stringify(props));\n" +
             "};\n" +
             "sugo.track = function (event_name, props) {\n" +
             "    sugo.rawTrack('', event_name, props);\n" +
-            "};\n"+
+            "};\n" +
             "sugo.timeEvent = function(event_name){\n" +
             "    window.sugoEventListener.timeEvent(event_name);\n" +
             "};\n" +
@@ -406,7 +405,9 @@ public class SugoWebViewClient extends WebViewClient {
         scriptBuf.append("sugo.relative_path = window.location.pathname.replace(/")
                 .append(sugoInstance.getmConfig().getWebRoot())
                 .append("/g, '');\n");
-        scriptBuf.append("sugo.relative_path += window.location.hash;\n");
+        scriptBuf.append("sugo.hash = window.location.hash;\n")
+                .append("sugo.hash = sugo.hash.indexOf('?') < 0 ? sugo.hash : sugo.hash.substring(0, sugo.hash.indexOf('?'));\n");
+        scriptBuf.append("sugo.relative_path += sugo.hash;\n");
         String realPath = "";
         try {
             Pattern pattern = Pattern.compile("^[A-Za-z0-9]*://.*", Pattern.CASE_INSENSITIVE);
@@ -415,6 +416,10 @@ public class SugoWebViewClient extends WebViewClient {
                 realPath = urlObj.getPath();
                 String ref = urlObj.getRef();
                 if (!TextUtils.isEmpty(ref)) {
+                    if (ref.contains("?")) {
+                        int qIndex = ref.indexOf("?");
+                        ref = ref.substring(0, qIndex);
+                    }
                     realPath = realPath + "#" + ref;
                 }
             }
