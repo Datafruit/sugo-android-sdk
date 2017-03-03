@@ -74,7 +74,6 @@ import io.sugo.android.viewcrawler.GestureTracker;
                 e.printStackTrace();
             }
             mMpInstance.track("唤醒", props);
-            mMpInstance.track("后台停留", props);
         }
 
         if (!mDisableActivities.contains(activity)) {
@@ -115,7 +114,6 @@ import io.sugo.android.viewcrawler.GestureTracker;
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                    mMpInstance.timeEvent("后台停留", -CHECK_DELAY);// 程序延迟了，需要补回
                     mMpInstance.track("后台", props);        // App 进入后台运行状态
                     mMpInstance.flush();
                 }
@@ -157,16 +155,6 @@ import io.sugo.android.viewcrawler.GestureTracker;
             mMpInstance.track("退出", props);
             mMpInstance.track("APP停留");
             mMpInstance.flush();
-        } else {
-            JSONObject props = new JSONObject();
-            try {
-                props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
-                props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
-                        .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            mMpInstance.track("窗口退出", props);
         }
         mDisableActivities.remove(activity);
     }

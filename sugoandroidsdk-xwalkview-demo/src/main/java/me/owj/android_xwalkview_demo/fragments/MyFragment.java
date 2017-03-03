@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import io.sugo.android.mpmetrics.SugoAPI;
@@ -23,6 +24,7 @@ public class MyFragment extends Fragment {
 
     private String mTitle;
     private TextView mTitleTxt;
+    private Button mClickShowBtn;
 
     public MyFragment() {
         // Required empty public constructor
@@ -73,7 +75,7 @@ public class MyFragment extends Fragment {
         super.onResume();
         Log.i(mTitle, "onResume");
         mTitleTxt.setText(mTitle);
-        SugoAPI.getInstance(getContext()).traceFragmentResumed(this);
+        SugoAPI.getInstance(getContext()).traceFragmentResumed(this, mTitle);
     }
 
     @Override

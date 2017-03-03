@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         SugoAPI.startSugo(this, SGConfig.getInstance(this)
-                .setToken("38c07f58b8f6e1df82ea29f794b6e097")
+                .setToken("2a789a06f0f092cc40a67799d6dc2ab9")
                 .setProjectId("com_HyoaKhQMl_project_B1GjJOHFg")
                 .logConfig());
 

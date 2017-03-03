@@ -28,7 +28,8 @@ public class WebActivity extends AppCompatActivity {
         });
 
         webView.setWebChromeClient(new WebChromeClient());
-        webView.loadUrl("https://m.jd.com/?a=b#123#234");
+        webView.loadUrl("file:///android_asset/index.html");
+//        webView.loadUrl("http://sugo.io/");
 
     }
 
