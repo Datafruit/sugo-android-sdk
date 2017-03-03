@@ -310,11 +310,65 @@ import java.util.Set;
                     int dimCount = 0;
                     String dimType;
                     for (String dimName : dimSet) {
+                        dimType = dimMap.get(dimName);
                         if (event.has(dimName)) {
                             Object value = event.get(dimName);
+                            switch (dimType) {
+                                case "l":
+                                    if (!(value instanceof Long)) {
+                                        try {
+                                            value = Long.parseLong(value.toString());
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            value = 0;
+                                        }
+                                    }
+                                    break;
+                                case "s":
+                                    if (!(value instanceof String)) {
+                                        try {
+                                            value = value.toString();
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            value = "";
+                                        }
+                                    }
+                                    break;
+                                case "f":
+                                    if (!(value instanceof Float)) {
+                                        try {
+                                            value = Float.parseFloat(value.toString());
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            value = 0;
+                                        }
+                                    }
+                                    break;
+                                case "d":
+                                    if (!(value instanceof Long)) {
+                                        try {
+                                            value = Long.parseLong(value.toString());
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            value = 0;
+                                        }
+                                    }
+                                    break;
+                                case "i":
+                                    if (!(value instanceof Integer)) {
+                                        try {
+                                            value = Integer.parseInt(value.toString());
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            value = 0;
+                                        }
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
                             buf.append(value);
                         } else {    // 预先配置中的[类型|维度]，在 当前的事件中找不到，比如 过时的 sugo_lib_version
-                            dimType = dimMap.get(dimName);
                             switch (dimType) {
                                 case "s":
                                     buf.append("");

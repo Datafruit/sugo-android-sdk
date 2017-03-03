@@ -11,6 +11,8 @@ import android.os.Looper;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashSet;
+
 import io.sugo.android.viewcrawler.GestureTracker;
 
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
@@ -24,9 +26,11 @@ import io.sugo.android.viewcrawler.GestureTracker;
     private final SGConfig mConfig;
 
     private boolean mIsLaunching = true;     // 是否启动中
+    private HashSet<Activity> mDisableActivities;
 
     public SugoActivityLifecycleCallbacks(SugoAPI mpInstance, SGConfig config) {
         mMpInstance = mpInstance;
+        mDisableActivities = new HashSet<>();
         mConfig = config;
 
         mMpInstance.track("启动");    // 第一个界面正在启动
@@ -73,15 +77,17 @@ import io.sugo.android.viewcrawler.GestureTracker;
             mMpInstance.track("后台停留", props);
         }
 
-        try {
-            JSONObject props = new JSONObject();
-            props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
-            props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
-                    .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
-            mMpInstance.track("浏览", props);
-            mMpInstance.timeEvent("窗口停留");
-        } catch (JSONException e) {
-            e.printStackTrace();
+        if (!mDisableActivities.contains(activity)) {
+            try {
+                JSONObject props = new JSONObject();
+                props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
+                props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
+                        .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
+                mMpInstance.track("浏览", props);
+                mMpInstance.timeEvent("窗口停留");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
 
         if (mIsLaunching) {
@@ -115,15 +121,16 @@ import io.sugo.android.viewcrawler.GestureTracker;
                 }
             }
         }, CHECK_DELAY);
-
-        try {
-            JSONObject props = new JSONObject();
-            props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
-            props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
-                    .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
-            mMpInstance.track("窗口停留", props);
-        } catch (JSONException e) {
-            e.printStackTrace();
+        if (!mDisableActivities.contains(activity)) {
+            try {
+                JSONObject props = new JSONObject();
+                props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
+                props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
+                        .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
+                mMpInstance.track("窗口停留", props);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -161,11 +168,15 @@ import io.sugo.android.viewcrawler.GestureTracker;
             }
             mMpInstance.track("窗口退出", props);
         }
+        mDisableActivities.remove(activity);
     }
 
     @Override
     public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
     }
 
+    void disableTraceActivity(Activity activity) {
+        mDisableActivities.add(activity);
+    }
 
 }

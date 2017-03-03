@@ -3,6 +3,7 @@ package io.sugo.android.mpmetrics;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Application;
+import android.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -387,13 +388,9 @@ public class SugoAPI {
     private void restoreDimensions() {
         final String sharedPrefsName = ViewCrawler.SHARED_PREF_EDITS_FILE + mToken;
         SharedPreferences preferences = mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
-        final String storeInfo = preferences.getString(ViewCrawler.SHARED_PREF_DIMENSIONS_KEY, null);
+        String storeInfo = preferences.getString(ViewCrawler.SHARED_PREF_DIMENSIONS_KEY, null);
         if (storeInfo != null && !storeInfo.equals("")) {
-            try {
-                SugoDimensionManager.getInstance().setDimensions(new JSONArray(storeInfo));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+            SugoDimensionManager.getInstance().setDimensionsDefault();
         }
     }
 
@@ -407,7 +404,7 @@ public class SugoAPI {
      * @param alias    the new distinct_id that should represent original.
      * @param original the old distinct_id that alias will be mapped to.
      */
-    public void alias(String alias, String original) {
+    private void alias(String alias, String original) {
         if (original == null) {
             original = getDistinctId();
         }
@@ -878,8 +875,8 @@ public class SugoAPI {
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
             if (mContext.getApplicationContext() instanceof Application) {
                 final Application app = (Application) mContext.getApplicationContext();
-                SugoActivityLifecycleCallbacks sugoActivityLifecycleCallbacks = new SugoActivityLifecycleCallbacks(this, mConfig);
-                app.registerActivityLifecycleCallbacks(sugoActivityLifecycleCallbacks);
+                mSugoActivityLifecycleCallbacks = new SugoActivityLifecycleCallbacks(this, mConfig);
+                app.registerActivityLifecycleCallbacks(mSugoActivityLifecycleCallbacks);
             } else {
                 Log.i(LOGTAG, "Context is not an Application, Mixpanel will not automatically show surveys, in-app notifications, or A/B test experiments. We won't be able to automatically flush on an app background.");
             }
@@ -1237,6 +1234,74 @@ public class SugoAPI {
         mUpdatesFromSugo.sendConnectEditor(data);
     }
 
+    /**
+     * 禁用记录一个 Activity 实例的生命周期
+     *
+     * @param activity
+     */
+    public void disableTraceActivity(Activity activity) {
+        mSugoActivityLifecycleCallbacks.disableTraceActivity(activity);
+    }
+
+    public void traceFragmentResumed(Fragment fragment, String pageName) {
+        String page = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
+            Activity activity = fragment.getActivity();
+            page = activity.getPackageName() + "." + activity.getLocalClassName();
+        } else {
+            page = SugoPageManager.getInstance().getCurrentPage(mContext);
+        }
+        SugoPageManager.getInstance().replaceCurrentActivityPageName(page, pageName);
+        traceFragment("浏览", fragment.getClass().getName(), pageName);
+        timeEvent("窗口停留");
+    }
+
+    public void traceFragmentResumed(android.support.v4.app.Fragment fragment, String pageName) {
+        String page = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
+            Activity activity = fragment.getActivity();
+            page = activity.getPackageName() + "." + activity.getLocalClassName();
+        } else {
+            page = SugoPageManager.getInstance().getCurrentPage(mContext);
+        }
+        SugoPageManager.getInstance().replaceCurrentActivityPageName(page, pageName);
+        traceFragment("浏览", fragment.getClass().getName(), pageName);
+        timeEvent("窗口停留");
+    }
+
+    public void traceFragmentPaused(Fragment fragment) {
+        String page = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
+            Activity activity = fragment.getActivity();
+            page = activity.getPackageName() + "." + activity.getLocalClassName();
+        } else {
+            page = SugoPageManager.getInstance().getCurrentPage(mContext);
+        }
+        traceFragment("窗口停留", fragment.getClass().getName(), SugoPageManager.getInstance().getCurrentPageName(page));
+    }
+
+    public void traceFragmentPaused(android.support.v4.app.Fragment fragment) {
+        String page = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
+            Activity activity = fragment.getActivity();
+            page = activity.getPackageName() + "." + activity.getLocalClassName();
+        } else {
+            page = SugoPageManager.getInstance().getCurrentPage(mContext);
+        }
+        traceFragment("窗口停留", fragment.getClass().getName(), SugoPageManager.getInstance().getCurrentPageName(page));
+    }
+
+    private void traceFragment(String eventName, String pathName, String pageName) {
+        JSONObject props = new JSONObject();
+        try {
+            props.put(SGConfig.FIELD_PAGE, pathName);
+            props.put(SGConfig.FIELD_PAGE_NAME, pageName);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        track(eventName, props);
+    }
+
     private final Context mContext;
     private final AnalyticsMessages mMessages;
     private final SGConfig mConfig;
@@ -1249,6 +1314,7 @@ public class SugoAPI {
     private final DecideMessages mDecideMessages;
     private final Map<String, String> mDeviceInfo;
     private final Map<String, Long> mEventTimings;
+    private SugoActivityLifecycleCallbacks mSugoActivityLifecycleCallbacks;
 
     // Maps each token to a singleton SugoAPI instance
     private static final Map<Context, SugoAPI> sInstanceMap = new HashMap<Context, SugoAPI>();

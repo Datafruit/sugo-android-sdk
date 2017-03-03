@@ -80,9 +80,22 @@ public class SugoPageManager {
         return null;
     }
 
-    public String getCurrentPage(Context context){
+    public String getCurrentPage(Context context) {
         ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         return activityManager.getRunningTasks(1).get(0).topActivity.getClassName();
     }
 
+    public void replaceCurrentActivityPageName(String activityPage, String pageName) {
+        try {
+            JSONObject obj = mPageInfos.get(activityPage);
+            if (obj == null) {
+                obj = new JSONObject();
+                mPageInfos.put(activityPage, obj);
+            }
+            obj.put("page_name", pageName);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 }
