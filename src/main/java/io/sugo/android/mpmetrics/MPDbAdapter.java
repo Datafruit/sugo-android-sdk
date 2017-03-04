@@ -307,12 +307,66 @@ import java.util.Set;
                     JSONObject event = arr.getJSONObject(i);
                     int dimCount = 0;
                     for (String dimName : keySet) {
+                        final String dimType = dimMap.get(dimName);
                         if (event.has(dimName)) {
                             Object value = event.get(dimName);
+                            switch (dimType) {
+                                case "l":
+                                    if (!(value instanceof Long)) {
+                                        try {
+                                            value = Long.parseLong(value.toString());
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            value = 0;
+                                        }
+                                    }
+                                    break;
+                                case "s":
+                                    if (!(value instanceof String)) {
+                                        try {
+                                            value = value.toString();
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            value = "";
+                                        }
+                                    }
+                                    break;
+                                case "f":
+                                    if (!(value instanceof Float)) {
+                                        try {
+                                            value = Float.parseFloat(value.toString());
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            value = 0;
+                                        }
+                                    }
+                                    break;
+                                case "d":
+                                    if (!(value instanceof Long)) {
+                                        try {
+                                            value = Long.parseLong(value.toString());
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            value = 0;
+                                        }
+                                    }
+                                    break;
+                                case "i":
+                                    if (!(value instanceof Integer)) {
+                                        try {
+                                            value = Integer.parseInt(value.toString());
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            value = 0;
+                                        }
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
                             buf.append(value);
                         } else {
-                        final String type = dimMap.get(dimName);
-                            switch (type) {
+                            switch (dimType) {
                                 case "s":
                                     buf.append("");
                                     break;
