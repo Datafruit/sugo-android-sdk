@@ -51,6 +51,9 @@
         </activity>
 
         <meta-data
+            android:name="com.mixpanel.android.MPConfig.EnableDebugLogging"
+            android:value="true"/>
+        <meta-data
             android:name="io.sugo.android.SGConfig.EnableDebugLogging"
             android:value="true"/>
         <meta-data
