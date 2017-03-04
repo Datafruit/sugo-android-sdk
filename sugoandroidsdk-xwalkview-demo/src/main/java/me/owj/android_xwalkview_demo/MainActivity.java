@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.uuzuche.lib_zxing.activity.CaptureActivity;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
 
@@ -37,8 +38,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+//        String projectToken = "eed69d99b8c58fff0ec6eb9f8d7872a4"; // e.g.: "1ef7e30d2a58d27f4b90c42e31d6d7ad"
+//        MixpanelAPI mixpanel = MixpanelAPI.getInstance(this, projectToken);
+
         SugoAPI.startSugo(this, SGConfig.getInstance(this)
-                .setToken("38c07f58b8f6e1df82ea29f794b6e097")
+                .setToken("2a789a06f0f092cc40a67799d6dc2ab9")
                 .setProjectId("com_HyoaKhQMl_project_B1GjJOHFg")
                 .logConfig());
 
@@ -90,11 +94,12 @@ public class MainActivity extends AppCompatActivity {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        mSugoAPI.track("Test Track Method", obj);
+//        mSugoAPI.track("Test Track Method", obj);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+//        setSupportActionBar(toolbar);
         getSupportActionBar().setTitle("SugoSDK 内测版");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
     private void showMyDialog() {

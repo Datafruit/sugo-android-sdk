@@ -28,7 +28,6 @@ public class SugoWebViewClient extends WebViewClient {
             "window.addEventListener('beforeunload', function (e) {\n" +
             "    var duration = (new Date().getTime() - sugo.enter_time)/1000;\n" +
             "    sugo.track('停留', {" + SGConfig.FIELD_DURATION + ": duration});\n" +
-            "    sugo.track('页面退出');\n" +
             "});";
     private static String cssUtil = "var UTILS = {};\n" +
             "UTILS.cssPath = function(node, optimized)\n" +
@@ -396,6 +395,12 @@ public class SugoWebViewClient extends WebViewClient {
         scriptBuf.append("sugo.relative_path = window.location.pathname.replace(/")
                 .append(sugoInstance.getmConfig().getWebRoot())
                 .append("/g, '');\n");
+        String filePath = activity.getFilesDir().getPath(); // /data/user/0/io.sugo.xxx/files
+        String packageName = activity.getApplicationContext().getPackageName();     // io.sugo.xxx
+        String dataDataPath = filePath.substring(0, filePath.indexOf("/" + packageName));      // /data/user/0
+        scriptBuf.append("sugo.relative_path = sugo.relative_path.replace('")
+                .append(dataDataPath)
+                .append("','');\n");
         scriptBuf.append("sugo.relative_path += window.location.hash;\n");
         String realPath = "";
         try {
