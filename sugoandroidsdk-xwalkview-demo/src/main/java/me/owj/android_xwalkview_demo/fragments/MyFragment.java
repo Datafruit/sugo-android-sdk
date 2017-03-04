@@ -61,6 +61,13 @@ public class MyFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_my, container, false);
         mTitleTxt = (TextView) view.findViewById(R.id.frag_title_txt);
+        mClickShowBtn = (Button) view.findViewById(R.id.click_me_btn);
+        mClickShowBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SugoAPI.getInstance(getContext()).track("Click Fragment Btn");
+            }
+        });
         return view;
     }
 

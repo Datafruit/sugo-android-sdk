@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import io.sugo.android.mpmetrics.SugoAPI;
 import me.owj.android_xwalkview_demo.fragments.MyFragment;
 
 public class NativePageActivity extends AppCompatActivity {
@@ -21,6 +22,7 @@ public class NativePageActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_native_page);
+        SugoAPI.getInstance(getApplicationContext()).disableTraceActivity(this);
 
         mF1Fragment = MyFragment.newInstance("F1 ");
         mF2Fragment = MyFragment.newInstance("F2 ");
