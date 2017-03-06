@@ -75,7 +75,7 @@ import io.sugo.android.viewcrawler.GestureTracker;
             mMpInstance.track("唤醒", props);
         }
 
-        if(mDisableActivities.contains(activity)) {
+        if(!mDisableActivities.contains(activity)) {
             try {
                 JSONObject props = new JSONObject();
                 props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
@@ -118,7 +118,7 @@ import io.sugo.android.viewcrawler.GestureTracker;
             }
         }, CHECK_DELAY);
 
-        if(mDisableActivities.contains(activity)) {
+        if(!mDisableActivities.contains(activity)) {
             try {
                 JSONObject props = new JSONObject();
                 props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
