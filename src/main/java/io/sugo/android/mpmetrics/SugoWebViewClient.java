@@ -420,6 +420,7 @@ public class SugoWebViewClient extends WebViewClient {
             if (pattern.matcher(url).matches()) {
                 URL urlObj = new URL(url);
                 realPath = urlObj.getPath();
+                realPath = realPath.replaceFirst(dataDataPath,"");
                 String ref = urlObj.getRef();
                 if (!TextUtils.isEmpty(ref)) {
                     if (ref.contains("?")) {
