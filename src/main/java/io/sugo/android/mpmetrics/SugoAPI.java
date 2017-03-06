@@ -581,7 +581,7 @@ public class SugoAPI {
                         newValue = "点击";
                         break;
                     case "focus":
-                        newValue = "聚焦";
+                        newValue = "对焦";
                         break;
                     case "change":
                         newValue = "改变";
