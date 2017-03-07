@@ -75,7 +75,7 @@ import io.sugo.android.viewcrawler.GestureTracker;
             mMpInstance.track("唤醒", props);
         }
 
-        if(!mDisableActivities.contains(activity)) {
+        if (!mDisableActivities.contains(activity)) {
             try {
                 JSONObject props = new JSONObject();
                 props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
@@ -118,7 +118,7 @@ import io.sugo.android.viewcrawler.GestureTracker;
             }
         }, CHECK_DELAY);
 
-        if(!mDisableActivities.contains(activity)) {
+        if (!mDisableActivities.contains(activity)) {
             try {
                 JSONObject props = new JSONObject();
                 props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
@@ -137,7 +137,15 @@ import io.sugo.android.viewcrawler.GestureTracker;
 
     @Override
     public void onActivityDestroyed(Activity activity) {
-        if (activity.isTaskRoot()) {     // 最后一个被摧毁的 Activity，是应用被退出
+        mDisableActivities.remove(activity);
+
+        String runningPage = SugoPageManager.getInstance().getCurrentPage(activity.getApplicationContext());
+        String packageName = activity.getApplicationContext().getPackageName();     // 应用包名
+        String deadPage = activity.getClass().getName();
+        // 正在运行的 Activity 不是当前应用的包名，说明是回到了其它应用（或 Launcher)
+        // 不是最后一个被摧毁的 Activity，不是应用被退出
+        // 正在运行的 Activity 和 销毁的 Activity 不是同一个，所以不是退出。（目前只能判断同名）
+        if (!runningPage.startsWith(packageName) || (activity.isTaskRoot() && runningPage.equals(deadPage))) {
             if (mCheckInBackground != null) {
                 mHandler.removeCallbacks(mCheckInBackground);
             }     // 程序正在退出，避免 后台 事件
@@ -152,9 +160,8 @@ import io.sugo.android.viewcrawler.GestureTracker;
             }
             mMpInstance.track("退出", props);
             mMpInstance.track("APP停留");
-            mMpInstance.flush();
         }
-        mDisableActivities.remove(activity);
+        mMpInstance.flush();
     }
 
     @Override

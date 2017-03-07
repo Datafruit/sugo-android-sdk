@@ -29,7 +29,7 @@ public class SugoWebEventListener {
 
     protected static final String sStayScript =
             "var duration = (new Date().getTime() - sugo.enter_time) / 1000;\n" +
-                    "sugo.track('停留', { " + SGConfig.FIELD_DURATION + " : duration });\n";
+                    "sugo.track('停留', {" + SGConfig.FIELD_DURATION + " : duration});\n";
 
     SugoWebEventListener(SugoAPI sugoAPI) {
         this.sugoAPI = sugoAPI;
@@ -81,14 +81,16 @@ public class SugoWebEventListener {
 
 
     public static void addCurrentWebView(WebView currentWebView) {
-        if (sCurrentWebView.add(currentWebView) && SGConfig.DEBUG) {
+        sCurrentWebView.add(currentWebView);
+        if (SGConfig.DEBUG) {
             Log.d("SugoWebEventListener", "addCurrentWebView : " + currentWebView.toString());
         }
 
     }
 
     public static void addCurrentXWalkView(XWalkView currentXWalkView) {
-        if (sCurrentXWalkView.add(currentXWalkView) && SGConfig.DEBUG) {
+        sCurrentXWalkView.add(currentXWalkView);
+        if (SGConfig.DEBUG) {
             Log.d("SugoWebEventListener", "addCurrentXWalkView : " + currentXWalkView.toString());
         }
 
@@ -145,9 +147,9 @@ public class SugoWebEventListener {
             Activity activity = (Activity) webView.getContext();
             if (activity == null || activity == deadActivity || activity.isFinishing() ||
                     (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed())) {
-                webView.loadUrl("javascript:" + sStayScript);
                 webViewIterator.remove();
                 sugoWNReporter.remove(webView);
+                webView.loadUrl("javascript:" + sStayScript);
                 if (SGConfig.DEBUG) {
                     Log.d("SugoWebEventListener", "removeWebViewReference : " + webView.toString());
                 }
@@ -161,9 +163,9 @@ public class SugoWebEventListener {
             Activity activity = (Activity) xWalkView.getContext();
             if (activity == null || activity == deadActivity || activity.isFinishing() ||
                     (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed())) {
-                xWalkView.load("javascript:" + sStayScript, null);
                 xWalkViewIterator.remove();
                 sugoWNReporter.remove(xWalkView);
+                xWalkView.load("javascript:" + sStayScript, "");
                 if (SGConfig.DEBUG) {
                     Log.d("SugoWebEventListener", "removeXWalkViewReference : " + xWalkView.toString());
                 }
