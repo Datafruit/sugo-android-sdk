@@ -32,8 +32,14 @@ import io.sugo.android.viewcrawler.GestureTracker;
         mMpInstance = mpInstance;
         mDisableActivities = new HashSet<>();
         mConfig = config;
-
-        mMpInstance.track("启动");    // 第一个界面正在启动
+        JSONObject props = new JSONObject();
+        try {
+            props.put(SGConfig.FIELD_PAGE, "启动");
+            props.put(SGConfig.FIELD_PAGE_NAME, "启动");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        mMpInstance.track("启动", props);    // 第一个界面正在启动
         mMpInstance.timeEvent("APP停留");
     }
 
@@ -67,8 +73,7 @@ import io.sugo.android.viewcrawler.GestureTracker;
             JSONObject props = new JSONObject();
             try {
                 props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
-                props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
-                        .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
+                props.put(SGConfig.FIELD_PAGE_NAME, "唤醒");
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -107,8 +112,7 @@ import io.sugo.android.viewcrawler.GestureTracker;
                     JSONObject props = new JSONObject();
                     try {
                         props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
-                        props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
-                                .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
+                        props.put(SGConfig.FIELD_PAGE_NAME, "后台");
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -144,8 +148,7 @@ import io.sugo.android.viewcrawler.GestureTracker;
         String deadPage = activity.getClass().getName();
         // 正在运行的 Activity 不是当前应用的包名，说明是回到了其它应用（或 Launcher)
         // 不是最后一个被摧毁的 Activity，不是应用被退出
-        // 正在运行的 Activity 和 销毁的 Activity 不是同一个，所以不是退出。（目前只能判断同名）
-        if (!runningPage.startsWith(packageName) || (activity.isTaskRoot() && runningPage.equals(deadPage))) {
+        if (!runningPage.startsWith(packageName) && (activity.isTaskRoot())) {
             if (mCheckInBackground != null) {
                 mHandler.removeCallbacks(mCheckInBackground);
             }     // 程序正在退出，避免 后台 事件
@@ -158,8 +161,18 @@ import io.sugo.android.viewcrawler.GestureTracker;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            mMpInstance.track("退出", props);
-            mMpInstance.track("APP停留");
+            try {
+                props.put(SGConfig.FIELD_PAGE_NAME, "退出");
+                mMpInstance.track("退出", props);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                props.put(SGConfig.FIELD_PAGE_NAME, "APP停留");
+                mMpInstance.track("APP停留", props);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
         mMpInstance.flush();
     }
