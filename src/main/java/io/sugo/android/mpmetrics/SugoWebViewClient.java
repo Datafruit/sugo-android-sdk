@@ -337,8 +337,8 @@ public class SugoWebViewClient extends WebViewClient {
             "};\n" +
             "if (sugo.init.code){\n" +
             "    try{\n" +
-            "       var init_code = new Function(sugo.init.code);\n" +
-            "       init_code();\n" +
+            "       var init_code = new Function('sugo', sugo.init.code);\n" +
+            "       init_code(sugo);\n" +
             "    }catch(e){\n" +
             "        console.log(sugo.init.code);\n" +
             "    }\n" +

@@ -250,7 +250,13 @@ public class SugoAPI {
         }
 
         if (!mPersistentIdentity.hasTrackedIntegration()) {
-            track("APP安装");
+            JSONObject props = new JSONObject();
+            try {
+                props.put("app_name", "无限极中国APP");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            track("APP安装", props);
             flush();
             mPersistentIdentity.setTrackedIntegration(true);
         }
@@ -593,6 +599,10 @@ public class SugoAPI {
                 messageProps.put(SGConfig.FIELD_EVENT_TYPE, newValue);
             }
 
+            final String eventPageName = messageProps.optString(SGConfig.FIELD_PAGE_NAME, "");
+            if(TextUtils.isEmpty(eventPageName)) {
+                messageProps.put(SGConfig.FIELD_PAGE_NAME, eventName);
+            }
             if (SugoAPI.developmentMode) {
                 JSONArray events = new JSONArray();
                 JSONObject event = new JSONObject();
