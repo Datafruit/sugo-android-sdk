@@ -406,10 +406,9 @@ public class SugoWebViewClient extends WebViewClient {
                 .append(sugoInstance.getmConfig().getWebRoot())
                 .append("/g, '');\n");
         String filePath = activity.getFilesDir().getPath(); // /data/user/0/io.sugo.xxx/files
-        String packageName = activity.getApplicationContext().getPackageName();     // io.sugo.xxx
-        String dataDataPath = filePath.substring(0, filePath.indexOf("/" + packageName));      // /data/user/0
+        String dataPkgPath = filePath.substring(0, filePath.indexOf("/files"));      // /data/user/0/io.sugo.android
         scriptBuf.append("sugo.relative_path = sugo.relative_path.replace('")
-                .append(dataDataPath)
+                .append(dataPkgPath)
                 .append("','');\n");
         scriptBuf.append("sugo.hash = window.location.hash;\n")
                 .append("sugo.hash = sugo.hash.indexOf('?') < 0 ? sugo.hash : sugo.hash.substring(0, sugo.hash.indexOf('?'));\n");
@@ -420,7 +419,7 @@ public class SugoWebViewClient extends WebViewClient {
             if (pattern.matcher(url).matches()) {
                 URL urlObj = new URL(url);
                 realPath = urlObj.getPath();
-                realPath = realPath.replaceFirst(dataDataPath,"");
+                realPath = realPath.replaceFirst(dataPkgPath, "");
                 String ref = urlObj.getRef();
                 if (!TextUtils.isEmpty(ref)) {
                     if (ref.contains("?")) {
