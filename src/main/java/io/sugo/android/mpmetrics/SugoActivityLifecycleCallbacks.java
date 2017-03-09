@@ -72,7 +72,7 @@ import io.sugo.android.viewcrawler.GestureTracker;
             // App 从 background 状态回来，是被唤醒
             JSONObject props = new JSONObject();
             try {
-                props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
+                props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                 props.put(SGConfig.FIELD_PAGE_NAME, "唤醒");
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -83,9 +83,9 @@ import io.sugo.android.viewcrawler.GestureTracker;
         if (!mDisableActivities.contains(activity)) {
             try {
                 JSONObject props = new JSONObject();
-                props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
+                props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                 props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
-                        .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
+                        .getCurrentPageName(activity.getClass().getCanonicalName()));
                 mMpInstance.track("浏览", props);
                 mMpInstance.timeEvent("窗口停留");
             } catch (JSONException e) {
@@ -111,7 +111,7 @@ import io.sugo.android.viewcrawler.GestureTracker;
                     mIsForeground = false;
                     JSONObject props = new JSONObject();
                     try {
-                        props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
+                        props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                         props.put(SGConfig.FIELD_PAGE_NAME, "后台");
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -125,9 +125,9 @@ import io.sugo.android.viewcrawler.GestureTracker;
         if (!mDisableActivities.contains(activity)) {
             try {
                 JSONObject props = new JSONObject();
-                props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
+                props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                 props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
-                        .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
+                        .getCurrentPageName(activity.getClass().getCanonicalName()));
                 mMpInstance.track("窗口停留", props);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -155,9 +155,9 @@ import io.sugo.android.viewcrawler.GestureTracker;
 
             JSONObject props = new JSONObject();
             try {
-                props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
+                props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                 props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
-                        .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
+                        .getCurrentPageName(activity.getClass().getCanonicalName()));
             } catch (JSONException e) {
                 e.printStackTrace();
             }

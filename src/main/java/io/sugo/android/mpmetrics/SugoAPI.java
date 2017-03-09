@@ -1247,7 +1247,7 @@ public class SugoAPI {
         String page = null;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
             Activity activity = fragment.getActivity();
-            page = activity.getPackageName() + "." + activity.getLocalClassName();
+            page = activity.getClass().getCanonicalName();
         } else {
             page = SugoPageManager.getInstance().getCurrentPage(mContext);
         }
@@ -1260,7 +1260,7 @@ public class SugoAPI {
         String page = null;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
             Activity activity = fragment.getActivity();
-            page = activity.getPackageName() + "." + activity.getLocalClassName();
+            page = activity.getClass().getCanonicalName();
         } else {
             page = SugoPageManager.getInstance().getCurrentPage(mContext);
         }
@@ -1273,7 +1273,7 @@ public class SugoAPI {
         String page = null;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
             Activity activity = fragment.getActivity();
-            page = activity.getPackageName() + "." + activity.getLocalClassName();
+            page = activity.getClass().getCanonicalName();
         } else {
             page = SugoPageManager.getInstance().getCurrentPage(mContext);
         }
@@ -1284,7 +1284,7 @@ public class SugoAPI {
         String page = null;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
             Activity activity = fragment.getActivity();
-            page = activity.getPackageName() + "." + activity.getLocalClassName();
+            page = activity.getClass().getCanonicalName();
         } else {
             page = SugoPageManager.getInstance().getCurrentPage(mContext);
         }
