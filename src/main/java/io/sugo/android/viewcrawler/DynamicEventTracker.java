@@ -1,9 +1,11 @@
 package io.sugo.android.viewcrawler;
 
 import android.os.Handler;
+import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import org.json.JSONException;
@@ -88,7 +90,7 @@ import io.sugo.android.mpmetrics.SugoAPI;
                     }
                 }
 
-                if (! mDebouncedEvents.isEmpty()) {
+                if (!mDebouncedEvents.isEmpty()) {
                     // In the average case, this is enough time to catch the next signal
                     mHandler.postDelayed(this, DEBOUNCE_TIME_MILLIS / 2);
                 }
@@ -102,7 +104,15 @@ import io.sugo.android.mpmetrics.SugoAPI;
      */
     private static String textPropertyFromView(View v) {
         String ret = null;
-
+        if (v instanceof EditText) {
+            int inputType = ((EditText) v).getInputType();
+            if ((inputType == InputType.TYPE_NUMBER_VARIATION_PASSWORD) ||
+                    (inputType == InputType.TYPE_TEXT_VARIATION_PASSWORD) ||
+                    (inputType == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD) ||
+                    (inputType == InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD)) {
+                return ret;
+            }
+        }
         if (v instanceof TextView) {
             final TextView textV = (TextView) v;
             final CharSequence retSequence = textV.getText();
