@@ -599,10 +599,6 @@ public class SugoAPI {
                 messageProps.put(SGConfig.FIELD_EVENT_TYPE, newValue);
             }
 
-            final String eventPageName = messageProps.optString(SGConfig.FIELD_PAGE_NAME, "");
-            if(TextUtils.isEmpty(eventPageName)) {
-                messageProps.put(SGConfig.FIELD_PAGE_NAME, eventName);
-            }
             if (SugoAPI.developmentMode) {
                 JSONArray events = new JSONArray();
                 JSONObject event = new JSONObject();
