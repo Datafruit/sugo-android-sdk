@@ -143,38 +143,37 @@ import io.sugo.android.viewcrawler.GestureTracker;
     @Override
     public void onActivityDestroyed(Activity activity) {
         mDisableActivities.remove(activity);
-
-        String runningPage = SugoPageManager.getInstance().getCurrentPage(activity.getApplicationContext());
-        String packageName = activity.getApplicationContext().getPackageName();     // 应用包名
-        String deadPage = activity.getClass().getName();
-        // 正在运行的 Activity 不是当前应用的包名，说明是回到了其它应用（或 Launcher)
-        // 不是最后一个被摧毁的 Activity，不是应用被退出
-        if (!runningPage.startsWith(packageName) && (activity.isTaskRoot())) {
-            if (mCheckInBackground != null) {
-                mHandler.removeCallbacks(mCheckInBackground);
-            }     // 程序正在退出，避免 后台 事件
-
-            JSONObject props = new JSONObject();
-            try {
-                props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
-                props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
-                        .getCurrentPageName(activity.getClass().getCanonicalName()));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                props.put(SGConfig.FIELD_PAGE_NAME, "退出");
-                mMpInstance.track("退出", props);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                props.put(SGConfig.FIELD_PAGE_NAME, "APP停留");
-                mMpInstance.track("APP停留", props);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
+//         // 无限极使用了 代码埋点 ，所以这里注释掉
+//        String runningPage = SugoPageManager.getInstance().getCurrentPage(activity.getApplicationContext());
+//        String packageName = activity.getApplicationContext().getPackageName();     // 应用包名
+//        // 正在运行的 Activity 不是当前应用的包名，说明是回到了其它应用（或 Launcher)
+//        // 不是最后一个被摧毁的 Activity，不是应用被退出
+//        if (!runningPage.startsWith(packageName) && (activity.isTaskRoot())) {
+//            if (mCheckInBackground != null) {
+//                mHandler.removeCallbacks(mCheckInBackground);
+//            }     // 程序正在退出，避免 后台 事件
+//
+//            JSONObject props = new JSONObject();
+//            try {
+//                props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
+//                props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
+//                        .getCurrentPageName(activity.getClass().getCanonicalName()));
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
+//            try {
+//                props.put(SGConfig.FIELD_PAGE_NAME, "退出");
+//                mMpInstance.track("退出", props);
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
+//            try {
+//                props.put(SGConfig.FIELD_PAGE_NAME, "APP停留");
+//                mMpInstance.track("APP停留", props);
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
+//        }
         mMpInstance.flush();
     }
 
