@@ -36,6 +36,7 @@ import io.sugo.android.viewcrawler.GestureTracker;
         try {
             props.put(SGConfig.FIELD_PAGE, "启动");
             props.put(SGConfig.FIELD_PAGE_NAME, "启动");
+            props.put("app_name", "无限极中国APP");
         } catch (JSONException e) {
             e.printStackTrace();
         }
