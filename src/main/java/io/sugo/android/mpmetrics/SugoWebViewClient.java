@@ -26,11 +26,14 @@ import io.sugo.android.viewcrawler.ViewCrawler;
 public class SugoWebViewClient extends WebViewClient {
     private static String pageViewScript = "sugo.track('浏览', sugo.view_props);\n" +
             "sugo.enter_time = new Date().getTime();\n" +
-            "\n" +
-            "window.addEventListener('beforeunload', function (e) {\n" +
-            "var duration = (new Date().getTime() - sugo.enter_time)/1000;\n" +
-            "    sugo.track('停留', {" + SGConfig.FIELD_DURATION + ": duration});\n" +
-            "});\n";
+            "if(!window.sugo){\n" +
+            "    window.addEventListener('beforeunload', function(e) {\n" +
+            "        var duration = (new Date().getTime() - sugo.enter_time) / 1000;\n" +
+            "        var tmp_props = JSON.parse(JSON.stringify(sugo.view_props));\n" +
+            "        tmp_props.duration = duration;\n" +
+            "        sugo.track('停留', tmp_props);\n" +
+            "    });\n" +
+            "    }\n";
     private static String cssUtil = "var UTILS = {};\n" +
             "UTILS.cssPath = function(node, optimized)\n" +
             "{\n" +
@@ -295,7 +298,9 @@ public class SugoWebViewClient extends WebViewClient {
             "    sugo.delegate('submit'); \n" +
             "    sugo.delegate('change'); \n" +
             "};\n" +
+            "if(!window.sugo){\n" +
             "sugo.bindEvent();\n" +
+            "};\n"+
             "sugo.reportNodes = function () {\n" +
             "  var jsonArry = [];\n" +
             "  var body = document.getElementsByTagName('body')[0];\n" +
@@ -402,6 +407,12 @@ public class SugoWebViewClient extends WebViewClient {
         StringBuffer scriptBuf = new StringBuffer();
         scriptBuf.append(cssUtil);
         scriptBuf.append("(function(sugo){\n");
+        scriptBuf.append("if(window.sugo){\n" +
+                "        var duration = (new Date().getTime() - sugo.enter_time) / 1000;\n" +
+                "        var tmp_props = JSON.parse(JSON.stringify(sugo.view_props));\n" +
+                "        tmp_props.duration = duration;\n" +
+                "        sugo.track('停留', tmp_props);\n" +
+                "    }\n");
         scriptBuf.append("sugo.relative_path = window.location.pathname.replace(/")
                 .append(sugoInstance.getmConfig().getWebRoot())
                 .append("/g, '');\n");
