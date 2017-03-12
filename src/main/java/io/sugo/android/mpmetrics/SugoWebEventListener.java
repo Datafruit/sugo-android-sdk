@@ -2,6 +2,7 @@ package io.sugo.android.mpmetrics;
 
 import android.app.Activity;
 import android.os.Build;
+import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
@@ -11,10 +12,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.xwalk.core.XWalkView;
 
+import java.math.BigDecimal;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * Created by fengxj on 11/7/16.
@@ -30,6 +35,7 @@ public class SugoWebEventListener {
     protected static final String sStayScript =
             "var duration = (new Date().getTime() - sugo.enter_time) / 1000;\n" +
                     "sugo.track('停留', {" + SGConfig.FIELD_DURATION + " : duration});\n";
+    protected static long webEnterTime = 0;
 
     SugoWebEventListener(SugoAPI sugoAPI) {
         this.sugoAPI = sugoAPI;
@@ -90,6 +96,7 @@ public class SugoWebEventListener {
 
     public static void addCurrentXWalkView(XWalkView currentXWalkView) {
         sCurrentXWalkView.add(currentXWalkView);
+        webEnterTime = System.currentTimeMillis();
         if (SGConfig.DEBUG) {
             Log.d("SugoWebEventListener", "addCurrentXWalkView : " + currentXWalkView.toString());
         }
@@ -149,7 +156,6 @@ public class SugoWebEventListener {
                     (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed())) {
                 webViewIterator.remove();
                 sugoWNReporter.remove(webView);
-                webView.loadUrl("javascript:" + sStayScript);
                 if (SGConfig.DEBUG) {
                     Log.d("SugoWebEventListener", "removeWebViewReference : " + webView.toString());
                 }
@@ -157,21 +163,70 @@ public class SugoWebEventListener {
         }
 
         Iterator<XWalkView> xWalkViewIterator = sCurrentXWalkView.iterator();
-        XWalkView xWalkView = null;
         while (xWalkViewIterator.hasNext()) {
-            xWalkView = xWalkViewIterator.next();
+            XWalkView xWalkView = xWalkViewIterator.next();
             Activity activity = (Activity) xWalkView.getContext();
             if (activity == null || activity == deadActivity || activity.isFinishing() ||
                     (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed())) {
                 xWalkViewIterator.remove();
                 sugoWNReporter.remove(xWalkView);
-                xWalkView.load("javascript:" + sStayScript, "");
                 if (SGConfig.DEBUG) {
                     Log.d("SugoWebEventListener", "removeXWalkViewReference : " + xWalkView.toString());
                 }
             }
         }
 
+    }
+
+    private static void injectStayEvent(XWalkView xWalkView) {
+        Activity activity = (Activity) xWalkView.getContext();
+        if (activity == null) {
+            return;
+        }
+        final double timeSecondsDouble = (System.currentTimeMillis()) / 1000.0;
+        final double eventBeginDouble = ((double) webEnterTime) / 1000.0;
+        double duration = new BigDecimal(timeSecondsDouble - eventBeginDouble).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+        String url = xWalkView.getUrl();
+
+
+        String filePath = activity.getFilesDir().getPath(); // /data/user/0/io.sugo.xxx/files
+        String dataPkgPath = filePath.substring(0, filePath.indexOf("/files"));      // /data/user/0/io.sugo.android
+        String realPath = "";
+        try {
+            Pattern pattern = Pattern.compile("^[A-Za-z0-9]*://.*", Pattern.CASE_INSENSITIVE);
+            if (pattern.matcher(url).matches()) {
+                URL urlObj = new URL(url);
+                realPath = urlObj.getPath();
+                realPath = realPath.replaceFirst(dataPkgPath, "");
+                String ref = urlObj.getRef();
+                if (!TextUtils.isEmpty(ref)) {
+                    if (ref.contains("?")) {
+                        int qIndex = ref.indexOf("?");
+                        ref = ref.substring(0, qIndex);
+                    }
+                    realPath = realPath + "#" + ref;
+                }
+            }
+            realPath = realPath.replace(SGConfig.getInstance(activity.getApplicationContext()).getWebRoot(), "");
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        JSONObject pageInfo = SugoPageManager.getInstance().getCurrentPageInfo(realPath);
+        String pageName = "";
+        String initCode = "";
+        if (pageInfo != null) {
+            pageName = pageInfo.optString("page_name", "");
+            initCode = pageInfo.optString("code", "");
+        }
+        JSONObject props = new JSONObject();
+        try {
+            props.put(SGConfig.FIELD_DURATION, duration);
+            props.put(SGConfig.FIELD_PAGE, realPath);
+            props.put(SGConfig.FIELD_PAGE_NAME, pageName);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        SugoAPI.getInstance(activity.getApplicationContext()).track("停留", props);
     }
 
 }
