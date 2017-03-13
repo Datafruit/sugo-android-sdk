@@ -403,6 +403,14 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                     ///////////////////////////
                     if ((returnCode >= mConfig.getBulkUploadLimit() || returnCode == MPDbAdapter.DB_OUT_OF_MEMORY_ERROR) && mFailedRetries <= 0) {
                         logAboutMessageToMixpanel("Flushing queue due to bulk upload limit");
+                        // 没有 dimensions 配置，则不发送数据
+                        final String sharedPrefsName = ViewCrawler.SHARED_PREF_EDITS_FILE + SGConfig.getInstance(mContext).getToken();
+                        SharedPreferences preferences = mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
+                        final String storeInfo = preferences.getString(ViewCrawler.SHARED_PREF_DIMENSIONS_KEY, null);
+                        if (storeInfo == null || storeInfo.equals("") || storeInfo.equals("[]")) {
+                            logAboutMessageToMixpanel("empty dimensions, flush stop !!!");
+                            return;
+                        }
                         updateFlushFrequency();
                         sendAllData(mDbAdapter);
                         if (SystemClock.elapsedRealtime() >= mDecideRetryAfter) {
