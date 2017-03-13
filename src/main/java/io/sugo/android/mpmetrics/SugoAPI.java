@@ -253,6 +253,7 @@ public class SugoAPI {
             JSONObject props = new JSONObject();
             try {
                 props.put("app_name", "无限极中国APP");
+                props.put(SGConfig.FIELD_PAGE_NAME, "APP安装");
             } catch (JSONException e) {
                 e.printStackTrace();
             }
