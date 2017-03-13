@@ -422,6 +422,7 @@ public class SugoWebViewClient extends WebViewClient {
                 .append(dataPkgPath)
                 .append("','');\n");
         scriptBuf.append("sugo.relative_path = sugo.relative_path.replace('//', '/');\n");
+        scriptBuf.append("sugo.relative_path = sugo.relative_path.replace('#/', '#');\n");
         scriptBuf.append("sugo.hash = window.location.hash;\n")
                 .append("sugo.hash = sugo.hash.indexOf('?') < 0 ? sugo.hash : sugo.hash.substring(0, sugo.hash.indexOf('?'));\n");
         scriptBuf.append("sugo.relative_path += sugo.hash;\n");
@@ -433,6 +434,7 @@ public class SugoWebViewClient extends WebViewClient {
                 realPath = urlObj.getPath();
                 realPath = realPath.replaceFirst(dataPkgPath, "");
                 realPath = realPath.replace("//", "/");
+                realPath = realPath.replace("#/", "#");
                 String ref = urlObj.getRef();
                 if (!TextUtils.isEmpty(ref)) {
                     if (ref.contains("?")) {
