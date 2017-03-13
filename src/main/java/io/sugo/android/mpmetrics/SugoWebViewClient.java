@@ -422,10 +422,10 @@ public class SugoWebViewClient extends WebViewClient {
                 .append(dataPkgPath)
                 .append("','');\n");
         scriptBuf.append("sugo.relative_path = sugo.relative_path.replace('//', '/');\n");
-        scriptBuf.append("sugo.relative_path = sugo.relative_path.replace('#/', '#');\n");
         scriptBuf.append("sugo.hash = window.location.hash;\n")
                 .append("sugo.hash = sugo.hash.indexOf('?') < 0 ? sugo.hash : sugo.hash.substring(0, sugo.hash.indexOf('?'));\n");
         scriptBuf.append("sugo.relative_path += sugo.hash;\n");
+        scriptBuf.append("sugo.relative_path = sugo.relative_path.replace('#/', '#');\n");
         String realPath = "";
         try {
             Pattern pattern = Pattern.compile("^[A-Za-z0-9]*://.*", Pattern.CASE_INSENSITIVE);
