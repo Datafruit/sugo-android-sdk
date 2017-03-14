@@ -1,7 +1,6 @@
 package io.sugo.android.viewcrawler;
 
 import android.os.Handler;
-import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -106,10 +105,7 @@ import io.sugo.android.mpmetrics.SugoAPI;
         String ret = null;
         if (v instanceof EditText) {
             int inputType = ((EditText) v).getInputType();
-            if ((inputType == InputType.TYPE_NUMBER_VARIATION_PASSWORD) ||
-                    (inputType == InputType.TYPE_TEXT_VARIATION_PASSWORD) ||
-                    (inputType == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD) ||
-                    (inputType == InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD)) {
+            if (inputType == 129) {     // textPassword / numberPassword
                 return ret;
             }
         }
