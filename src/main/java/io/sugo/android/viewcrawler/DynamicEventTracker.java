@@ -1,6 +1,7 @@
 package io.sugo.android.viewcrawler;
 
 import android.os.Handler;
+import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,11 +20,11 @@ import io.sugo.android.mpmetrics.SugoAPI;
 
 /**
  * Handles translating events detected by ViewVisitors into events sent to Mixpanel
- *
+ * <p>
  * - Builds properties by interrogating view subtrees
- *
+ * <p>
  * - Possibly debounces events using the Handler given at construction
- *
+ * <p>
  * - Calls SugoAPI.track
  */
 /* package */ class DynamicEventTracker implements ViewVisitor.OnEventListener {
@@ -140,6 +141,16 @@ import io.sugo.android.mpmetrics.SugoAPI;
         }
 
         return ret;
+    }
+
+    private static boolean isPassword(int inputType) {
+        boolean isPwd = false;
+        if (inputType == (InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD) ||
+                inputType == (InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD) ||
+                inputType == (InputType.TYPE_CLASS_NUMBER | InputType.TYPE_TEXT_VARIATION_PASSWORD)) {
+            isPwd = true;
+        }
+        return isPwd;
     }
 
     // An event is the same from a debouncing perspective if it comes from the same view,
