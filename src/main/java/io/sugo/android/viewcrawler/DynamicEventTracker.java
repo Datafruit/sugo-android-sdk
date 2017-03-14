@@ -20,11 +20,11 @@ import io.sugo.android.mpmetrics.SugoAPI;
 
 /**
  * Handles translating events detected by ViewVisitors into events sent to Mixpanel
- * <p>
+ *
  * - Builds properties by interrogating view subtrees
- * <p>
+ *
  * - Possibly debounces events using the Handler given at construction
- * <p>
+ *
  * - Calls SugoAPI.track
  */
 /* package */ class DynamicEventTracker implements ViewVisitor.OnEventListener {
@@ -106,7 +106,7 @@ import io.sugo.android.mpmetrics.SugoAPI;
         String ret = null;
         if (v instanceof EditText) {
             int inputType = ((EditText) v).getInputType();
-            if (inputType == 129) {     // textPassword / numberPassword
+            if (isPassword(inputType)) {     // textPassword / numberPassword
                 return ret;
             }
         }
