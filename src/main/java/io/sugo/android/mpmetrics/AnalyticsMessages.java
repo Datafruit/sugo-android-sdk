@@ -366,11 +366,11 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                         final String storeInfo = preferences.getString(ViewCrawler.SHARED_PREF_DIMENSIONS_KEY, null);
                         if (storeInfo == null || storeInfo.equals("") || storeInfo.equals("[]")) {
                             logAboutMessageToMixpanel("empty dimensions, flush stop !!!");
-                            return;
+                        } else {
+                            logAboutMessageToMixpanel("Flushing queue due to scheduled or forced flush");
+                            updateFlushFrequency();
+                            sendAllData(mDbAdapter);
                         }
-                        logAboutMessageToMixpanel("Flushing queue due to scheduled or forced flush");
-                        updateFlushFrequency();
-                        sendAllData(mDbAdapter);
                         if (SystemClock.elapsedRealtime() >= mDecideRetryAfter) {
                             try {
                                 mDecideChecker.runDecideChecks(getPoster());
@@ -411,10 +411,10 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                         final String storeInfo = preferences.getString(ViewCrawler.SHARED_PREF_DIMENSIONS_KEY, null);
                         if (storeInfo == null || storeInfo.equals("") || storeInfo.equals("[]")) {
                             logAboutMessageToMixpanel("empty dimensions, flush stop !!!");
-                            return;
+                        } else {
+                            updateFlushFrequency();
+                            sendAllData(mDbAdapter);
                         }
-                        updateFlushFrequency();
-                        sendAllData(mDbAdapter);
                         if (SystemClock.elapsedRealtime() >= mDecideRetryAfter) {
                             try {
                                 mDecideChecker.runDecideChecks(getPoster());
