@@ -73,8 +73,10 @@ import io.sugo.android.util.RemoteService;
             final String distinctId = updates.getDistinctId();
             try {
                 final Result result = runDecideCheck(updates.getToken(), distinctId, poster);
-                updates.reportResults(result.surveys, result.notifications, result.eventBindings,
-                        result.h5EventBindings, result.variants, result.pageInfo, result.dimensions);
+                if(result != null) {
+                    updates.reportResults(result.surveys, result.notifications, result.eventBindings,
+                            result.h5EventBindings, result.variants, result.pageInfo, result.dimensions);
+                }
             } catch (final UnintelligibleMessageException e) {
                 Log.e(LOGTAG, e.getMessage(), e);
             }
@@ -99,6 +101,8 @@ import io.sugo.android.util.RemoteService;
         Result parsed = new Result();
         if (null != responseString) {
             parsed = parseDecideResponse(responseString);
+        } else {
+            return null;
         }
 
         final Iterator<InAppNotification> notificationIterator = parsed.notifications.iterator();

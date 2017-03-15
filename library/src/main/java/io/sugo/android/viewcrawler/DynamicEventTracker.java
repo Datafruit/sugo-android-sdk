@@ -1,9 +1,11 @@
 package io.sugo.android.viewcrawler;
 
 import android.os.Handler;
+import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import org.json.JSONException;
@@ -18,11 +20,11 @@ import io.sugo.android.mpmetrics.SugoAPI;
 
 /**
  * Handles translating events detected by ViewVisitors into events sent to Mixpanel
- *
+ * <p>
  * - Builds properties by interrogating view subtrees
- *
+ * <p>
  * - Possibly debounces events using the Handler given at construction
- *
+ * <p>
  * - Calls SugoAPI.track
  */
 /* package */ class DynamicEventTracker implements ViewVisitor.OnEventListener {
@@ -88,7 +90,7 @@ import io.sugo.android.mpmetrics.SugoAPI;
                     }
                 }
 
-                if (! mDebouncedEvents.isEmpty()) {
+                if (!mDebouncedEvents.isEmpty()) {
                     // In the average case, this is enough time to catch the next signal
                     mHandler.postDelayed(this, DEBOUNCE_TIME_MILLIS / 2);
                 }
@@ -103,6 +105,13 @@ import io.sugo.android.mpmetrics.SugoAPI;
     private static String textPropertyFromView(View v) {
         String ret = null;
 
+        // TODO: 2017/3/15 此处可增加 config 可选配置，用户可开启这个功能（默认禁用）
+        if (v instanceof EditText) {
+            int inputType = ((EditText) v).getInputType();
+            if (isPassword(inputType)) {     // textPassword / numberPassword
+                return ret;
+            }
+        }
         if (v instanceof TextView) {
             final TextView textV = (TextView) v;
             final CharSequence retSequence = textV.getText();
@@ -134,6 +143,16 @@ import io.sugo.android.mpmetrics.SugoAPI;
         }
 
         return ret;
+    }
+
+    private static boolean isPassword(int inputType) {
+        boolean isPwd = false;
+        if (inputType == (InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD) ||
+                inputType == (InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD) ||
+                inputType == (InputType.TYPE_CLASS_NUMBER | InputType.TYPE_TEXT_VARIATION_PASSWORD)) {
+            isPwd = true;
+        }
+        return isPwd;
     }
 
     // An event is the same from a debouncing perspective if it comes from the same view,

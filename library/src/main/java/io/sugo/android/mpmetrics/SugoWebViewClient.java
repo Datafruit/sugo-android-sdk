@@ -25,10 +25,14 @@ import io.sugo.android.viewcrawler.ViewCrawler;
 public class SugoWebViewClient extends WebViewClient {
     private static String pageViewScript = "sugo.track('浏览', sugo.view_props);\n" +
             "sugo.enter_time = new Date().getTime();\n" +
-            "window.addEventListener('beforeunload', function (e) {\n" +
-            "    var duration = (new Date().getTime() - sugo.enter_time)/1000;\n" +
-            "    sugo.track('停留', {" + SGConfig.FIELD_DURATION + ": duration});\n" +
-            "});";
+            "if(!window.sugo){\n" +
+            "    window.addEventListener('beforeunload', function(e) {\n" +
+            "        var duration = (new Date().getTime() - sugo.enter_time) / 1000;\n" +
+            "        var tmp_props = JSON.parse(JSON.stringify(sugo.view_props));\n" +
+            "        tmp_props.duration = duration;\n" +
+            "        sugo.track('停留', tmp_props);\n" +
+            "    });\n" +
+            "}\n";
     private static String cssUtil = "var UTILS = {};\n" +
             "UTILS.cssPath = function(node, optimized)\n" +
             "{\n" +
@@ -293,7 +297,9 @@ public class SugoWebViewClient extends WebViewClient {
             "    sugo.delegate('submit'); \n" +
             "    sugo.delegate('change'); \n" +
             "};" +
-            "sugo.bindEvent();\n" +
+            "if(!window.sugo){\n" +
+            "    sugo.bindEvent();\n" +
+            "}\n" +
             "sugo.reportNodes = function () {\n" +
             "  var jsonArry = [];\n" +
             "  var body = document.getElementsByTagName('body')[0];\n" +
@@ -307,7 +313,7 @@ public class SugoWebViewClient extends WebViewClient {
             "  }\n" +
             "};\n" +
             "window.sugo = sugo;\n" +
-            "})(window.sugo||{});\n"+
+            "})(window.sugo||{});\n" +
             "if (sugo && sugo.reportNodes) {\n" +
             "  sugo.reportNodes();\n" +
             "}\n";
@@ -324,7 +330,7 @@ public class SugoWebViewClient extends WebViewClient {
             "    window.sugoEventListener.track(event_id, event_name, JSON.stringify(props));\n" +
             "};\n" +
             "sugo.track = function(event_name, props){\n" +
-            "    sugo.rawTrack('', event_name, props);"+
+            "    sugo.rawTrack('', event_name, props);" +
             "};\n" +
             "sugo.timeEvent = function(event_name){\n" +
             "    window.sugoEventListener.timeEvent(event_name);\n" +
@@ -335,8 +341,8 @@ public class SugoWebViewClient extends WebViewClient {
             "};\n" +
             "if (sugo.init.code) {\n" +
             "    try {\n" +
-            "        var init_code = new Function(sugo.init.code);\n" +
-            "        init_code();\n" +
+            "        var init_code = new Function('sugo', sugo.init.code);\n" +
+            "        init_code(sugo);\n" +
             "    } catch (e) {\n" +
             "        console.log(sugo.init.code);\n" +
             "    }\n" +
@@ -392,24 +398,37 @@ public class SugoWebViewClient extends WebViewClient {
         StringBuffer scriptBuf = new StringBuffer();
         scriptBuf.append(cssUtil);
         scriptBuf.append("(function(sugo){\n");
+        scriptBuf.append("if(window.sugo){\n" +
+                "        var duration = (new Date().getTime() - sugo.enter_time) / 1000;\n" +
+                "        var tmp_props = JSON.parse(JSON.stringify(sugo.view_props));\n" +
+                "        tmp_props.duration = duration;\n" +
+                "        sugo.track('停留', tmp_props);\n" +
+                "    }\n");
         scriptBuf.append("sugo.relative_path = window.location.pathname.replace(/")
                 .append(sugoInstance.getmConfig().getWebRoot())
                 .append("/g, '');\n");
         String filePath = activity.getFilesDir().getPath(); // /data/user/0/io.sugo.xxx/files
-        String packageName = activity.getApplicationContext().getPackageName();     // io.sugo.xxx
-        String dataDataPath = filePath.substring(0, filePath.indexOf("/" + packageName));      // /data/user/0
+        String dataPkgPath = filePath.substring(0, filePath.indexOf("/files"));      // /data/user/0/io.sugo.xxx
         scriptBuf.append("sugo.relative_path = sugo.relative_path.replace('")
-                .append(dataDataPath)
+                .append(dataPkgPath)
                 .append("','');\n");
-        scriptBuf.append("sugo.relative_path += window.location.hash;\n");
+        scriptBuf.append("sugo.hash = window.location.hash;\n")
+                .append("sugo.hash = sugo.hash.indexOf('?') < 0 ? sugo.hash : sugo.hash.substring(0, sugo.hash.indexOf('?'));\n");
+        scriptBuf.append("sugo.relative_path += sugo.hash;\n");
+
         String realPath = "";
         try {
             Pattern pattern = Pattern.compile("^[A-Za-z0-9]*://.*", Pattern.CASE_INSENSITIVE);
             if (pattern.matcher(url).matches()) {
                 URL urlObj = new URL(url);
                 realPath = urlObj.getPath();
+                realPath = realPath.replaceFirst(dataPkgPath, "");
                 String ref = urlObj.getRef();
                 if (!TextUtils.isEmpty(ref)) {
+                    if (ref.contains("?")) {
+                        int qIndex = ref.indexOf("?");
+                        ref = ref.substring(0, qIndex);
+                    }
                     realPath = realPath + "#" + ref;
                 }
             }

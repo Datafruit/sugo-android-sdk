@@ -51,9 +51,6 @@ public class SugoXWalkViewEventListener extends SugoWebEventListener {
     }
 
     public static void addCurrentXWalkView(XWalkView currentXWalkView) {
-        if (!SugoAPI.developmentMode) {
-            return;
-        }
         sCurrentXWalkView.add(currentXWalkView);
         if (SGConfig.DEBUG) {
             Log.d("SugoWebEventListener", "addCurrentXWalkView : " + currentXWalkView.toString());
@@ -93,6 +90,7 @@ public class SugoXWalkViewEventListener extends SugoWebEventListener {
                     (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed())) {
                 xWalkViewIterator.remove();
                 sugoWNReporter.remove(xWalkView);
+                xWalkView.load("javascript:" + sStayScript, null);
                 if (SGConfig.DEBUG) {
                     Log.d("SugoWebEventListener", "removeXWalkViewReference : " + xWalkView.toString());
                 }
