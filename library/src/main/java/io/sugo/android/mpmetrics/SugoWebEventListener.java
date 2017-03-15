@@ -26,6 +26,10 @@ public class SugoWebEventListener {
 
     public static Map<Object, SugoWebNodeReporter> sugoWNReporter = new HashMap<Object, SugoWebNodeReporter>();
 
+    protected static final String sStayScript =
+            "var duration = (new Date().getTime() - sugo.enter_time)/1000;\n" +
+                    "sugo.track('停留', {" + SGConfig.FIELD_DURATION + ": duration});\n";
+
     public SugoWebEventListener(SugoAPI sugoAPI) {
         this.sugoAPI = sugoAPI;
     }
@@ -72,9 +76,6 @@ public class SugoWebEventListener {
     }
 
     public static void addCurrentWebView(WebView currentWebView) {
-        if (!SugoAPI.developmentMode) {
-            return;
-        }
         sCurrentWebView.add(currentWebView);
         if (SGConfig.DEBUG) {
             Log.d("SugoWebEventListener", "addCurrentWebView : " + currentWebView.toString());
@@ -115,6 +116,7 @@ public class SugoWebEventListener {
                     (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed())) {
                 webViewIterator.remove();
                 sugoWNReporter.remove(webView);
+                webView.loadUrl("javascript:" + sStayScript);
                 if (SGConfig.DEBUG) {
                     Log.d("SugoWebEventListener", "removeWebViewReference : " + webView.toString());
                 }

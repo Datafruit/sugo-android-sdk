@@ -67,9 +67,9 @@ import io.sugo.android.viewcrawler.GestureTracker;
             // App 从 background 状态回来，是被唤醒
             JSONObject props = new JSONObject();
             try {
-                props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
+                props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                 props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
-                        .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
+                        .getCurrentPageName(activity.getClass().getCanonicalName()));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -79,9 +79,9 @@ import io.sugo.android.viewcrawler.GestureTracker;
         if (!mDisableActivities.contains(activity)) {
             try {
                 JSONObject props = new JSONObject();
-                props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
+                props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                 props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
-                        .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
+                        .getCurrentPageName(activity.getClass().getCanonicalName()));
                 mMpInstance.track("浏览", props);
                 mMpInstance.timeEvent("窗口停留");
             } catch (JSONException e) {
@@ -108,9 +108,9 @@ import io.sugo.android.viewcrawler.GestureTracker;
                     mIsForeground = false;
                     JSONObject props = new JSONObject();
                     try {
-                        props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
+                        props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                         props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
-                                .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
+                                .getCurrentPageName(activity.getClass().getCanonicalName()));
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -122,9 +122,9 @@ import io.sugo.android.viewcrawler.GestureTracker;
         if (!mDisableActivities.contains(activity)) {
             try {
                 JSONObject props = new JSONObject();
-                props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
+                props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                 props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
-                        .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
+                        .getCurrentPageName(activity.getClass().getCanonicalName()));
                 mMpInstance.track("窗口停留", props);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -138,6 +138,7 @@ import io.sugo.android.viewcrawler.GestureTracker;
 
     @Override
     public void onActivityDestroyed(Activity activity) {
+        // TODO: 2017/3/15 此处有 BUG （比如启动的 Activity 调用第二个 Activity 后 finish 自己 ）
         if (activity.isTaskRoot()) {     // 最后一个被摧毁的 Activity，是应用被退出
             if (mCheckInBackground != null) {
                 mHandler.removeCallbacks(mCheckInBackground);
@@ -146,9 +147,9 @@ import io.sugo.android.viewcrawler.GestureTracker;
 
             JSONObject props = new JSONObject();
             try {
-                props.put(SGConfig.FIELD_PAGE, activity.getPackageName() + "." + activity.getLocalClassName());
+                props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                 props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
-                        .getCurrentPageName(activity.getPackageName() + "." + activity.getLocalClassName()));
+                        .getCurrentPageName(activity.getClass().getCanonicalName()));
             } catch (JSONException e) {
                 e.printStackTrace();
             }

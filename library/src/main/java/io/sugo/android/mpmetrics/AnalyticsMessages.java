@@ -187,7 +187,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
 
     public JSONObject getDefaultEventProperties()
             throws JSONException {
-        if(mSystemInformation == null){
+        if (mSystemInformation == null) {
             mSystemInformation = new SystemInformation(mContext);
         }
         final JSONObject ret = new JSONObject();
@@ -366,12 +366,12 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                         SharedPreferences preferences = mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
                         final String storeInfo = preferences.getString(ViewCrawler.SHARED_PREF_DIMENSIONS_KEY, null);
                         if (storeInfo == null || storeInfo.equals("") || storeInfo.equals("[]")) {
-                            logAboutMessageToMixpanel("empty dimensions, it do not work !!!");
-                            return;
+                            logAboutMessageToMixpanel("empty dimensions, Flushing do not work !!!");
+                        } else {
+                            logAboutMessageToMixpanel("Flushing queue due to scheduled or forced flush");
+                            updateFlushFrequency();
+                            sendAllData(mDbAdapter);
                         }
-                        logAboutMessageToMixpanel("Flushing queue due to scheduled or forced flush");
-                        updateFlushFrequency();
-                        sendAllData(mDbAdapter);
                         if (SystemClock.elapsedRealtime() >= mDecideRetryAfter) {
                             try {
                                 mDecideChecker.runDecideChecks(getPoster());
@@ -403,9 +403,16 @@ import io.sugo.android.viewcrawler.ViewCrawler;
 
                     ///////////////////////////
                     if ((returnCode >= mConfig.getBulkUploadLimit() || returnCode == MPDbAdapter.DB_OUT_OF_MEMORY_ERROR) && mFailedRetries <= 0) {
-                        logAboutMessageToMixpanel("Flushing queue due to bulk upload limit");
-                        updateFlushFrequency();
-                        sendAllData(mDbAdapter);
+                        final String sharedPrefsName = ViewCrawler.SHARED_PREF_EDITS_FILE + SGConfig.getInstance(mContext).getToken();
+                        SharedPreferences preferences = mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
+                        final String storeInfo = preferences.getString(ViewCrawler.SHARED_PREF_DIMENSIONS_KEY, null);
+                        if (storeInfo == null || storeInfo.equals("") || storeInfo.equals("[]")) {
+                            logAboutMessageToMixpanel("empty dimensions, Flushing do not work !!!");
+                        } else {
+                            logAboutMessageToMixpanel("Flushing queue due to bulk upload limit");
+                            updateFlushFrequency();
+                            sendAllData(mDbAdapter);
+                        }
                         if (SystemClock.elapsedRealtime() >= mDecideRetryAfter) {
                             try {
                                 mDecideChecker.runDecideChecks(getPoster());
