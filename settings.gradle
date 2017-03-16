@@ -1,1 +1,1 @@
-include ':app', ':library', ':library-xwalk', ':sugoandroidsdk-xwalkview-demo'
+include ':app', ':library', ':library-xwalk'
