@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
@@ -41,6 +42,9 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.activity_main)
     LinearLayout mActivityMain;
 
+    private long mClickTitleTimes = 0;
+    private long mLastClickTime = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,8 +52,8 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         SugoAPI.startSugo(this, SGConfig.getInstance(this)
-                .setToken("123")
-                .setProjectId("321")
+                .setToken("1bfd41a39206b95a71e45c0a26204096")
+                .setProjectId("com_HyoaKhQMl_project_HyAFf8Koe")
                 .logConfig());
 
     }
@@ -59,6 +63,18 @@ public class MainActivity extends AppCompatActivity {
             R.id.to_web_img, R.id.to_web_txt})
     public void onClick(View view) {
         switch (view.getId()) {
+            case R.id.title_txt:
+                long cTime = System.currentTimeMillis();
+                if ((cTime - mLastClickTime) > 2000) {
+                    mClickTitleTimes++;
+                    if (mClickTitleTimes == 10) {
+                        openPrivate();
+                    } else if (mClickTitleTimes > 5) {
+                        long d = 10 - mClickTitleTimes;
+                        Toast.makeText(MainActivity.this, "再点" + d + "次进入隐藏模式", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                break;
             case R.id.shuoming_img:
             case R.id.shuoming_txt:
 
@@ -75,6 +91,10 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(this, WebActivity.class));
                 break;
         }
+    }
+
+    private void openPrivate() {
+
     }
 
     private void openQRCodeScan() {

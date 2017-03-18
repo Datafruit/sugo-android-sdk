@@ -3,12 +3,16 @@ package io.sugo.sdkdemo.activity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatSeekBar;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SwitchCompat;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.SeekBar;
+import android.widget.TextView;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -19,6 +23,8 @@ public class NativeActivity extends AppCompatActivity {
 
     @BindView(R.id.back_img)
     ImageView mBackImg;
+    @BindView(R.id.txt_list)
+    RecyclerView mTxtList;
     @BindView(R.id.a_btn)
     Button mABtn;
     @BindView(R.id.b_btn)
@@ -42,6 +48,27 @@ public class NativeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_native);
         ButterKnife.bind(this);
 
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+        mTxtList.setLayoutManager(linearLayoutManager);
+        mTxtList.setAdapter(new RecyclerView.Adapter() {
+            @Override
+            public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                TextView textView = new TextView(NativeActivity.this);
+                textView.setPadding(24, 24, 24, 24);
+                return new RecyclerView.ViewHolder(textView) {
+                };
+            }
+
+            @Override
+            public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+                ((TextView) holder.itemView).setText("文字 " + position);
+            }
+
+            @Override
+            public int getItemCount() {
+                return 3;
+            }
+        });
 
     }
 
