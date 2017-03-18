@@ -54,6 +54,10 @@ public class NativeActivity extends AppCompatActivity {
             @Override
             public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
                 TextView textView = new TextView(NativeActivity.this);
+                textView.setLayoutParams(new ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                textView.setClickable(true);
+                textView.setBackgroundResource(R.drawable.bg_txt_click);
                 textView.setPadding(24, 24, 24, 24);
                 return new RecyclerView.ViewHolder(textView) {
                 };

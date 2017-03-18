@@ -63,7 +63,20 @@ public class WebActivity extends AppCompatActivity {
 
     @OnClick(R.id.back_img)
     public void backBtn() {
-        onBackPressed();
+        if (mWebView.canGoBack()) {
+            mWebView.goBack();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mWebView.canGoBack()) {
+            mWebView.goBack();
+        } else {
+            super.onBackPressed();
+        }
     }
 
 }
