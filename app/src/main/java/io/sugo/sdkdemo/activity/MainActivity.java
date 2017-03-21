@@ -10,7 +10,6 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
@@ -45,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
 
     private long mClickTitleTimes = 0;
     private long mLastClickTime = 0;
+    private boolean mIsPrivate = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,9 +52,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+//        SugoAPI.setSuperPropertiesOnceBeforeStartSugo(this, "key-once", "value-once22");
+//        SugoAPI.setSuperPropertiesBeforeStartSugo(this, "key", "value");
+
         SugoAPI.startSugo(this, SGConfig.getInstance(this)
-                .setToken("25348792d2425cf5aa22edff10638d54")
-                .setProjectId("com_HyoaKhQMl_project_S1yjbOqil")
+                .setToken("1bfd41a39206b95a71e45c0a26204096")
+                .setProjectId("com_HyoaKhQMl_project_HyAFf8Koe")
                 .logConfig());
 
     }
@@ -65,22 +68,27 @@ public class MainActivity extends AppCompatActivity {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.title_txt:
-                long cTime = System.currentTimeMillis();
-                if ((cTime - mLastClickTime) < 2000) {
-                    mClickTitleTimes++;
-                    Log.d("MainActivity:", "点了" + mClickTitleTimes + "次");
-                    if (mClickTitleTimes == 10) {
-                        openPrivate();
-                        mClickTitleTimes = 0;
-                    } else if (mClickTitleTimes > 5) {
-                        long d = 10 - mClickTitleTimes;
-                        Toast.makeText(MainActivity.this, "再点" + d + "次进入隐藏模式", Toast.LENGTH_SHORT).show();
-                        Log.d("MainActivity:", "再点" + d + "次进入隐藏模式");
-                    }
+                if (mIsPrivate) {
+                    openPrivate();
                 } else {
-                    mClickTitleTimes = 0;
+                    long cTime = System.currentTimeMillis();
+                    if ((cTime - mLastClickTime) < 2000) {
+                        mClickTitleTimes++;
+                        Log.d("MainActivity:", "点了" + mClickTitleTimes + "次");
+                        if (mClickTitleTimes == 10) {
+                            openPrivate();
+                            mClickTitleTimes = 0;
+                        } else if (mClickTitleTimes > 5) {
+                            long d = 10 - mClickTitleTimes;
+                            mIsPrivate = true;
+                            openPrivate();
+                            Log.d("MainActivity:", "再点" + d + "次进入隐藏模式");
+                        }
+                    } else {
+                        mClickTitleTimes = 0;
+                    }
+                    mLastClickTime = cTime;
                 }
-                mLastClickTime = cTime;
                 break;
             case R.id.shuoming_img:
             case R.id.shuoming_txt:
@@ -102,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void openPrivate() {
         Log.d("MainActivity:", "openPrivate");
+        startActivity(new Intent(this, PrivateFuncActivity.class));
     }
 
     private void openQRCodeScan() {
