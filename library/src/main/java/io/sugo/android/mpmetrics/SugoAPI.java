@@ -228,6 +228,8 @@ public class SugoAPI {
         mUpdatesFromSugo = constructUpdatesFromSugo(context, mToken);
         mTrackingDebug = constructTrackingDebug();
         mPersistentIdentity = getPersistentIdentity(appContext, referrerPreferences, mToken);
+        registerSuperProperties(sPreSuperProps);
+        registerSuperPropertiesOnce(sPreSuperPropsOnce);
         mEventTimings = mPersistentIdentity.getTimeEvents();
         mUpdatesListener = constructUpdatesListener();
         mDecideMessages = constructDecideUpdates(mToken, mUpdatesListener, mUpdatesFromSugo);
@@ -732,6 +734,42 @@ public class SugoAPI {
      */
     public void registerSuperProperties(JSONObject superProperties) {
         mPersistentIdentity.registerSuperProperties(superProperties);
+    }
+
+    public static void setSuperPropertiesBeforeStartSugo(Context context, String key, String value) {
+        if (context == null || TextUtils.isEmpty(key)) {
+            return;
+        }
+        try {
+            SugoAPI instance = sInstanceMap.get(context.getApplicationContext());
+            if (instance != null) {     // 证明初始化过 SugoAPI.getInstance
+                JSONObject object = new JSONObject();
+                object.put(key, value);
+                instance.registerSuperProperties(object);
+            } else {
+                sPreSuperProps.put(key, value);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void setSuperPropertiesOnceBeforeStartSugo(Context context, String key, String value) {
+        if (context == null || TextUtils.isEmpty(key)) {
+            return;
+        }
+        try {
+            SugoAPI instance = sInstanceMap.get(context.getApplicationContext());
+            if (instance != null) {     // 证明初始化过 SugoAPI.getInstance
+                JSONObject object = new JSONObject();
+                object.put(key, value);
+                instance.registerSuperPropertiesOnce(object);
+            } else {
+                sPreSuperPropsOnce.put(key, value);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -1327,5 +1365,9 @@ public class SugoAPI {
     private static final String ENGAGE_DATE_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ss";
 
     private boolean mDisableDecideChecker;
+
+    // SugoAPI 实例化之前设置 superProperties 的临时变量
+    private static JSONObject sPreSuperProps = new JSONObject();
+    private static JSONObject sPreSuperPropsOnce = new JSONObject();
 
 }
