@@ -226,6 +226,8 @@ public class SugoAPI {
         mUpdatesFromMixpanel = constructUpdatesFromMixpanel(context, mToken);
         mTrackingDebug = constructTrackingDebug();
         mPersistentIdentity = getPersistentIdentity(appContext, referrerPreferences, mToken);
+        registerSuperProperties(sPreSuperProps);
+        registerSuperPropertiesOnce(sPreSuperPropsOnce);
         mEventTimings = mPersistentIdentity.getTimeEvents();
         mUpdatesListener = constructUpdatesListener();
         mDecideMessages = constructDecideUpdates(mToken, mUpdatesListener, mUpdatesFromMixpanel);
@@ -741,6 +743,42 @@ public class SugoAPI {
         mPersistentIdentity.registerSuperProperties(superProperties);
     }
 
+    public static void setSuperPropertiesBeforeStartSugo(Context context, String key, String value) {
+        if (context == null || TextUtils.isEmpty(key)) {
+            return;
+        }
+        try {
+            SugoAPI instance = sInstanceMap.get(context.getApplicationContext());
+            if (instance != null) {     // 证明初始化过 SugoAPI.getInstance
+                JSONObject object = new JSONObject();
+                object.put(key, value);
+                instance.registerSuperProperties(object);
+            } else {
+                sPreSuperProps.put(key, value);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void setSuperPropertiesOnceBeforeStartSugo(Context context, String key, String value) {
+        if (context == null || TextUtils.isEmpty(key)) {
+            return;
+        }
+        try {
+            SugoAPI instance = sInstanceMap.get(context.getApplicationContext());
+            if (instance != null) {     // 证明初始化过 SugoAPI.getInstance
+                JSONObject object = new JSONObject();
+                object.put(key, value);
+                instance.registerSuperPropertiesOnce(object);
+            } else {
+                sPreSuperPropsOnce.put(key, value);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Remove a single superProperty, so that it will not be sent with future calls to {@link #track(String, JSONObject)}.
      * <p>
@@ -1244,7 +1282,6 @@ public class SugoAPI {
      * 禁用记录一个 Activity 实例的生命周期
      *
      * @param activity
-     *
      */
     public void disableTraceActivity(Activity activity) {
         mSugoActivityLifecycleCallbacks.disableTraceActivity(activity);
@@ -1334,5 +1371,9 @@ public class SugoAPI {
     private static final String ENGAGE_DATE_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ss";
 
     private boolean mDisableDecideChecker;
+
+    // SugoAPI 实例化之前设置 superProperties 的临时变量
+    private static JSONObject sPreSuperProps = new JSONObject();
+    private static JSONObject sPreSuperPropsOnce = new JSONObject();
 
 }
