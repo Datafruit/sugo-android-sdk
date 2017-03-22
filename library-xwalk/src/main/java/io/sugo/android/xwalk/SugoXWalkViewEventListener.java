@@ -8,8 +8,10 @@ import android.webkit.JavascriptInterface;
 import org.json.JSONArray;
 import org.xwalk.core.XWalkView;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 
 import io.sugo.android.mpmetrics.SGConfig;
 import io.sugo.android.mpmetrics.SugoAPI;
@@ -83,17 +85,21 @@ public class SugoXWalkViewEventListener extends SugoWebEventListener {
     public static void cleanUnuseXwalkView(Activity deadActivity) {
         Iterator<XWalkView> xWalkViewIterator = sCurrentXWalkView.iterator();
         XWalkView xWalkView = null;
+        List<XWalkView> removeXWVS = new ArrayList<>();
         while (xWalkViewIterator.hasNext()) {
             xWalkView = xWalkViewIterator.next();
             Activity activity = (Activity) xWalkView.getContext();
             if (activity == null || activity == deadActivity || activity.isFinishing() ||
                     (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed())) {
-                xWalkViewIterator.remove();
-                sugoWNReporter.remove(xWalkView);
-                xWalkView.load("javascript:" + sStayScript, null);
-                if (SGConfig.DEBUG) {
-                    Log.d("SugoWebEventListener", "removeXWalkViewReference : " + xWalkView.toString());
-                }
+                removeXWVS.add(xWalkView);
+            }
+        }
+        for (XWalkView removeXWV : removeXWVS) {
+            sCurrentXWalkView.remove(removeXWV);
+            sugoWNReporter.remove(removeXWV);
+            removeXWV.load("javascript:" + sStayScript, null);
+            if (SGConfig.DEBUG) {
+                Log.d("SugoWebEventListener", "removeXWalkViewReference : " + removeXWV.toString());
             }
         }
     }
