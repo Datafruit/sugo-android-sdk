@@ -15,9 +15,11 @@ import org.xwalk.core.XWalkView;
 import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -149,33 +151,40 @@ public class SugoWebEventListener {
     public static void cleanUnuseWebView(Activity deadActivity) {
         Iterator<WebView> webViewIterator = sCurrentWebView.iterator();
         WebView webView = null;
+        List<WebView> removeWebViews = new ArrayList<>();
         while (webViewIterator.hasNext()) {
             webView = webViewIterator.next();
             Activity activity = (Activity) webView.getContext();
             if (activity == null || activity == deadActivity || activity.isFinishing() ||
                     (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed())) {
-                webViewIterator.remove();
-                sugoWNReporter.remove(webView);
-                if (SGConfig.DEBUG) {
-                    Log.d("SugoWebEventListener", "removeWebViewReference : " + webView.toString());
-                }
+                removeWebViews.add(webView);
+            }
+        }
+        for (WebView removeWebView : removeWebViews) {
+            sCurrentWebView.remove(removeWebView);
+            sugoWNReporter.remove(removeWebView);
+            if (SGConfig.DEBUG) {
+                Log.d("SugoWebEventListener", "removeWebViewReference : " + removeWebView.toString());
             }
         }
 
         Iterator<XWalkView> xWalkViewIterator = sCurrentXWalkView.iterator();
+        List<XWalkView> removeXWalkViews = new ArrayList<>();
         while (xWalkViewIterator.hasNext()) {
             XWalkView xWalkView = xWalkViewIterator.next();
             Activity activity = (Activity) xWalkView.getContext();
             if (activity == null || activity == deadActivity || activity.isFinishing() ||
                     (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed())) {
-                xWalkViewIterator.remove();
-                sugoWNReporter.remove(xWalkView);
-                if (SGConfig.DEBUG) {
-                    Log.d("SugoWebEventListener", "removeXWalkViewReference : " + xWalkView.toString());
-                }
+                removeXWalkViews.add(xWalkView);
             }
         }
-
+        for (XWalkView removeXWalkView : removeXWalkViews) {
+            sCurrentXWalkView.remove(removeXWalkView);
+            sugoWNReporter.remove(removeXWalkView);
+            if (SGConfig.DEBUG) {
+                Log.d("SugoWebEventListener", "removeXWalkViewReference : " + removeXWalkView.toString());
+            }
+        }
     }
 
     private static void injectStayEvent(XWalkView xWalkView) {
