@@ -10,9 +10,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -109,17 +111,21 @@ public class SugoWebEventListener {
     public static void cleanUnuseWebView(Activity deadActivity) {
         Iterator<WebView> webViewIterator = sCurrentWebView.iterator();
         WebView webView = null;
+        List<WebView> removeWebViews = new ArrayList<>();
         while (webViewIterator.hasNext()) {
             webView = webViewIterator.next();
             Activity activity = (Activity) webView.getContext();
             if (activity == null || activity == deadActivity || activity.isFinishing() ||
                     (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed())) {
-                webViewIterator.remove();
-                sugoWNReporter.remove(webView);
-                webView.loadUrl("javascript:" + sStayScript);
-                if (SGConfig.DEBUG) {
-                    Log.d("SugoWebEventListener", "removeWebViewReference : " + webView.toString());
-                }
+                removeWebViews.add(webView);
+            }
+        }
+        for (WebView removeWV : removeWebViews) {
+            sCurrentWebView.remove(removeWV);
+            sugoWNReporter.remove(removeWV);
+            removeWV.loadUrl("javascript:" + sStayScript);
+            if (SGConfig.DEBUG) {
+                Log.d("SugoWebEventListener", "removeWebViewReference : " + removeWV.toString());
             }
         }
     }
