@@ -251,9 +251,7 @@ public class SugoWebViewClient extends WebViewClient {
             "            var path_str = paths[idx];\n" +
             "            var event = sugo.current_event_bindings[path_str];\n" +
             "            if(event.event_type != eventType){\n" +
-            "               if (!(eventType === 'touchend' && event.event_type === 'click' )) {\n" +
             "                 continue;\n" +
-            "               }\n" +
             "            }\n" +
             "            var path = event.path.path;\n" +
             "            if(event.similar === true){\n" +
@@ -298,7 +296,6 @@ public class SugoWebViewClient extends WebViewClient {
             "    sugo.delegate('focus'); \n" +
             "    sugo.delegate('submit'); \n" +
             "    sugo.delegate('change'); \n" +
-            "    sugo.delegate('touchend'); \n" +
             "};" +
             "if(!window.sugo){\n" +
             "    sugo.bindEvent();\n" +
@@ -316,6 +313,7 @@ public class SugoWebViewClient extends WebViewClient {
             "  }\n" +
             "};\n" +
             "window.sugo = sugo;\n" +
+            "window.sugoio = sugoio;\n" +
             "})(window.sugo||{});\n" +
             "if (sugo && sugo.reportNodes) {\n" +
             "  sugo.reportNodes();\n" +

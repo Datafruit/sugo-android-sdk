@@ -49,10 +49,10 @@
             android:value="true"/>
         <meta-data
             android:name="io.sugo.android.SGConfig.EditorUrl"
-            android:value="ws://192.168.0.220:8887/connect/"/>
+            android:value="ws://dev220.sugo.net:8887/connect/"/>
         <meta-data
             android:name="io.sugo.android.SGConfig.DecideEndpoint"
-            android:value="http://192.168.0.220:8000/api/sdk/decide"/>
+            android:value="http://dev220.sugo.net:8000/api/sdk/decide"/>
 
         <activity android:name=".activity.PrivateFuncActivity">
         </activity>
