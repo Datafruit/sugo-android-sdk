@@ -79,6 +79,7 @@ import io.sugo.android.viewcrawler.GestureTracker;
                 e.printStackTrace();
             }
             mMpInstance.track("唤醒", props);
+            mMpInstance.timeEvent("APP停留");
         }
 
         if (!mDisableActivities.contains(activity)) {
@@ -118,6 +119,12 @@ import io.sugo.android.viewcrawler.GestureTracker;
                         e.printStackTrace();
                     }
                     mMpInstance.track("后台", props);        // App 进入后台运行状态
+                    try {
+                        props.put(SGConfig.FIELD_PAGE_NAME, "APP停留");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    mMpInstance.track("APP停留", props);        // App 进入停留状态
                     mMpInstance.flush();
                 }
             }
