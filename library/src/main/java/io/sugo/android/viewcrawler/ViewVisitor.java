@@ -395,6 +395,13 @@ import io.sugo.android.mpmetrics.SGConfig;
 
         @Override
         public void accumulate(View found) {
+//            GradientDrawable gradientDrawable = new GradientDrawable(GradientDrawable.Orientation.BL_TR,
+//                    new int[]{0x99FF3300, 0x66bb6633});
+//            gradientDrawable.setShape(GradientDrawable.OVAL);
+//            gradientDrawable.setGradientRadius(Math.min(found.getWidth() / 2, found.getHeight() / 2));
+//            gradientDrawable.setGradientType(GradientDrawable.RADIAL_GRADIENT);
+//
+//            found.setForeground(gradientDrawable);
             final View.AccessibilityDelegate realDelegate = getOldDelegate(found);
             if (realDelegate instanceof TrackingAccessibilityDelegate) {
                 final TrackingAccessibilityDelegate currentTracker = (TrackingAccessibilityDelegate) realDelegate;

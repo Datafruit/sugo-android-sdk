@@ -206,6 +206,7 @@ public class SGConfig {
 
         mBulkUploadLimit = metaData.getInt("io.sugo.android.SGConfig.BulkUploadLimit", 40); // 40 records default
         mFlushInterval = metaData.getInt("io.sugo.android.SGConfig.FlushInterval", 60 * 1000); // one minute default
+        mUpdateDecideInterval = metaData.getInt("io.sugo.android.SGConfig.UpdateDecideInterval", 5 * 60 * 1000); // 5 minute default
         mDataExpiration = metaData.getInt("io.sugo.android.SGConfig.DataExpiration", 1000 * 60 * 60 * 24 * 5); // 5 days default
         mMinimumDatabaseLimit = metaData.getInt("io.sugo.android.SGConfig.MinimumDatabaseLimit", 20 * 1024 * 1024); // 20 Mb
         mDisableFallback = metaData.getBoolean("io.sugo.android.SGConfig.DisableFallback", true);
@@ -284,7 +285,7 @@ public class SGConfig {
 
     public SGConfig setProjectId(String projectId) {
         mProjectId = projectId;
-        mEventsEndpoint = "http://collect.sugo.net/post?locate=" + projectId;
+        mEventsEndpoint = "http://collect.sugo.io/post?locate=" + projectId;
         return this;
     }
 
@@ -297,10 +298,11 @@ public class SGConfig {
     public SGConfig logConfig() {
         if (DEBUG) {
             Log.v(LOGTAG,
-                    "Mixpanel (" + VERSION + ") configured with:\n" +
+                    "SugoAPI (" + VERSION + ") configured with:\n" +
                             "    AutoShowMixpanelUpdates " + getAutoShowMixpanelUpdates() + "\n" +
                             "    BulkUploadLimit " + getBulkUploadLimit() + "\n" +
                             "    FlushInterval " + getFlushInterval() + "\n" +
+                            "    mUpdateDecideInterval " + getUpdateDecideInterval() + "\n" +
                             "    DataExpiration " + getDataExpiration() + "\n" +
                             "    MinimumDatabaseLimit " + getMinimumDatabaseLimit() + "\n" +
                             "    DisableFallback " + getDisableFallback() + "\n" +
@@ -321,6 +323,10 @@ public class SGConfig {
             );
         }
         return this;
+    }
+
+    public long getUpdateDecideInterval() {
+        return mUpdateDecideInterval;
     }
 
     class myX509TrustManager implements X509TrustManager {
@@ -511,6 +517,7 @@ public class SGConfig {
 
     private final int mBulkUploadLimit;
     private final int mFlushInterval;
+    private final long mUpdateDecideInterval;
     private final int mDataExpiration;
     private final int mMinimumDatabaseLimit;
     private final boolean mDisableFallback;

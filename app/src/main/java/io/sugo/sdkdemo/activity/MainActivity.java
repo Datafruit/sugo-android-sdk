@@ -1,8 +1,13 @@
 package io.sugo.sdkdemo.activity;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -10,6 +15,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
@@ -54,12 +60,37 @@ public class MainActivity extends AppCompatActivity {
 
 //        SugoAPI.setSuperPropertiesOnceBeforeStartSugo(this, "key-once", "value-once22");
 //        SugoAPI.setSuperPropertiesBeforeStartSugo(this, "key", "value");
+//
+//        SugoAPI.startSugo(this, SGConfig.getInstance(this)
+//                .setToken("3915823f959d5935bc3cfe75748ccc79")
+//                .setEventsEndPoint("http://dev220.sugo.net:80/post?locate=com_Sy2G_0R9g_project_HJprMuJ3x")
+//                .logConfig());
+
 
         SugoAPI.startSugo(this, SGConfig.getInstance(this)
-                .setToken("3915823f959d5935bc3cfe75748ccc79")
-                .setEventsEndPoint("http://dev220.sugo.net:80/post?locate=com_Sy2G_0R9g_project_HJprMuJ3x")
+                .setToken("2a789a06f0f092cc40a67799d6dc2ab9")
+                .setProjectId("com_HyoaKhQMl_project_B1GjJOHFg")
                 .logConfig());
 
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE,
+                    Manifest.permission.CAMERA, Manifest.permission.INTERNET}, 1);
+        }
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case 1:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(MainActivity.this, "已授权", Toast.LENGTH_LONG).show();
+                }
+                break;
+            default:
+                break;
+        }
     }
 
     @OnClick({R.id.title_txt, R.id.shuoming_img, R.id.shuoming_txt, R.id.scan_img,
