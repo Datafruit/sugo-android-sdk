@@ -327,6 +327,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                 mDecideChecker = createDecideChecker();
                 mDisableFallback = mConfig.getDisableFallback();
                 mFlushInterval = mConfig.getFlushInterval();
+                mUpdateDecideInterval = mConfig.getUpdateDecideInterval();
             }
 
             protected DecideChecker createDecideChecker() {
@@ -372,13 +373,6 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                             updateFlushFrequency();
                             sendAllData(mDbAdapter);
                         }
-                        if (SystemClock.elapsedRealtime() >= mDecideRetryAfter) {
-                            try {
-                                mDecideChecker.runDecideChecks(getPoster());
-                            } catch (RemoteService.ServiceUnavailableException e) {
-                                mDecideRetryAfter = SystemClock.elapsedRealtime() + e.getRetryAfter() * 1000;
-                            }
-                        }
                     } else if (msg.what == INSTALL_DECIDE_CHECK) {
                         logAboutMessageToMixpanel("Installing a check for surveys and in-app notifications");
                         final DecideMessages check = (DecideMessages) msg.obj;
@@ -388,6 +382,20 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                                 mDecideChecker.runDecideChecks(getPoster());
                             } catch (RemoteService.ServiceUnavailableException e) {
                                 mDecideRetryAfter = SystemClock.elapsedRealtime() + e.getRetryAfter() * 1000;
+                            }
+                            if (mUpdateDecideInterval > 1000) {
+                                sendEmptyMessageDelayed(UPDATE_DECIDE_CHECK, mUpdateDecideInterval);
+                            }
+                        }
+                    } else if (msg.what == UPDATE_DECIDE_CHECK) {
+                        if (SystemClock.elapsedRealtime() >= mDecideRetryAfter) {
+                            try {
+                                mDecideChecker.runDecideChecks(getPoster());
+                            } catch (RemoteService.ServiceUnavailableException e) {
+                                mDecideRetryAfter = SystemClock.elapsedRealtime() + e.getRetryAfter() * 1000;
+                            }
+                            if (mUpdateDecideInterval > 1000) {     // 不允许低于 1s 的值
+                                sendEmptyMessageDelayed(UPDATE_DECIDE_CHECK, mUpdateDecideInterval);
                             }
                         }
                     } else if (msg.what == KILL_WORKER) {
@@ -402,7 +410,9 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                     }
 
                     ///////////////////////////
-                    if ((returnCode >= mConfig.getBulkUploadLimit() || returnCode == MPDbAdapter.DB_OUT_OF_MEMORY_ERROR) && mFailedRetries <= 0) {
+                    if ((returnCode >= mConfig.getBulkUploadLimit()
+                            || returnCode == MPDbAdapter.DB_OUT_OF_MEMORY_ERROR)
+                            && mFailedRetries <= 0) {
                         final String sharedPrefsName = ViewCrawler.SHARED_PREF_EDITS_FILE + SGConfig.getInstance(mContext).getToken();
                         SharedPreferences preferences = mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
                         final String storeInfo = preferences.getString(ViewCrawler.SHARED_PREF_DIMENSIONS_KEY, null);
@@ -412,13 +422,6 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                             logAboutMessageToMixpanel("Flushing queue due to bulk upload limit");
                             updateFlushFrequency();
                             sendAllData(mDbAdapter);
-                        }
-                        if (SystemClock.elapsedRealtime() >= mDecideRetryAfter) {
-                            try {
-                                mDecideChecker.runDecideChecks(getPoster());
-                            } catch (RemoteService.ServiceUnavailableException e) {
-                                mDecideRetryAfter = SystemClock.elapsedRealtime() + e.getRetryAfter() * 1000;
-                            }
                         }
                     } else if (returnCode > 0 && !hasMessages(FLUSH_QUEUE)) {
                         // The !hasMessages(FLUSH_QUEUE) check is a courtesy for the common case
@@ -592,6 +595,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
             private MPDbAdapter mDbAdapter;
             private final DecideChecker mDecideChecker;
             private final long mFlushInterval;
+            private final long mUpdateDecideInterval;
             private final boolean mDisableFallback;
             private long mDecideRetryAfter;
             private long mTrackEngageRetryAfter;
@@ -639,6 +643,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
     private static final int FLUSH_QUEUE = 2; // push given JSON message to events DB
     private static final int KILL_WORKER = 5; // Hard-kill the worker thread, discarding all events on the event queue. This is for testing, or disasters.
     private static final int INSTALL_DECIDE_CHECK = 12; // Run this DecideCheck at intervals until it isDestroyed()
+    private static final int UPDATE_DECIDE_CHECK = 14; // Run this DecideCheck at intervals until it isDestroyed()
     private static final int REGISTER_FOR_GCM = 13; // Register for GCM using Google Play Services
 
     private static final String LOGTAG = "SugoAPI.Messages";
