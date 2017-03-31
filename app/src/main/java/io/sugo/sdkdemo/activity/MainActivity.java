@@ -68,8 +68,8 @@ public class MainActivity extends AppCompatActivity {
 
 
         SugoAPI.startSugo(this, SGConfig.getInstance(this)
-                .setToken("2a789a06f0f092cc40a67799d6dc2ab9")
-                .setProjectId("com_HyoaKhQMl_project_B1GjJOHFg")
+                .setToken("1bfd41a39206b95a71e45c0a26204096")
+                .setProjectId("com_HyoaKhQMl_project_HyAFf8Koe")
                 .logConfig());
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {

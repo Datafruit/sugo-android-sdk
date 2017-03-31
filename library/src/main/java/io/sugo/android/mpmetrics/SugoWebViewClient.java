@@ -314,10 +314,7 @@ public class SugoWebViewClient extends WebViewClient {
             "};\n" +
             "window.sugo = sugo;\n" +
             "window.sugoio = sugoio;\n" +
-            "})(window.sugo||{});\n" +
-            "if (sugo && sugo.reportNodes) {\n" +
-            "  sugo.reportNodes();\n" +
-            "}\n";
+            "})(window.sugo||{});\n";
 
     private static String initScript = "sugo.view_props = {};\n" +
             "sugo.rawTrack = function(event_id, event_name, props){\n" +
