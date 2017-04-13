@@ -191,29 +191,28 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
     }
 
     @Override
-    public void sendConnectEditor(Uri data) {
+    public void sendConnectEditor(Uri uri) {
         if (mMessageThreadHandler != null) {
-            if (data != null) {
-                String host = data.getHost();
-                if(host == null){
+            if (uri != null) {
+                String host = uri.getHost();
+                if (host == null) {
                     return;
                 }
                 // 解析浏览器扫描二维码跳转应用的uri
                 if (host.equals("sugo")) {
-                    secretKey = data.getQueryParameter("sKey");
+                    secretKey = uri.getQueryParameter("sKey");
                     final Message message = mMessageThreadHandler.obtainMessage(MESSAGE_CONNECT_TO_EDITOR);
                     mMessageThreadHandler.sendMessage(message);
                 } else {    // 解析应用内部扫描二维码获取的链接
-                    String editorUrl = SGConfig.getInstance(mContext).getEditorUrl();
-                    Uri editorUri = Uri.parse(editorUrl == null ? "" : editorUrl);
-                    String editorHost = editorUri.getHost();
-                    if(host.equals(editorHost)){
-                        String token = data.getQueryParameter("token");
-                        if(token != null && token.equals(SGConfig.getInstance(mContext).getToken())){
-                            secretKey = data.getQueryParameter("sKey");
+                    try {
+                        String token = uri.getQueryParameter("token");
+                        if (token != null && token.equals(SGConfig.getInstance(mContext).getToken())) {
+                            secretKey = uri.getQueryParameter("sKey");
                             final Message message = mMessageThreadHandler.obtainMessage(MESSAGE_CONNECT_TO_EDITOR);
                             mMessageThreadHandler.sendMessage(message);
                         }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
             }
@@ -936,7 +935,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
         }
 
         private void handleDimensions(JSONArray array) {
-            if(!SugoAPI.developmentMode){
+            if (!SugoAPI.developmentMode) {
                 final SharedPreferences preferences = getSharedPreferences();
                 final SharedPreferences.Editor editor = preferences.edit();
                 editor.putString(SHARED_PREF_DIMENSIONS_KEY, array.toString());
