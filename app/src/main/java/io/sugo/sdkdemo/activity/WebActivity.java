@@ -22,12 +22,14 @@ public class WebActivity extends AppCompatActivity {
     @BindView(R.id.web_view)
     WebView mWebView;
 
+    private String mUrl = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_web);
         ButterKnife.bind(this);
-
+        mUrl = getIntent().getStringExtra("url");
         initWebView();
     }
 
@@ -57,7 +59,7 @@ public class WebActivity extends AppCompatActivity {
                 super.onReceivedTitle(view, title);
             }
         });
-        mWebView.loadUrl("https://taobao.com/");
+        mWebView.loadUrl(mUrl == null ? "https://m.jd.com/" : mUrl);
     }
 
 
