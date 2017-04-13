@@ -13,8 +13,6 @@ import org.json.JSONObject;
 
 import java.util.HashSet;
 
-import io.sugo.android.viewcrawler.GestureTracker;
-
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 /* package */ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
     private Handler mHandler = new Handler(Looper.getMainLooper());
@@ -22,14 +20,14 @@ import io.sugo.android.viewcrawler.GestureTracker;
     private boolean mIsForeground = false;
     private boolean mPaused = true;
     public static final int CHECK_DELAY = 1000;
-    private final SugoAPI mMpInstance;
+    private final SugoAPI mSugoAPI;
     private final SGConfig mConfig;
 
     private boolean mIsLaunching = true;     // 是否启动中
     private HashSet<Activity> mDisableActivities;
 
-    public SugoActivityLifecycleCallbacks(SugoAPI mpInstance, SGConfig config) {
-        mMpInstance = mpInstance;
+    public SugoActivityLifecycleCallbacks(SugoAPI sugoAPI, SGConfig config) {
+        mSugoAPI = sugoAPI;
         mDisableActivities = new HashSet<>();
         mConfig = config;
         JSONObject props = new JSONObject();
@@ -40,8 +38,8 @@ import io.sugo.android.viewcrawler.GestureTracker;
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        mMpInstance.track("启动", props);    // 第一个界面正在启动
-        mMpInstance.timeEvent("APP停留");
+        mSugoAPI.track("启动", props);    // 第一个界面正在启动
+        mSugoAPI.timeEvent("APP停留");
     }
 
     @Override
@@ -55,7 +53,6 @@ import io.sugo.android.viewcrawler.GestureTracker;
                 return; // No checks, no nothing.
             }
         }
-        new GestureTracker(mMpInstance, activity);
     }
 
     @Override
@@ -78,8 +75,8 @@ import io.sugo.android.viewcrawler.GestureTracker;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            mMpInstance.track("唤醒", props);
-            mMpInstance.timeEvent("APP停留");
+            mSugoAPI.track("唤醒", props);
+            mSugoAPI.timeEvent("APP停留");
         }
 
         if (!mDisableActivities.contains(activity)) {
@@ -88,8 +85,8 @@ import io.sugo.android.viewcrawler.GestureTracker;
                 props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                 props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
                         .getCurrentPageName(activity.getClass().getCanonicalName()));
-                mMpInstance.track("浏览", props);
-                mMpInstance.timeEvent("窗口停留");
+                mSugoAPI.track("浏览", props);
+                mSugoAPI.timeEvent("窗口停留");
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -118,14 +115,14 @@ import io.sugo.android.viewcrawler.GestureTracker;
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                    mMpInstance.track("后台", props);        // App 进入后台运行状态
+                    mSugoAPI.track("后台", props);        // App 进入后台运行状态
                     try {
                         props.put(SGConfig.FIELD_PAGE_NAME, "APP停留");
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                    mMpInstance.track("APP停留", props);        // App 进入停留状态
-                    mMpInstance.flush();
+                    mSugoAPI.track("APP停留", props);        // App 进入停留状态
+                    mSugoAPI.flush();
                 }
             }
         }, CHECK_DELAY);
@@ -136,7 +133,7 @@ import io.sugo.android.viewcrawler.GestureTracker;
                 props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                 props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
                         .getCurrentPageName(activity.getClass().getCanonicalName()));
-                mMpInstance.track("窗口停留", props);
+                mSugoAPI.track("窗口停留", props);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -170,18 +167,18 @@ import io.sugo.android.viewcrawler.GestureTracker;
 //            }
 //            try {
 //                props.put(SGConfig.FIELD_PAGE_NAME, "退出");
-//                mMpInstance.track("退出", props);
+//                mSugoAPI.track("退出", props);
 //            } catch (JSONException e) {
 //                e.printStackTrace();
 //            }
 //            try {
 //                props.put(SGConfig.FIELD_PAGE_NAME, "APP停留");
-//                mMpInstance.track("APP停留", props);
+//                mSugoAPI.track("APP停留", props);
 //            } catch (JSONException e) {
 //                e.printStackTrace();
 //            }
 //        }
-        mMpInstance.flush();
+        mSugoAPI.flush();
     }
 
     @Override
