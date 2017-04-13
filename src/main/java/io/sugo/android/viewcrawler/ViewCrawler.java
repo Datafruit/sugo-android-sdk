@@ -192,16 +192,15 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                     final Message message = mMessageThreadHandler.obtainMessage(MESSAGE_CONNECT_TO_EDITOR);
                     mMessageThreadHandler.sendMessage(message);
                 } else {    // 解析应用内部扫描二维码获取的链接
-                    String editorUrl = SGConfig.getInstance(mContext).getEditorUrl();
-                    Uri editorUri = Uri.parse(editorUrl == null ? "" : editorUrl);
-                    String editorHost = editorUri.getHost();
-                    if (host.equals(editorHost)) {
+                    try {
                         String token = data.getQueryParameter("token");
                         if (token != null && token.equals(SGConfig.getInstance(mContext).getToken())) {
                             secretKey = data.getQueryParameter("sKey");
                             final Message message = mMessageThreadHandler.obtainMessage(MESSAGE_CONNECT_TO_EDITOR);
                             mMessageThreadHandler.sendMessage(message);
                         }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
             }
