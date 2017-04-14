@@ -14,6 +14,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -474,11 +475,11 @@ public class SugoAPI {
      *
      * @param eventName the name of the event to track with timing.
      */
-    public void timeEvent(final String eventName) {
+    public void timeEvent(@NonNull final String eventName) {
         timeEvent(eventName, 0);
     }
 
-    public void timeEvent(final String eventName, long offset) {
+    public void timeEvent(@NonNull final String eventName, long offset) {
         final long writeTime = System.currentTimeMillis() + offset;
         synchronized (mEventTimings) {
             mEventTimings.put(eventName, writeTime);
@@ -500,7 +501,7 @@ public class SugoAPI {
      *                   <p>
      *                   See also {@link #track(String, org.json.JSONObject)}
      */
-    public void trackMap(String eventName, Map<String, Object> properties) {
+    public void trackMap(@NonNull String eventName, Map<String, Object> properties) {
         if (null == properties) {
             track(null, eventName, null);
         } else {
@@ -512,7 +513,7 @@ public class SugoAPI {
         }
     }
 
-    public void track(String eventName, JSONObject properties) {
+    public void track(@NonNull String eventName, JSONObject properties) {
         track(null, eventName, properties);
     }
 
@@ -532,7 +533,11 @@ public class SugoAPI {
     // notifications from the UI thread, which might not be our SugoAPI "home" thread.
     // This MAY CHANGE IN FUTURE RELEASES, so minimize code that assumes thread safety
     // (and perhaps document that code here).
-    public void track(String eventId, String eventName, JSONObject properties) {
+    public void track(String eventId, @NonNull String eventName, JSONObject properties) {
+        if (eventName.trim().equals("")) {
+            Log.e("SugoAPI.track", "track failure. eventName can't be empty");
+            return;
+        }
         if (SugoAPI.developmentMode) {
             Toast.makeText(this.mContext, eventName, Toast.LENGTH_SHORT).show();
         }
@@ -648,7 +653,7 @@ public class SugoAPI {
      *
      * @param eventName the name of the event to send
      */
-    public void track(String eventName) {
+    public void track(@NonNull String eventName) {
         track(null, eventName, null);
     }
 
