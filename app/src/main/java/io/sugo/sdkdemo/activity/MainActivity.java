@@ -62,8 +62,8 @@ public class MainActivity extends AppCompatActivity {
 //        SugoAPI.setSuperPropertiesBeforeStartSugo(this, "key", "value");
 
         SugoAPI.startSugo(this, SGConfig.getInstance(this)
-                .setToken("4e60562fd9814709d4b1468a48be62a2")
-                .setEventsEndPoint("http://dev220.sugo.net:80/post?locate=com_Sy2G_0R9g_project_Bk65jbIpg")
+                .setToken("3915823f959d5935bc3cfe75748ccc79")
+                .setEventsEndPoint("http://dev220.sugo.net:80/post?locate=com_Sy2G_0R9g_project_HJprMuJ3x")
                 .logConfig());
 
 //        SugoAPI.startSugo(this, SGConfig.getInstance(this)

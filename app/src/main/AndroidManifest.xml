@@ -26,7 +26,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
             <intent-filter>
-                <data android:scheme="sugo.4e60562fd9814709d4b1468a48be62a2"/>
+                <data android:scheme="sugo.3915823f959d5935bc3cfe75748ccc79"/>
 
                 <action android:name="android.intent.action.VIEW"/>
 
@@ -54,10 +54,10 @@
 
         <meta-data
             android:name="io.sugo.android.SGConfig.EditorUrl"
-            android:value="ws://192.168.0.220:8887/connect/"/>
+            android:value="ws://dev220.sugo.net:8887/connect/"/>
         <meta-data
             android:name="io.sugo.android.SGConfig.DecideEndpoint"
-            android:value="http://192.168.0.220:8000/api/sdk/decide"/>
+            android:value="http://dev220.sugo.net:8000/api/sdk/decide"/>
 
         <!--<meta-data-->
             <!--android:name="io.sugo.android.SGConfig.EditorUrl"-->
