@@ -8,6 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by Administrator on 2017/1/22.
@@ -83,7 +84,11 @@ public class SugoPageManager {
     @SuppressWarnings("deprecation")
     public String getCurrentPage(Context context) {
         ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        return activityManager.getRunningTasks(1).get(0).topActivity.getClassName();
+        List<ActivityManager.RunningTaskInfo> runningTaskInfos = activityManager.getRunningTasks(1);
+        if (runningTaskInfos != null && !runningTaskInfos.isEmpty()) {
+            return runningTaskInfos.get(0).topActivity.getClassName();
+        }
+        return null;
     }
 
     public void replaceCurrentActivityPageName(String activityPage, String pageName) {
