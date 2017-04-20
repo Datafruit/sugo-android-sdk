@@ -34,7 +34,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
 
 /**
  * Manage communication of events with the internal database and the Mixpanel servers.
- *
+ * <p>
  * <p>This class straddles the thread boundary between user threads and
  * a logical Mixpanel thread.
  */
@@ -60,7 +60,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
      * for yourself.
      *
      * @param messageContext should be the Main Activity of the application
-     *     associated with these messages.
+     *                       associated with these messages.
      */
     public static AnalyticsMessages getInstance(final Context messageContext) {
         synchronized (sInstances) {
@@ -391,7 +391,9 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                     } else if (msg.what == UPDATE_DECIDE_CHECK) {
                         if (SystemClock.elapsedRealtime() >= mDecideRetryAfter) {
                             try {
-                                mDecideChecker.runDecideChecks(getPoster());
+                                if (!SugoAPI.developmentMode) {
+                                    mDecideChecker.runDecideChecks(getPoster());
+                                }
                             } catch (RemoteService.ServiceUnavailableException e) {
                                 mDecideRetryAfter = SystemClock.elapsedRealtime() + e.getRetryAfter() * 1000;
                             }

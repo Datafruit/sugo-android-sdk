@@ -1262,7 +1262,7 @@ public class SugoAPI {
         setSugoWebNodeReporter(xWalkView, reporter);
     }
 
-    public SGConfig getmConfig() {
+    public SGConfig getConfig() {
         return mConfig;
     }
 
