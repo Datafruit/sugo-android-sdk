@@ -390,7 +390,9 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                     } else if (msg.what == UPDATE_DECIDE_CHECK) {
                         if (SystemClock.elapsedRealtime() >= mDecideRetryAfter) {
                             try {
-                                mDecideChecker.runDecideChecks(getPoster());
+                                if (!SugoAPI.developmentMode) {
+                                    mDecideChecker.runDecideChecks(getPoster());
+                                }
                             } catch (RemoteService.ServiceUnavailableException e) {
                                 mDecideRetryAfter = SystemClock.elapsedRealtime() + e.getRetryAfter() * 1000;
                             }
