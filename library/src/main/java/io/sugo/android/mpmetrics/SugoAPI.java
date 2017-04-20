@@ -1252,7 +1252,7 @@ public class SugoAPI {
         setSugoWebNodeReporter(delegate, reporter);
     }
 
-    public SGConfig getmConfig() {
+    public SGConfig getConfig() {
         return mConfig;
     }
 
