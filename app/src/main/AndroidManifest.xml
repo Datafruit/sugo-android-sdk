@@ -26,7 +26,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
             <intent-filter>
-                <data android:scheme="sugo.3915823f959d5935bc3cfe75748ccc79"/>
+                <data android:scheme="sugo.2dc8aa74c5727067cca466af7d966116"/>
 
                 <action android:name="android.intent.action.VIEW"/>
 
@@ -44,6 +44,10 @@
             android:screenOrientation="portrait"
             tools:replace="screenOrientation"/>
 
+        <!--<meta-data-->
+            <!--android:name="io.sugo.android.SGConfig.UpdateDecideInterval"-->
+            <!--android:value="10000"/>-->
+
         <meta-data
             android:name="io.sugo.android.SGConfig.EnableDebugLogging"
             android:value="true"/>
@@ -54,17 +58,17 @@
 
         <meta-data
             android:name="io.sugo.android.SGConfig.EditorUrl"
-            android:value="ws://dev220.sugo.net:8887/connect/"/>
+            android:value="ws://192.168.0.128:8887/connect/"/>
         <meta-data
             android:name="io.sugo.android.SGConfig.DecideEndpoint"
-            android:value="http://dev220.sugo.net:8000/api/sdk/decide"/>
+            android:value="http://192.168.0.128:8080/api/sdk/decide"/>
 
         <!--<meta-data-->
-            <!--android:name="io.sugo.android.SGConfig.EditorUrl"-->
-            <!--android:value="ws://58.63.110.97:8887/connect/"/>-->
+        <!--android:name="io.sugo.android.SGConfig.EditorUrl"-->
+        <!--android:value="ws://58.63.110.97:8887/connect/"/>-->
         <!--<meta-data-->
-            <!--android:name="io.sugo.android.SGConfig.DecideEndpoint"-->
-            <!--android:value="http://astro.sugo.io/api/sdk/decide"/>-->
+        <!--android:name="io.sugo.android.SGConfig.DecideEndpoint"-->
+        <!--android:value="http://astro.sugo.io/api/sdk/decide"/>-->
 
         <activity android:name=".activity.PrivateFuncActivity">
         </activity>
