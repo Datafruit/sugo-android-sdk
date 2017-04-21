@@ -411,18 +411,19 @@ public class SugoWebViewClient extends WebViewClient {
 
         String bindingEvents = getBindingEvents(activity);
 
-        trackJS = trackJS.replace("$sugo_webroot$", webRoot);
-        trackJS = trackJS.replace("$sugo_remove_path$", dataPkgPath);
-        trackJS = trackJS.replace("$sugo_init_code$", initCode);
-        trackJS = trackJS.replace("$sugo_init_page_name$", pageName);
-        trackJS = trackJS.replace("$sugo_activity_name$", activityName);
-        trackJS = trackJS.replace("$sugo_path_name$", SGConfig.FIELD_PAGE);
-        trackJS = trackJS.replace("$sugo_page_name$", SGConfig.FIELD_PAGE_NAME);
-        trackJS = trackJS.replace("$sugo_h5_event_bindings$", bindingEvents);
+        String tempTrackJS = trackJS;
+        tempTrackJS = tempTrackJS.replace("$sugo_webroot$", webRoot);
+        tempTrackJS = tempTrackJS.replace("$sugo_remove_path$", dataPkgPath);
+        tempTrackJS = tempTrackJS.replace("$sugo_init_code$", initCode);
+        tempTrackJS = tempTrackJS.replace("$sugo_init_page_name$", pageName);
+        tempTrackJS = tempTrackJS.replace("$sugo_activity_name$", activityName);
+        tempTrackJS = tempTrackJS.replace("$sugo_path_name$", SGConfig.FIELD_PAGE);
+        tempTrackJS = tempTrackJS.replace("$sugo_page_name$", SGConfig.FIELD_PAGE_NAME);
+        tempTrackJS = tempTrackJS.replace("$sugo_h5_event_bindings$", bindingEvents);
 
         StringBuffer scriptBuf = new StringBuffer();
         scriptBuf.append(cssUtil);
-        scriptBuf.append(trackJS);
+        scriptBuf.append(tempTrackJS);
         return scriptBuf.toString();
     }
 
