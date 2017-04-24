@@ -60,16 +60,16 @@ public class MainActivity extends AppCompatActivity {
 
 //        SugoAPI.setSuperPropertiesOnceBeforeStartSugo(this, "key-once", "value-once22");
 //        SugoAPI.setSuperPropertiesBeforeStartSugo(this, "key", "value");
-//
-//        SugoAPI.startSugo(this, SGConfig.getInstance(this)
-//                .setToken("3915823f959d5935bc3cfe75748ccc79")
-//                .setEventsEndPoint("http://dev220.sugo.net:80/post?locate=com_Sy2G_0R9g_project_HJprMuJ3x")
-//                .logConfig());
 
         SugoAPI.startSugo(this, SGConfig.getInstance(this)
-                .setToken("2dc8aa74c5727067cca466af7d966116")
-                .setProjectId("com_HyoaKhQMl_project_rJIXzFOpe")
+                .setToken("4e60562fd9814709d4b1468a48be62a2")
+                .setEventsEndPoint("http://dev220.sugo.net:80/post?locate=com_Sy2G_0R9g_project_Bk65jbIpg")
                 .logConfig());
+
+//        SugoAPI.startSugo(this, SGConfig.getInstance(this)
+//                .setToken("2dc8aa74c5727067cca466af7d966116")
+//                .setProjectId("com_HyoaKhQMl_project_rJIXzFOpe")
+//                .logConfig());
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE,
