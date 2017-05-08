@@ -24,7 +24,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
 
 public class SugoWebViewClient extends WebViewClient {
 
-    private static String cssUtil = "var UTILS = {};\n" +
+    private static final String cssUtil = "var UTILS = {};\n" +
             "UTILS.cssPath = function(node, optimized)\n" +
             "{\n" +
             "    if (node.nodeType !== Node.ELEMENT_NODE)\n" +
@@ -189,8 +189,10 @@ public class SugoWebViewClient extends WebViewClient {
             "    }\n" +
             "};\n";
 
-    private static String trackJS = "(function (sugo) {\n" +
-            "    if (window.sugo) {\n" +
+    private static final String trackJS = "(function (sugo) {\n" +
+            "    sugo.enable_page_event = $sugo_enable_page_event$;\n" +
+            "\n" +
+            "    if (window.sugo && sugo.enable_page_event) {\n" +
             "        var duration = (new Date().getTime() - sugo.enter_time) / 1000;\n" +
             "        var tmp_props = JSON.parse(JSON.stringify(sugo.view_props));\n" +
             "        tmp_props.duration = duration;\n" +
@@ -238,10 +240,12 @@ public class SugoWebViewClient extends WebViewClient {
             "            console.log(sugo.init.code);\n" +
             "        }\n" +
             "    }\n" +
-            "    sugo.track('浏览', sugo.view_props);\n" +
+            "    if (sugo.enable_page_event) {\n" +
+            "        sugo.track('浏览', sugo.view_props);\n" +
+            "    }\n" +
             "    sugo.enter_time = new Date().getTime();\n" +
             "\n" +
-            "    if (!window.sugo) {\n" +
+            "    if (!window.sugo && sugo.enable_page_event) {\n" +
             "        window.addEventListener('unload', function (e) {\n" +
             "            var duration = (new Date().getTime() - sugo.enter_time) / 1000;\n" +
             "            var tmp_props = JSON.parse(JSON.stringify(sugo.view_props));\n" +
@@ -412,6 +416,7 @@ public class SugoWebViewClient extends WebViewClient {
         String bindingEvents = getBindingEvents(activity);
 
         String tempTrackJS = trackJS;
+        tempTrackJS = tempTrackJS.replace("$sugo_enable_page_event$", sugoAPI.getConfig().isEnablePageEvent()+"");
         tempTrackJS = tempTrackJS.replace("$sugo_webroot$", webRoot);
         tempTrackJS = tempTrackJS.replace("$sugo_remove_path$", dataPkgPath);
         tempTrackJS = tempTrackJS.replace("$sugo_init_code$", initCode);
