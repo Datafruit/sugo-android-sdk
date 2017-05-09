@@ -2,6 +2,7 @@ package io.sugo.android.mpmetrics;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.os.Build;
@@ -27,6 +28,7 @@ import javax.net.ssl.SSLSocketFactory;
 
 import io.sugo.android.util.ImageStore;
 import io.sugo.android.util.RemoteService;
+import io.sugo.android.viewcrawler.ViewCrawler;
 
 /* package */ class DecideChecker {
 
@@ -73,7 +75,7 @@ import io.sugo.android.util.RemoteService;
             final String distinctId = updates.getDistinctId();
             try {
                 final Result result = runDecideCheck(updates.getToken(), distinctId, poster);
-                if(result != null) {
+                if (result != null) {
                     updates.reportResults(result.surveys, result.notifications, result.eventBindings,
                             result.h5EventBindings, result.variants, result.pageInfo, result.dimensions);
                 }
@@ -100,6 +102,28 @@ import io.sugo.android.util.RemoteService;
 
         Result parsed = new Result();
         if (null != responseString) {
+            JSONObject response;
+            int newEventBindingVersion;
+            try {
+                response = new JSONObject(responseString);
+                if(response.has("event_bindings_version")) {
+                    newEventBindingVersion = response.optInt("event_bindings_version", 0);
+                    SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + token, Context.MODE_PRIVATE);
+                    int oldEventBindingVersion = preferences.getInt(ViewCrawler.SP_EVENT_BINDING_VERSION, -1);
+                    if (newEventBindingVersion <= oldEventBindingVersion) {
+                        // 配置没有更新内容，不覆盖旧配置
+                        return null;
+                    } else {
+                        SharedPreferences.Editor editor = preferences.edit();
+                        editor.putInt(ViewCrawler.SP_EVENT_BINDING_VERSION, newEventBindingVersion);
+                        editor.apply();
+                    }
+                }
+            } catch (final JSONException e) {
+                final String message = "Sugo endpoint returned unparsable result:\n" + responseString;
+                throw new UnintelligibleMessageException(message, e);
+            }
+
             parsed = parseDecideResponse(responseString);
         } else {
             return null;
@@ -245,6 +269,10 @@ import io.sugo.android.util.RemoteService;
                 .append("?version=1&lib=android&token=")
                 .append(escapedToken)
                 .append("&projectId=").append(SGConfig.getInstance(mContext).getProjectId());
+
+        SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + unescapedToken, Context.MODE_PRIVATE);
+        int oldEventBindingVersion = preferences.getInt(ViewCrawler.SP_EVENT_BINDING_VERSION, -1);
+        queryBuilder.append("&event_bindings_version=").append(oldEventBindingVersion);
 
         if (null != escapedId) {
             queryBuilder.append("&distinct_id=").append(escapedId);

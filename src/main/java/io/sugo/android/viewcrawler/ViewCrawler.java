@@ -462,6 +462,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                     editor.remove(SHARED_PREF_CHANGES_KEY);
                     editor.remove(SHARED_PREF_BINDINGS_KEY);
                     editor.remove(SHARED_PREF_H5_BINDINGS_KEY);
+                    editor.remove(SP_EVENT_BINDING_VERSION);
                     editor.apply();
                 }
             }
@@ -530,6 +531,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                 editor.remove(SHARED_PREF_CHANGES_KEY);
                 editor.remove(SHARED_PREF_BINDINGS_KEY);
                 editor.remove(SHARED_PREF_H5_BINDINGS_KEY);
+                editor.remove(SP_EVENT_BINDING_VERSION);
                 editor.apply();
             }
 
@@ -1324,6 +1326,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
     public static final String SHARED_PREF_H5_BINDINGS_KEY = "mixpanel.viewcrawler.h5_bindings";
     public static final String SHARED_PREF_PAGE_INFO_KEY = "mixpanel.viewcrawler.page_info";
     public static final String SHARED_PREF_DIMENSIONS_KEY = "mixpanel.viewcrawler.dimensions";
+    public static final String SP_EVENT_BINDING_VERSION = "sugo.event_bindings_version";
 
     private static final int MESSAGE_INITIALIZE_CHANGES = 0;
     private static final int MESSAGE_CONNECT_TO_EDITOR = 1;
