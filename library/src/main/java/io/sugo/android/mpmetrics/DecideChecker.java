@@ -106,16 +106,18 @@ import io.sugo.android.viewcrawler.ViewCrawler;
             int newEventBindingVersion;
             try {
                 response = new JSONObject(responseString);
-                newEventBindingVersion = response.optInt("event_bindings_version", 0);
-                SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + token, Context.MODE_PRIVATE);
-                int oldEventBindingVersion = preferences.getInt(ViewCrawler.SP_EVENT_BINDING_VERSION, -1);
-                if (newEventBindingVersion <= oldEventBindingVersion) {
-                    // 配置没有更新内容，不覆盖旧配置
-                    return null;
-                } else {
-                    SharedPreferences.Editor editor = preferences.edit();
-                    editor.putInt(ViewCrawler.SP_EVENT_BINDING_VERSION, newEventBindingVersion);
-                    editor.apply();
+                if (response.has("event_bindings_version")) {
+                    newEventBindingVersion = response.optInt("event_bindings_version", 0);
+                    SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + token, Context.MODE_PRIVATE);
+                    int oldEventBindingVersion = preferences.getInt(ViewCrawler.SP_EVENT_BINDING_VERSION, -1);
+                    if (newEventBindingVersion <= oldEventBindingVersion) {
+                        // 配置没有更新内容，不覆盖旧配置
+                        return null;
+                    } else {
+                        SharedPreferences.Editor editor = preferences.edit();
+                        editor.putInt(ViewCrawler.SP_EVENT_BINDING_VERSION, newEventBindingVersion);
+                        editor.apply();
+                    }
                 }
             } catch (final JSONException e) {
                 final String message = "Sugo endpoint returned unparsable result:\n" + responseString;
