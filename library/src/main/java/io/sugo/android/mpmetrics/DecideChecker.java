@@ -2,6 +2,7 @@ package io.sugo.android.mpmetrics;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.os.Build;
@@ -27,6 +28,7 @@ import javax.net.ssl.SSLSocketFactory;
 
 import io.sugo.android.util.ImageStore;
 import io.sugo.android.util.RemoteService;
+import io.sugo.android.viewcrawler.ViewCrawler;
 
 /* package */ class DecideChecker {
 
@@ -73,7 +75,7 @@ import io.sugo.android.util.RemoteService;
             final String distinctId = updates.getDistinctId();
             try {
                 final Result result = runDecideCheck(updates.getToken(), distinctId, poster);
-                if(result != null) {
+                if (result != null) {
                     updates.reportResults(result.surveys, result.notifications, result.eventBindings,
                             result.h5EventBindings, result.variants, result.pageInfo, result.dimensions);
                 }
@@ -92,16 +94,37 @@ import io.sugo.android.util.RemoteService;
     }
 
     private Result runDecideCheck(final String token, final String distinctId, final RemoteService poster)
-        throws RemoteService.ServiceUnavailableException, UnintelligibleMessageException {
+            throws RemoteService.ServiceUnavailableException, UnintelligibleMessageException {
         final String responseString = getDecideResponseFromServer(token, distinctId, poster);
         if (SGConfig.DEBUG) {
-            Log.v(LOGTAG, "Mixpanel decide server response was:\n" + responseString);
+            Log.v(LOGTAG, "Sugo decide server response was:\n" + responseString);
         }
 
         Result parsed = new Result();
         if (null != responseString) {
+            JSONObject response;
+            int newEventBindingVersion;
+            try {
+                response = new JSONObject(responseString);
+                newEventBindingVersion = response.optInt("event_bindings_version", 0);
+                SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + token, Context.MODE_PRIVATE);
+                int oldEventBindingVersion = preferences.getInt(ViewCrawler.SP_EVENT_BINDING_VERSION, -1);
+                if (newEventBindingVersion <= oldEventBindingVersion) {
+                    // 配置没有更新内容，不覆盖旧配置
+                    return null;
+                } else {
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putInt(ViewCrawler.SP_EVENT_BINDING_VERSION, newEventBindingVersion);
+                    editor.apply();
+                }
+            } catch (final JSONException e) {
+                final String message = "Sugo endpoint returned unparsable result:\n" + responseString;
+                throw new UnintelligibleMessageException(message, e);
+            }
+
             parsed = parseDecideResponse(responseString);
         } else {
+            // 没有返回配置，不覆盖旧配置
             return null;
         }
 
@@ -121,7 +144,8 @@ import io.sugo.android.util.RemoteService;
         return parsed;
     }// runDecideCheck
 
-    /* package */ static Result parseDecideResponse(String responseString)
+    /* package */
+    static Result parseDecideResponse(String responseString)
             throws UnintelligibleMessageException {
         JSONObject response;
         final Result ret = new Result();
@@ -129,7 +153,7 @@ import io.sugo.android.util.RemoteService;
         try {
             response = new JSONObject(responseString);
         } catch (final JSONException e) {
-            final String message = "Mixpanel endpoint returned unparsable result:\n" + responseString;
+            final String message = "Sugo endpoint returned unparsable result:\n" + responseString;
             throw new UnintelligibleMessageException(message, e);
         }
 
@@ -138,7 +162,7 @@ import io.sugo.android.util.RemoteService;
             try {
                 surveys = response.getJSONArray("surveys");
             } catch (final JSONException e) {
-                Log.e(LOGTAG, "Mixpanel endpoint returned non-array JSON for surveys: " + response);
+                Log.e(LOGTAG, "Sugo endpoint returned non-array JSON for surveys: " + response);
             }
         }
 
@@ -161,7 +185,7 @@ import io.sugo.android.util.RemoteService;
             try {
                 notifications = response.getJSONArray("notifications");
             } catch (final JSONException e) {
-                Log.e(LOGTAG, "Mixpanel endpoint returned non-array JSON for notifications: " + response);
+                Log.e(LOGTAG, "Sugo endpoint returned non-array JSON for notifications: " + response);
             }
         }
 
@@ -186,7 +210,7 @@ import io.sugo.android.util.RemoteService;
             try {
                 ret.eventBindings = response.getJSONArray("event_bindings");
             } catch (final JSONException e) {
-                Log.e(LOGTAG, "Mixpanel endpoint returned non-array JSON for event bindings: " + response);
+                Log.e(LOGTAG, "Sugo endpoint returned non-array JSON for event bindings: " + response);
             }
         }
 
@@ -194,14 +218,15 @@ import io.sugo.android.util.RemoteService;
             try {
                 ret.h5EventBindings = response.getJSONArray("h5_event_bindings");
             } catch (final JSONException e) {
-                Log.e(LOGTAG, "Mixpanel endpoint returned non-array JSON for event bindings: " + response);
+                Log.e(LOGTAG, "Sugo endpoint returned non-array JSON for event bindings: " + response);
             }
         }
+
         if (response.has("variants")) {
             try {
                 ret.variants = response.getJSONArray("variants");
             } catch (final JSONException e) {
-                Log.e(LOGTAG, "Mixpanel endpoint returned non-array JSON for variants: " + response);
+                Log.e(LOGTAG, "Sugo endpoint returned non-array JSON for variants: " + response);
             }
         }
 
@@ -209,11 +234,11 @@ import io.sugo.android.util.RemoteService;
             try {
                 ret.pageInfo = response.getJSONArray("page_info");
             } catch (final JSONException e) {
-                Log.e(LOGTAG, "Mixpanel endpoint returned non-array JSON for page_info: " + response);
+                Log.e(LOGTAG, "Sugo endpoint returned non-array JSON for page_info: " + response);
             }
         }
 
-        if(response.has("dimensions")) {
+        if (response.has("dimensions")) {
             try {
                 ret.dimensions = response.getJSONArray("dimensions");
             } catch (JSONException e) {
@@ -236,13 +261,17 @@ import io.sugo.android.util.RemoteService;
                 escapedId = null;
             }
         } catch (final UnsupportedEncodingException e) {
-            throw new RuntimeException("Mixpanel library requires utf-8 string encoding to be available", e);
+            throw new RuntimeException("Sugo library requires utf-8 string encoding to be available", e);
         }
 
         final StringBuilder queryBuilder = new StringBuilder()
                 .append("?version=1&lib=android&token=")
                 .append(escapedToken)
                 .append("&projectId=").append(SGConfig.getInstance(mContext).getProjectId());
+
+        SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + unescapedToken, Context.MODE_PRIVATE);
+        int oldEventBindingVersion = preferences.getInt(ViewCrawler.SP_EVENT_BINDING_VERSION, -1);
+        queryBuilder.append("&event_bindings_version=").append(oldEventBindingVersion);
 
         if (null != escapedId) {
             queryBuilder.append("&distinct_id=").append(escapedId);
@@ -294,7 +323,7 @@ import io.sugo.android.util.RemoteService;
     }
 
     private Bitmap getNotificationImage(InAppNotification notification, Context context, RemoteService poster)
-        throws RemoteService.ServiceUnavailableException {
+            throws RemoteService.ServiceUnavailableException {
         String[] urls = {notification.getImage2xUrl(), notification.getImageUrl()};
 
         final WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
@@ -329,7 +358,7 @@ import io.sugo.android.util.RemoteService;
     }
 
     private static byte[] getUrls(RemoteService poster, Context context, String[] urls)
-        throws RemoteService.ServiceUnavailableException {
+            throws RemoteService.ServiceUnavailableException {
         final SGConfig config = SGConfig.getInstance(context);
 
         if (!poster.isOnline(context, config.getOfflineMode())) {

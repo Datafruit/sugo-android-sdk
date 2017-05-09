@@ -73,7 +73,8 @@ import java.util.HashSet;
             mSugoAPI.track("唤醒", props);
         }
 
-        if (!mDisableActivities.contains(activity)) {
+        if (!mDisableActivities.contains(activity)
+                && SGConfig.getInstance(activity.getApplicationContext()).isEnablePageEvent()) {
             try {
                 JSONObject props = new JSONObject();
                 props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
@@ -116,7 +117,8 @@ import java.util.HashSet;
                 }
             }
         }, CHECK_DELAY);
-        if (!mDisableActivities.contains(activity)) {
+        if (!mDisableActivities.contains(activity)
+                && SGConfig.getInstance(activity.getApplicationContext()).isEnablePageEvent()) {
             try {
                 JSONObject props = new JSONObject();
                 props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());

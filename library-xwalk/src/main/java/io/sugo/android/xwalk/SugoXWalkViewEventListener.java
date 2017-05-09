@@ -97,7 +97,9 @@ public class SugoXWalkViewEventListener extends SugoWebEventListener {
         for (XWalkView removeXWV : removeXWVS) {
             sCurrentXWalkView.remove(removeXWV);
             sugoWNReporter.remove(removeXWV);
-            removeXWV.load("javascript:" + sStayScript, null);
+            if(SGConfig.getInstance(removeXWV.getContext()).isEnablePageEvent()) {
+                removeXWV.load("javascript:" + sStayScript, null);
+            }
             if (SGConfig.DEBUG) {
                 Log.d("SugoWebEventListener", "removeXWalkViewReference : " + removeXWV.toString());
             }
