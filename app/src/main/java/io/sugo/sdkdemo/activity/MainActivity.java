@@ -23,6 +23,7 @@ import com.google.zxing.integration.android.IntentResult;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.sugo.android.mpmetrics.SGConfig;
 import io.sugo.android.mpmetrics.SugoAPI;
 import io.sugo.sdkdemo.R;
 
@@ -60,14 +61,15 @@ public class MainActivity extends AppCompatActivity {
 //        SugoAPI.setSuperPropertiesOnceBeforeStartSugo(this, "key-once", "value-once22");
 //        SugoAPI.setSuperPropertiesBeforeStartSugo(this, "key", "value");
 
+        SugoAPI.startSugo(this, SGConfig.getInstance(this)
+                .setToken("9fbd17211289e00c9f8e9254e9e3df07")
+                .setProjectId("com_HyoaKhQMl_project_SkQZAlJgb")
+                .enablePageEvent(true)
+                .logConfig());
+
 //        SugoAPI.startSugo(this, SGConfig.getInstance(this)
-//                .setToken("21ebb5c4f5123fbebe5c82edc0c51f1e")
-//                .setEventsEndPoint("http://dev220.sugo.net:80/post?locate=com_SJLnjowGe_project_H1suqID0l")
-//                .logConfig());
-//
-//        SugoAPI.startSugo(this, SGConfig.getInstance(this)
-//                .setToken("a18a1b870f7b5ee6e74fca827a2a1d4d")
-//                .setEventsEndPoint("http://collect.sugo.io/post?locate=com_SJLnjowGe_project_Hyv0LtEae")
+//                .setToken("2dc8aa74c5727067cca466af7d966116")
+//                .setProjectId("com_HyoaKhQMl_project_rJIXzFOpe")
 //                .logConfig());
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {

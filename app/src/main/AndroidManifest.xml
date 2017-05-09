@@ -26,7 +26,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
             <intent-filter>
-                <data android:scheme="sugo.a18a1b870f7b5ee6e74fca827a2a1d4d"/>
+                <data android:scheme="sugo.9fbd17211289e00c9f8e9254e9e3df07"/>
 
                 <action android:name="android.intent.action.VIEW"/>
 
@@ -45,8 +45,8 @@
             tools:replace="screenOrientation"/>
 
         <!--<meta-data-->
-        <!--android:name="io.sugo.android.SGConfig.UpdateDecideInterval"-->
-        <!--android:value="10000"/>-->
+            <!--android:name="io.sugo.android.SGConfig.UpdateDecideInterval"-->
+            <!--android:value="10000"/>-->
 
         <meta-data
             android:name="io.sugo.android.SGConfig.EnableDebugLogging"
@@ -56,19 +56,19 @@
             android:name="io.sugo.android.SGConfig.ResourcePackageName"
             android:value="io.sugo.sdkdemo"/>
 
-        <!--<meta-data-->
-        <!--android:name="io.sugo.android.SGConfig.EditorUrl"-->
-        <!--android:value="ws://dev220.sugo.net:8887/connect/"/>-->
-        <!--<meta-data-->
-        <!--android:name="io.sugo.android.SGConfig.DecideEndpoint"-->
-        <!--android:value="http://dev220.sugo.net:8000/api/sdk/decide"/>-->
-
         <meta-data
             android:name="io.sugo.android.SGConfig.EditorUrl"
-            android:value="ws://58.63.110.97:8887/connect/"/>
+            android:value="ws://192.168.0.212:8887/connect/"/>
         <meta-data
             android:name="io.sugo.android.SGConfig.DecideEndpoint"
-            android:value="http://astro.sugo.io/api/sdk/decide"/>
+            android:value="http://192.168.0.212:8000/api/sdk/decide"/>
+
+        <!--<meta-data-->
+        <!--android:name="io.sugo.android.SGConfig.EditorUrl"-->
+        <!--android:value="ws://58.63.110.97:8887/connect/"/>-->
+        <!--<meta-data-->
+        <!--android:name="io.sugo.android.SGConfig.DecideEndpoint"-->
+        <!--android:value="http://astro.sugo.io/api/sdk/decide"/>-->
 
         <activity android:name=".activity.PrivateFuncActivity">
         </activity>

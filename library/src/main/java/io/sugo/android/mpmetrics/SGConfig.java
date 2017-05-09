@@ -238,6 +238,9 @@ public class SGConfig {
         mProjectId = projectId;
         mEventsEndpoint = eventsEndpoint;
 
+        // 默认开启【页面事件】
+        mEnablePageEvent = metaData.getBoolean("io.sugo.android.SGConfig.EnablePageEvent", true);
+
         String eventsFallbackEndpoint = metaData.getString("io.sugo.android.SGConfig.EventsFallbackEndpoint");
         if (null == eventsFallbackEndpoint) {
             eventsFallbackEndpoint = "http://api.mixpanel.com/track?ip=1";
@@ -295,6 +298,11 @@ public class SGConfig {
         return this;
     }
 
+    public SGConfig enablePageEvent(boolean enable) {
+        mEnablePageEvent = enable;
+        return this;
+    }
+
     public SGConfig logConfig() {
         if (DEBUG) {
             Log.v(LOGTAG,
@@ -319,10 +327,15 @@ public class SGConfig {
                             "    PeopleFallbackEndpoint " + getPeopleFallbackEndpoint() + "\n" +
                             "    DecideFallbackEndpoint " + getDecideFallbackEndpoint() + "\n" +
                             "    EditorUrl " + getEditorUrl() + "\n" +
-                            "    DisableDecideChecker " + getDisableDecideChecker() + "\n"
+                            "    DisableDecideChecker " + getDisableDecideChecker() + "\n" +
+                            "    EnablePageEvent " + isEnablePageEvent() + "\n"
             );
         }
         return this;
+    }
+
+    public boolean isEnablePageEvent() {
+        return mEnablePageEvent;
     }
 
     public long getUpdateDecideInterval() {
@@ -529,6 +542,7 @@ public class SGConfig {
     private final String[] mDisableViewCrawlerForProjects;
     private String mProjectId;
     private String mEventsEndpoint;
+    private boolean mEnablePageEvent;
     private final String mEventsFallbackEndpoint;
     private final String mPeopleEndpoint;
     private final String mPeopleFallbackEndpoint;
