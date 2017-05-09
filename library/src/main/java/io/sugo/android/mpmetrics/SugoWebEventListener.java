@@ -123,7 +123,9 @@ public class SugoWebEventListener {
         for (WebView removeWV : removeWebViews) {
             sCurrentWebView.remove(removeWV);
             sugoWNReporter.remove(removeWV);
-            removeWV.loadUrl("javascript:" + sStayScript);
+            if(SGConfig.getInstance(removeWV.getContext()).isEnablePageEvent()) {
+                removeWV.loadUrl("javascript:" + sStayScript);
+            }
             if (SGConfig.DEBUG) {
                 Log.d("SugoWebEventListener", "removeWebViewReference : " + removeWV.toString());
             }
