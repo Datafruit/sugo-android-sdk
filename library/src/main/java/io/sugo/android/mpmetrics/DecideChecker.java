@@ -106,7 +106,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
             int newEventBindingVersion;
             try {
                 response = new JSONObject(responseString);
-                newEventBindingVersion = response.getInt("event_bindings_version");
+                newEventBindingVersion = response.optInt("event_bindings_version", 0);
                 SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + token, Context.MODE_PRIVATE);
                 int oldEventBindingVersion = preferences.getInt(ViewCrawler.SP_EVENT_BINDING_VERSION, -1);
                 if (newEventBindingVersion <= oldEventBindingVersion) {
