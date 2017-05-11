@@ -29,8 +29,8 @@ import io.sugo.android.mpmetrics.SugoAPI;
  */
 /* package */ class DynamicEventTracker implements ViewVisitor.OnEventListener {
 
-    public DynamicEventTracker(SugoAPI mixpanel, Handler homeHandler) {
-        mSugo = mixpanel;
+    public DynamicEventTracker(SugoAPI sugoAPI, Handler homeHandler) {
+        mSugo = sugoAPI;
         mDebouncedEvents = new HashMap<Signature, UnsentEvent>();
         mTask = new SendDebouncedTask();
         mHandler = homeHandler;

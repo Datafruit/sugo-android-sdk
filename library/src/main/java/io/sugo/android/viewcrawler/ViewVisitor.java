@@ -3,6 +3,7 @@ package io.sugo.android.viewcrawler;
 import android.annotation.TargetApi;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.GradientDrawable;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -395,13 +396,17 @@ import io.sugo.android.mpmetrics.SGConfig;
 
         @Override
         public void accumulate(View found) {
-//            GradientDrawable gradientDrawable = new GradientDrawable(GradientDrawable.Orientation.BL_TR,
-//                    new int[]{0x99FF3300, 0x66bb6633});
-//            gradientDrawable.setShape(GradientDrawable.OVAL);
-//            gradientDrawable.setGradientRadius(Math.min(found.getWidth() / 2, found.getHeight() / 2));
-//            gradientDrawable.setGradientType(GradientDrawable.RADIAL_GRADIENT);
-//
-//            found.setForeground(gradientDrawable);
+            if (SugoHeatMap.isShowHeatMap()) {
+                int startColor = SugoHeatMap.getEventHeat(mEvenId);
+                int endColor = SugoHeatMap.sColdColor;
+                GradientDrawable gradientDrawable = new GradientDrawable(GradientDrawable.Orientation.BL_TR,
+                        new int[]{startColor, startColor, endColor});
+                gradientDrawable.setShape(GradientDrawable.OVAL);
+                gradientDrawable.setGradientRadius(Math.min(found.getWidth() / 2, found.getHeight() / 2));
+                gradientDrawable.setGradientType(GradientDrawable.RADIAL_GRADIENT);
+
+                found.setForeground(gradientDrawable);
+            }
             final View.AccessibilityDelegate realDelegate = getOldDelegate(found);
             if (realDelegate instanceof TrackingAccessibilityDelegate) {
                 final TrackingAccessibilityDelegate currentTracker = (TrackingAccessibilityDelegate) realDelegate;
@@ -639,9 +644,9 @@ import io.sugo.android.mpmetrics.SGConfig;
         }
 
         private final OnEventListener mListener;
-        private final String mEventName;
+        protected final String mEventName;
         private final Map<String, List<Pathfinder.PathElement>> mDimMap;
-        private final String mEvenId;
+        protected final String mEvenId;
         private final boolean mDebounce;
         private String mEventTypeString;
     }

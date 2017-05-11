@@ -432,6 +432,10 @@ public class SGConfig {
         return mDecideEndpoint;
     }
 
+    public String getHeatMapEndpoint(){
+        return null;
+    }
+
     public String getWebRoot() {
         if (webRoot == null || webRoot.equals(""))
             webRoot = " ";
