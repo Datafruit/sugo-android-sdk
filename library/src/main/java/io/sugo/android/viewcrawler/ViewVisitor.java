@@ -402,7 +402,7 @@ import io.sugo.android.mpmetrics.SGConfig;
                 GradientDrawable gradientDrawable = new GradientDrawable(GradientDrawable.Orientation.BL_TR,
                         new int[]{startColor, startColor, endColor});
                 gradientDrawable.setShape(GradientDrawable.OVAL);
-                gradientDrawable.setGradientRadius(Math.min(found.getWidth() / 2, found.getHeight() / 2));
+                gradientDrawable.setGradientRadius(Math.max(found.getWidth() / 2, found.getHeight() / 2));
                 gradientDrawable.setGradientType(GradientDrawable.RADIAL_GRADIENT);
 
                 found.setForeground(gradientDrawable);
