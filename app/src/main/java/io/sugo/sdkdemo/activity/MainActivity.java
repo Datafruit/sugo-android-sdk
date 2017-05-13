@@ -62,8 +62,8 @@ public class MainActivity extends AppCompatActivity {
 //        SugoAPI.setSuperPropertiesBeforeStartSugo(this, "key", "value");
 
         SugoAPI.startSugo(this, SGConfig.getInstance(this)
-                .setToken("9fbd17211289e00c9f8e9254e9e3df07")
-                .setProjectId("com_HyoaKhQMl_project_SkQZAlJgb")
+                .setToken("c6749a4f1ef039ca196148ed1cb65d87")
+                .setProjectId("com_HyoaKhQMl_project_B1Nycjsne")
                 .enablePageEvent(true)
                 .logConfig());
 

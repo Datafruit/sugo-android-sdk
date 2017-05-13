@@ -26,7 +26,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
             <intent-filter>
-                <data android:scheme="sugo.9fbd17211289e00c9f8e9254e9e3df07"/>
+                <data android:scheme="sugo.c6749a4f1ef039ca196148ed1cb65d87"/>
 
                 <action android:name="android.intent.action.VIEW"/>
 
@@ -58,10 +58,13 @@
 
         <meta-data
             android:name="io.sugo.android.SGConfig.EditorUrl"
-            android:value="ws://192.168.0.212:8887/connect/"/>
+            android:value="ws://192.168.0.62:8887/connect/"/>
         <meta-data
             android:name="io.sugo.android.SGConfig.DecideEndpoint"
-            android:value="http://192.168.0.212:8000/api/sdk/decide"/>
+            android:value="http://192.168.0.62:8080/api/sdk/decide"/>
+        <meta-data
+            android:name="io.sugo.android.SGConfig.HeatMapEndpoint"
+            android:value="http://192.168.0.62:8080/api/sdk/heat"/>
 
         <!--<meta-data-->
         <!--android:name="io.sugo.android.SGConfig.EditorUrl"-->

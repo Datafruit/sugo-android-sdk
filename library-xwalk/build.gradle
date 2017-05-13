@@ -9,7 +9,7 @@ android {
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 25
-        versionCode 2
+        versionCode 3
         versionName "2.1.0"
     }
     buildTypes {
@@ -27,7 +27,10 @@ repositories {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'io.sugo.android:sugo-android-sdk:2.1.0'
-    compile 'org.xwalk:xwalk_core_library:22.52.561.4'
+    compile (project(':library')){
+        exclude group:'com.android.support'
+    }
+    compile ('org.xwalk:xwalk_core_library:22.52.561.4'){
+        exclude group:'com.android.support'
+    }
 }

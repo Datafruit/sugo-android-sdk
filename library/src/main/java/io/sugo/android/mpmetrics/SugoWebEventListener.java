@@ -17,6 +17,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import io.sugo.android.viewcrawler.SugoHeatMap;
+
 /**
  * Created by fengxj on 11/7/16.
  */
@@ -64,6 +66,17 @@ public class SugoWebEventListener {
         sugoAPI.timeEvent(eventName);
     }
 
+    @JavascriptInterface
+    public boolean isShowHeatMap() {
+        return SugoHeatMap.isShowHeatMap();
+    }
+
+    @JavascriptInterface
+    public int getEventHeatColor(String eventId) {
+        return SugoHeatMap.getEventHeat(eventId);
+    }
+
+
     public static void bindEvents(String token, JSONArray eventBindings) {
         eventBindingsMap.put(token, eventBindings);
         if (SugoAPI.developmentMode) {      // 只在连接编辑器模式下操作
@@ -85,7 +98,7 @@ public class SugoWebEventListener {
 
     }
 
-    protected static void updateWebViewInject() {
+    public static void updateWebViewInject() {
         Iterator<WebView> webViewIterator = sCurrentWebView.iterator();
         while (webViewIterator.hasNext()) {
             final WebView webView = webViewIterator.next();
@@ -123,7 +136,7 @@ public class SugoWebEventListener {
         for (WebView removeWV : removeWebViews) {
             sCurrentWebView.remove(removeWV);
             sugoWNReporter.remove(removeWV);
-            if(SGConfig.getInstance(removeWV.getContext()).isEnablePageEvent()) {
+            if (SGConfig.getInstance(removeWV.getContext()).isEnablePageEvent()) {
                 removeWV.loadUrl("javascript:" + sStayScript);
             }
             if (SGConfig.DEBUG) {

@@ -24,7 +24,7 @@ import java.lang.reflect.Method;
  * Abstracts away possibly non-present system information classes,
  * and handles permission-dependent queries for default system information.
  */
-/* package */ class SystemInformation {
+public class SystemInformation {
 
     public SystemInformation(Context context) {
         mContext = context;

@@ -43,6 +43,20 @@ public class SugoXWalkViewEventListener extends SugoWebEventListener {
         super.timeEvent(eventName);
     }
 
+    @Override
+    @JavascriptInterface
+    @org.xwalk.core.JavascriptInterface
+    public boolean isShowHeatMap() {
+        return super.isShowHeatMap();
+    }
+
+    @Override
+    @JavascriptInterface
+    @org.xwalk.core.JavascriptInterface
+    public int getEventHeatColor(String eventId) {
+        return super.getEventHeatColor(eventId);
+    }
+
     public static void bindEvents(String token, JSONArray eventBindings) {
 //        eventBindingsMap.put(token, eventBindings);
         if (SugoAPI.developmentMode) {      // 只在连接编辑器模式下操作
