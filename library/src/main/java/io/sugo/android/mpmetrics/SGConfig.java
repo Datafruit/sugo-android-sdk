@@ -225,6 +225,7 @@ public class SGConfig {
         mAutoShowMixpanelUpdates = surveysAutoCheck && mixpanelUpdatesAutoShow;
 
         mTestMode = metaData.getBoolean("io.sugo.android.SGConfig.TestMode", false);
+        mHeatMapEndpoint = metaData.getString("io.sugo.android.SGConfig.HeatMapEndpoint");
 
         String eventsEndpoint = metaData.getString("io.sugo.android.SGConfig.EventsEndpoint");
         String projectId = metaData.getString("io.sugo.android.SGConfig.ProjectId");
@@ -433,7 +434,7 @@ public class SGConfig {
     }
 
     public String getHeatMapEndpoint(){
-        return null;
+        return mHeatMapEndpoint;
     }
 
     public String getWebRoot() {
@@ -562,6 +563,7 @@ public class SGConfig {
     // Mutable, with synchronized accessor and mutator
     private SSLSocketFactory mSSLSocketFactory;
     private OfflineMode mOfflineMode;
+    private String mHeatMapEndpoint;
 
     private static SGConfig sInstance;
     private static final Object sInstanceLock = new Object();

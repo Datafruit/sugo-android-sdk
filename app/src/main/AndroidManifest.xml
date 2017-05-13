@@ -62,6 +62,9 @@
         <meta-data
             android:name="io.sugo.android.SGConfig.DecideEndpoint"
             android:value="http://192.168.0.62:8080/api/sdk/decide"/>
+        <meta-data
+            android:name="io.sugo.android.SGConfig.HeatMapEndpoint"
+            android:value="http://192.168.0.62:8080/api/sdk/heat"/>
 
         <!--<meta-data-->
         <!--android:name="io.sugo.android.SGConfig.EditorUrl"-->

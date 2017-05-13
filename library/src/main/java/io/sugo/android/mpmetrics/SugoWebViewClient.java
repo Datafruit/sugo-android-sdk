@@ -365,13 +365,11 @@ public class SugoWebViewClient extends WebViewClient {
             "    }\n" +
             "\n" +
             "    sugo.showHeatMap = function () {\n" +
-            "\n" +
             "        let isShowHeatMap = window.sugoEventListener.isShowHeatMap();\n" +
             "        console.log('isShowHeatMap:' + isShowHeatMap);\n" +
             "        if (!isShowHeatMap) {\n" +
             "            return;\n" +
             "        }\n" +
-            "\n" +
             "        const pathsOfCurrentEventBindings = Object.keys(sugo.current_event_bindings);\n" +
             "        for (let idx = 0; idx < pathsOfCurrentEventBindings.length; idx++) {\n" +
             "            const path_str = pathsOfCurrentEventBindings[idx];\n" +
@@ -401,10 +399,9 @@ public class SugoWebViewClient extends WebViewClient {
             "            let eles = document.querySelectorAll(path);\n" +
             "            if (eles && event.heatColor) {\n" +
             "                let color = event.heatColor;\n" +
-            "                let r_color = (color >> 4) & 0xff;\n" +
-            "                let g_color = (color >> 2) & 0xff;\n" +
-            "                let b_color = color & 0xff;\n" +
-            "                console.log(event + \"==\" + 'r:' + r_color + '  g:' + g_color + \"  b:\" + b_color + '\\n');\n" +
+            "                let r_color = (color >> 4) & 0x000000ff;\n" +
+            "                let g_color = (color >> 2) & 0x000000ff;\n" +
+            "                let b_color = color & 0x000000ff;\n" +
             "\n" +
             "                for (let index = 0; index < eles.length; index++) {\n" +
             "                    let div = document.createElement('div');\n" +

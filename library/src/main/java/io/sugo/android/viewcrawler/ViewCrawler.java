@@ -416,8 +416,8 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                     case MESSAGE_GET_HEAT_MAP_DATA:
                         // 热图模式下，无需再次热图
                         if (!SugoHeatMap.isShowHeatMap()) {
-                            String heatmapData =null;// getHeatMapData();
-                            heatmapData = "{\"heat_map\":{\"46afa1e5-c105-4f49-89ba-b536e50cbd9a\":100,\"393002c6-d88e-4687-a216-74eee70fc360\":100,\"be50c91b-dc2f-4bae-8c60-0b04717d538b\":100,\"eadaf101-7fce-4a64-96de-75e0d4f21dbd\":100,\"d436d921-d194-47a4-af29-d14d3643597c\":100}}";
+                            String heatmapData = getHeatMapData();
+//                            heatmapData = "{\"heat_map\":{\"46afa1e5-c105-4f49-89ba-b536e50cbd9a\":100,\"393002c6-d88e-4687-a216-74eee70fc360\":100,\"be50c91b-dc2f-4bae-8c60-0b04717d538b\":100,\"eadaf101-7fce-4a64-96de-75e0d4f21dbd\":100,\"d436d921-d194-47a4-af29-d14d3643597c\":100}}";
                             handleHeatMapData(heatmapData);
                         }
                         break;
