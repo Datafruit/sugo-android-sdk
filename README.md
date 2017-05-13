@@ -323,4 +323,33 @@ sugoAPI.registerSuperProperties(props);
 
 ---
 
+### 3.2 热图
+
+1 设置热图数据请求 Endpoint ,例如
+
+```xml
+    <meta-data
+        android:name="io.sugo.android.SGConfig.HeatMapEndpoint"
+        android:value="http://192.168.0.62:8080/api/sdk/heat"/>
+```
+
+2 在启动的 Activity 上，配置
+
+```
+    <intent-filter>
+        <data android:scheme="sugo.c6749a4f1ef039ca196148ed1cb65d87"/>
+
+        <action android:name="android.intent.action.VIEW"/>
+
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+    </intent-filter>
+```
+
+在控制台网页点击【埋点热图】，使用浏览器扫描二维码，跳转到该App，即可进入热图模式。
+
+> 1 进入热图模式后，热图模式将一直存在，只有 kill 掉 App 进程才会退出
+> 2 在热图模式中，无法进入可视化埋点，反之，在可视化埋点模式时，无法进入热图
+
+
 ## 4 Q&A
