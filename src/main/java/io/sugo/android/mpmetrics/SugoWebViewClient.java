@@ -191,9 +191,11 @@ public class SugoWebViewClient extends WebViewClient {
             "};\n";
 
     private static String trackJS = "(function (sugo) {\n" +
-            "    if (window.sugo) {\n" +
-            "        var duration = (new Date().getTime() - sugo.enter_time) / 1000;\n" +
-            "        var tmp_props = JSON.parse(JSON.stringify(sugo.view_props));\n" +
+            "    sugo.enable_page_event = true;\n" +
+            "\n" +
+            "    if (window.sugo && sugo.enable_page_event) {\n" +
+            "        const duration = (new Date().getTime() - sugo.enter_time) / 1000;\n" +
+            "        let tmp_props = JSON.parse(JSON.stringify(sugo.view_props));\n" +
             "        tmp_props.duration = duration;\n" +
             "        sugo.track('停留', tmp_props);\n" +
             "    }\n" +
@@ -235,19 +237,21 @@ public class SugoWebViewClient extends WebViewClient {
             "\n" +
             "    if (sugo.init.code) {\n" +
             "        try {\n" +
-            "            var init_code = new Function('sugo', sugo.init.code);\n" +
+            "            let init_code = new Function('sugo', sugo.init.code);\n" +
             "            init_code(sugo);\n" +
             "        } catch (e) {\n" +
             "            console.log(sugo.init.code);\n" +
             "        }\n" +
             "    }\n" +
-            "    sugo.track('浏览', sugo.view_props);\n" +
+            "    if (sugo.enable_page_event) {\n" +
+            "        sugo.track('浏览', sugo.view_props);\n" +
+            "    }\n" +
             "    sugo.enter_time = new Date().getTime();\n" +
             "\n" +
-            "    if (!window.sugo) {\n" +
+            "    if (!window.sugo && sugo.enable_page_event) {\n" +
             "        window.addEventListener('unload', function (e) {\n" +
-            "            var duration = (new Date().getTime() - sugo.enter_time) / 1000;\n" +
-            "            var tmp_props = JSON.parse(JSON.stringify(sugo.view_props));\n" +
+            "            const duration = (new Date().getTime() - sugo.enter_time) / 1000;\n" +
+            "            let tmp_props = JSON.parse(JSON.stringify(sugo.view_props));\n" +
             "            tmp_props.duration = duration;\n" +
             "            sugo.track('停留', tmp_props);\n" +
             "        });\n" +
@@ -256,10 +260,10 @@ public class SugoWebViewClient extends WebViewClient {
             "    sugo.current_page = '$sugo_activity_name$::' + sugo.relative_path;\n" +
             "    sugo.h5_event_bindings = $sugo_h5_event_bindings$;\n" +
             "    sugo.current_event_bindings = {};\n" +
-            "    for (var i = 0; i < sugo.h5_event_bindings.length; i++) {\n" +
-            "        var b_event = sugo.h5_event_bindings[i];\n" +
+            "    for (let i = 0; i < sugo.h5_event_bindings.length; i++) {\n" +
+            "        let b_event = sugo.h5_event_bindings[i];\n" +
             "        if (b_event.target_activity === sugo.current_page) {\n" +
-            "            var key = JSON.stringify(b_event.path);\n" +
+            "            let key = JSON.stringify(b_event.path);\n" +
             "            sugo.current_event_bindings[key] = b_event;\n" +
             "        }\n" +
             "    }\n" +
@@ -269,16 +273,15 @@ public class SugoWebViewClient extends WebViewClient {
             "    };\n" +
             "\n" +
             "    sugo.handleNodeChild = function (childrens, jsonArry, parent_path) {\n" +
-            "        var index_map = {};\n" +
-            "        for (var i = 0; i < childrens.length; i++) {\n" +
-            "            var children = childrens[i];\n" +
-            "            var path = UTILS.cssPath(children);\n" +
-            "            var htmlNode = {};\n" +
+            "        for (let i = 0; i < childrens.length; i++) {\n" +
+            "            let children = childrens[i];\n" +
+            "            let path = UTILS.cssPath(children);\n" +
+            "            let htmlNode = {};\n" +
             "            htmlNode.innerText = children.innerText;\n" +
             "            htmlNode.path = path;\n" +
-            "            var rect = children.getBoundingClientRect();\n" +
+            "            const rect = children.getBoundingClientRect();\n" +
             "            if (sugo.isElementInViewport(rect) == true) {\n" +
-            "                var temp_rect = {\n" +
+            "                let temp_rect = {\n" +
             "                    top: rect.top,\n" +
             "                    left: rect.left,\n" +
             "                    width: rect.width,\n" +
@@ -294,10 +297,10 @@ public class SugoWebViewClient extends WebViewClient {
             "    };\n" +
             "\n" +
             "    sugo.reportNodes = function () {\n" +
-            "        var jsonArry = [];\n" +
-            "        var body = document.getElementsByTagName('body')[0];\n" +
-            "        var childrens = body.children;\n" +
-            "        var parent_path = '';\n" +
+            "        let jsonArry = [];\n" +
+            "        let body = document.getElementsByTagName('body')[0];\n" +
+            "        let childrens = body.children;\n" +
+            "        let parent_path = '';\n" +
             "        sugo.clientWidth = (window.innerWidth || document.documentElement.clientWidth);\n" +
             "        sugo.clientHeight = (window.innerHeight || document.documentElement.clientHeight);\n" +
             "        sugo.handleNodeChild(childrens, jsonArry, parent_path);\n" +
@@ -308,31 +311,31 @@ public class SugoWebViewClient extends WebViewClient {
             "\n" +
             "    sugo.delegate = function (eventType) {\n" +
             "        function handle(e) {\n" +
-            "            var evt = window.event ? window.event : e;\n" +
-            "            var target = evt.target || evt.srcElement;\n" +
-            "            var currentTarget = e ? e.currentTarget : this;\n" +
-            "            var paths = Object.keys(sugo.current_event_bindings);\n" +
-            "            for (var idx = 0; idx < paths.length; idx++) {\n" +
-            "                var path_str = paths[idx];\n" +
-            "                var event = sugo.current_event_bindings[path_str];\n" +
+            "            let evt = window.event ? window.event : e;\n" +
+            "            let target = evt.target || evt.srcElement;\n" +
+            "            let currentTarget = e ? e.currentTarget : this;\n" +
+            "            let paths = Object.keys(sugo.current_event_bindings);\n" +
+            "            for (let idx = 0; idx < paths.length; idx++) {\n" +
+            "                let path_str = paths[idx];\n" +
+            "                let event = sugo.current_event_bindings[path_str];\n" +
             "                if (event.event_type != eventType) {\n" +
             "                    continue;\n" +
             "                }\n" +
-            "                var path = event.path.path;\n" +
+            "                let path = event.path.path;\n" +
             "                if (event.similar === true) {\n" +
             "                    path = path.replace(/:nth-child\\([0-9]*\\)/g, '');\n" +
             "                }\n" +
-            "                var eles = document.querySelectorAll(path);\n" +
+            "                let eles = document.querySelectorAll(path);\n" +
             "                if (eles) {\n" +
-            "                    for (var eles_idx = 0; eles_idx < eles.length; eles_idx++) {\n" +
-            "                        var ele = eles[eles_idx];\n" +
-            "                        var parentNode = target;\n" +
+            "                    for (let eles_idx = 0; eles_idx < eles.length; eles_idx++) {\n" +
+            "                        let ele = eles[eles_idx];\n" +
+            "                        let parentNode = target;\n" +
             "                        while (parentNode) {\n" +
             "                            if (parentNode === ele) {\n" +
-            "                                var custom_props = {};\n" +
+            "                                let custom_props = {};\n" +
             "                                if (event.code && event.code.replace(/(^\\s*)|(\\s*$)/g, '') != '') {\n" +
             "                                    try {\n" +
-            "                                        var sugo_props = new Function('e', 'element', 'conf', 'instance', event.code);\n" +
+            "                                        let sugo_props = new Function('e', 'element', 'conf', 'instance', event.code);\n" +
             "                                        custom_props = sugo_props(e, ele, event, sugo);\n" +
             "                                    } catch (e) {\n" +
             "                                        console.log(event.code);\n" +
@@ -362,6 +365,68 @@ public class SugoWebViewClient extends WebViewClient {
             "\n" +
             "    if (!window.sugo) {\n" +
             "        sugo.bindEvent();\n" +
+            "    }\n" +
+            "\n" +
+            "    sugo.showHeatMap = function () {\n" +
+            "        let isShowHeatMap = window.sugoEventListener.isShowHeatMap();\n" +
+            "        if (!isShowHeatMap) {\n" +
+            "            return;\n" +
+            "        }\n" +
+            "        const pathsOfCurrentEventBindings = Object.keys(sugo.current_event_bindings);\n" +
+            "        for (let idx = 0; idx < pathsOfCurrentEventBindings.length; idx++) {\n" +
+            "            const path_str = pathsOfCurrentEventBindings[idx];\n" +
+            "            let event = sugo.current_event_bindings[path_str];\n" +
+            "            let eventId = event.event_id;\n" +
+            "            let heatColor = window.sugoEventListener.getEventHeatColor(eventId);\n" +
+            "            event.heatColor = heatColor;\n" +
+            "        }\n" +
+            "\n" +
+            "        let idOfHeatMap = 'sugo_heat_map';\n" +
+            "        let defaultZIndex = 1000;\n" +
+            "        let hmDiv = document.getElementById(idOfHeatMap);\n" +
+            "        if (hmDiv) {\n" +
+            "            document.body.removeChild(document.getElementById(idOfHeatMap));\n" +
+            "        }\n" +
+            "        hmDiv = document.createElement('div');\n" +
+            "        hmDiv.id = idOfHeatMap;\n" +
+            "        hmDiv.style.position = 'absolute';\n" +
+            "        hmDiv.style.pointerEvents = 'none';\n" +
+            "        hmDiv.style.top = '0px';\n" +
+            "        hmDiv.style.left = '0px';\n" +
+            "        document.body.appendChild(hmDiv);\n" +
+            "        for (let i = 0; i < pathsOfCurrentEventBindings.length; i++) {\n" +
+            "            const path_str = pathsOfCurrentEventBindings[i];\n" +
+            "            let event = sugo.current_event_bindings[path_str];\n" +
+            "            const path = event.path.path;\n" +
+            "            let eles = document.querySelectorAll(path);\n" +
+            "            if (eles && event.heatColor) {\n" +
+            "                let color = event.heatColor;\n" +
+            "                let r_color = (color >> 4) & 0x000000ff;\n" +
+            "                let g_color = (color >> 2) & 0x000000ff;\n" +
+            "                let b_color = color & 0x000000ff;\n" +
+            "\n" +
+            "                for (let index = 0; index < eles.length; index++) {\n" +
+            "                    let div = document.createElement('div');\n" +
+            "                    div.id = event.event_id;\n" +
+            "                    div.style.position = 'absolute';\n" +
+            "                    div.style.pointerEvents = 'none';\n" +
+            "                    div.style.opacity = 0.8;\n" +
+            "                    let z = eles[index].style.zIndex;\n" +
+            "                    div.style.zIndex = z ? parseInt(z) + 1 : defaultZIndex;\n" +
+            "                    let rect = eles[index].getBoundingClientRect();\n" +
+            "                    div.style.top = rect.top + 'px';\n" +
+            "                    div.style.left = rect.left + 'px';\n" +
+            "                    div.style.width = rect.width + 'px';\n" +
+            "                    div.style.height = rect.height + 'px';\n" +
+            "                    div.style.background = `radial-gradient(rgb(${r_color}, ${g_color}, ${b_color}), white)`;\n" +
+            "                    hmDiv.appendChild(div);\n" +
+            "                }\n" +
+            "            }\n" +
+            "        }\n" +
+            "    };\n" +
+            "\n" +
+            "    if (sugo.showHeatMap) {\n" +
+            "        sugo.showHeatMap();\n" +
             "    }\n" +
             "\n" +
             "    window.sugo = sugo;\n" +
