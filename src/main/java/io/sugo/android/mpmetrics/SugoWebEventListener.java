@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import io.sugo.android.viewcrawler.SugoHeatMap;
+
 /**
  * Created by fengxj on 11/7/16.
  */
@@ -83,6 +85,19 @@ public class SugoWebEventListener {
         }
     }
 
+    @JavascriptInterface
+    @org.xwalk.core.JavascriptInterface
+    public boolean isShowHeatMap() {
+        return SugoHeatMap.isShowHeatMap();
+    }
+
+    @JavascriptInterface
+    @org.xwalk.core.JavascriptInterface
+    public int getEventHeatColor(String eventId) {
+        return SugoHeatMap.getEventHeat(eventId);
+    }
+
+
     public static JSONArray getBindEvents(String token) {
         return eventBindingsMap.get(token);
     }
@@ -105,7 +120,7 @@ public class SugoWebEventListener {
 
     }
 
-    private static void updateWebViewInject() {
+    public static void updateWebViewInject() {
         Iterator<WebView> webViewIterator = sCurrentWebView.iterator();
         while (webViewIterator.hasNext()) {
             final WebView webView = webViewIterator.next();
@@ -125,7 +140,7 @@ public class SugoWebEventListener {
         }
     }
 
-    private static void updateXWalkViewInject() {
+    public static void updateXWalkViewInject() {
         Iterator<XWalkView> viewIterator = sCurrentXWalkView.iterator();
         while (viewIterator.hasNext()) {
             final XWalkView xWalkView = viewIterator.next();

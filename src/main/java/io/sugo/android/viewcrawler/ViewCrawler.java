@@ -24,12 +24,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -52,9 +56,12 @@ import io.sugo.android.mpmetrics.SugoDimensionManager;
 import io.sugo.android.mpmetrics.SugoPageManager;
 import io.sugo.android.mpmetrics.SugoWebEventListener;
 import io.sugo.android.mpmetrics.SuperPropertyUpdate;
+import io.sugo.android.mpmetrics.SystemInformation;
 import io.sugo.android.mpmetrics.Tweaks;
+import io.sugo.android.util.HttpService;
 import io.sugo.android.util.ImageStore;
 import io.sugo.android.util.JSONUtils;
+import io.sugo.android.util.RemoteService;
 
 /**
  * This class is for internal use by the Mixpanel API, and should
@@ -179,24 +186,36 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
         mMessageThreadHandler.sendMessage(m);
     }
 
-    public void sendConnectEditor(Uri data) {
+    public void sendConnectEditor(Uri uri) {
         if (mMessageThreadHandler != null) {
-            if (data != null) {
-                String host = data.getHost();
+            if (uri != null) {
+                String host = uri.getHost();
                 if (host == null) {
                     return;
                 }
+                int msgWhat = -1;
                 // 解析浏览器扫描二维码跳转应用的uri
                 if (host.equals("sugo")) {
-                    secretKey = data.getQueryParameter("sKey");
-                    final Message message = mMessageThreadHandler.obtainMessage(MESSAGE_CONNECT_TO_EDITOR);
+                    secretKey = uri.getQueryParameter("sKey");
+                    scanUrlType = uri.getQueryParameter("type");
+                    if (scanUrlType != null && scanUrlType.equals("heatmap")) {
+                        msgWhat = MESSAGE_GET_HEAT_MAP_DATA;
+                    } else {
+                        msgWhat = MESSAGE_CONNECT_TO_EDITOR;
+                    }
+                    final Message message = mMessageThreadHandler.obtainMessage(msgWhat);
                     mMessageThreadHandler.sendMessage(message);
                 } else {    // 解析应用内部扫描二维码获取的链接
                     try {
-                        String token = data.getQueryParameter("token");
+                        String token = uri.getQueryParameter("token");
                         if (token != null && token.equals(SGConfig.getInstance(mContext).getToken())) {
-                            secretKey = data.getQueryParameter("sKey");
-                            final Message message = mMessageThreadHandler.obtainMessage(MESSAGE_CONNECT_TO_EDITOR);
+                            secretKey = uri.getQueryParameter("sKey");
+                            if (uri.getPath().equals("/heat")) {
+                                msgWhat = MESSAGE_GET_HEAT_MAP_DATA;
+                            } else {
+                                msgWhat = MESSAGE_CONNECT_TO_EDITOR;
+                            }
+                            final Message message = mMessageThreadHandler.obtainMessage(msgWhat);
                             mMessageThreadHandler.sendMessage(message);
                         }
                     } catch (Exception e) {
@@ -264,13 +283,8 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
             mEditState.add(activity);
             Uri data = activity.getIntent().getData();
             if (data != null) {
-                String host = data.getHost();
-                if (host != null && host.equals("sugo")) {
-                    secretKey = data.getQueryParameter("sKey");
-                    final Message message = mMessageThreadHandler.obtainMessage(MESSAGE_CONNECT_TO_EDITOR);
-                    mMessageThreadHandler.sendMessage(message);
-                    activity.getIntent().setData(null);     // 防止未再次扫码却自动连接的情况
-                }
+                sendConnectEditor(data);
+                activity.getIntent().setData(null);     // 防止未再次扫码却自动连接的情况
             }
         }
 
@@ -383,8 +397,19 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                         loadKnownChanges();
                         initializeChanges();
                         break;
+                    case MESSAGE_GET_HEAT_MAP_DATA:
+                        // 热图模式下，无需再次热图
+                        // 可视化埋点模式下，不可进入热图
+                        if (!SugoHeatMap.isShowHeatMap() && (!SugoAPI.developmentMode)) {
+                            String heatmapData = getHeatMapData();
+                            handleHeatMapData(heatmapData);
+                        }
+                        break;
                     case MESSAGE_CONNECT_TO_EDITOR:
-                        connectToEditor();
+                        // 热图模式下无法埋点
+                        if (!SugoHeatMap.isShowHeatMap()) {
+                            connectToEditor();
+                        }
                         break;
                     case MESSAGE_SEND_DEVICE_INFO:
                         sendDeviceInfo();
@@ -537,6 +562,114 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
 
             applyVariantsAndEventBindings(emptyVariantIds);
         }
+
+
+        private String getHeatMapData() {
+            HttpService httpService = new HttpService();
+
+            SystemInformation mSystemInformation = new SystemInformation(mContext);
+            String unescapedDistinctId = SugoAPI.getInstance(mContext).getDistinctId();
+            final String escapedToken;
+            final String escapedId;
+            try {
+                escapedToken = URLEncoder.encode(mToken, "utf-8");
+                if (null != unescapedDistinctId) {
+                    escapedId = URLEncoder.encode(unescapedDistinctId, "utf-8");
+                } else {
+                    escapedId = null;
+                }
+            } catch (final UnsupportedEncodingException e) {
+                throw new RuntimeException("Sugo library requires utf-8 string encoding to be available", e);
+            }
+
+            final StringBuilder queryBuilder = new StringBuilder()
+                    .append("?version=1&lib=android&token=")
+                    .append(escapedToken)
+                    .append("&projectId=").append(SGConfig.getInstance(mContext).getProjectId());
+
+            SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + mToken, Context.MODE_PRIVATE);
+            int oldEventBindingVersion = preferences.getInt(ViewCrawler.SP_EVENT_BINDING_VERSION, -1);
+            queryBuilder.append("&event_bindings_version=").append(oldEventBindingVersion);
+
+            if (null != escapedId) {
+                queryBuilder.append("&distinct_id=").append(escapedId);
+            }
+
+            JSONObject properties = new JSONObject();
+            try {
+                String appVersion = URLEncoder.encode(mSystemInformation.getAppVersionName(), "utf-8");
+                queryBuilder.append("&app_version=").append(appVersion);
+
+                properties.putOpt("$android_lib_version", SGConfig.VERSION);
+                properties.putOpt("$android_app_version", mSystemInformation.getAppVersionName());
+                properties.putOpt("$android_version", Build.VERSION.RELEASE);
+                properties.putOpt("$android_app_release", mSystemInformation.getAppVersionCode());
+                properties.putOpt("$android_device_model", Build.MODEL);
+
+                queryBuilder.append("&properties=");
+                queryBuilder.append(URLEncoder.encode(properties.toString(), "utf-8"));
+            } catch (Exception e) {
+                Log.e(LOGTAG, "Exception constructing properties JSON", e.getCause());
+            }
+
+            final String checkQuery = queryBuilder.toString();
+            final String[] urls;
+            urls = new String[]{mConfig.getHeatMapEndpoint() + checkQuery};
+
+            if (SGConfig.DEBUG) {
+                Log.v(LOGTAG, "Querying heat map server, urls:");
+                for (int i = 0; i < urls.length; i++) {
+                    Log.v(LOGTAG, "    >> " + urls[i]);
+                }
+            }
+
+            try {
+                final byte[] response = getUrls(httpService, mContext, urls);
+                if (null == response) {
+                    return null;
+                }
+                return new String(response, "UTF-8");
+            } catch (final UnsupportedEncodingException e) {
+                throw new RuntimeException("UTF not supported on this platform?", e);
+            } catch (RemoteService.ServiceUnavailableException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        private byte[] getUrls(RemoteService poster, Context context, String[] urls)
+                throws RemoteService.ServiceUnavailableException {
+            final SGConfig config = SGConfig.getInstance(context);
+
+            if (!poster.isOnline(context, config.getOfflineMode())) {
+                return null;
+            }
+
+            byte[] response = null;
+            for (String url : urls) {
+                try {
+                    final SSLSocketFactory socketFactory = config.getSSLSocketFactory();
+                    response = poster.performRequest(url, null, socketFactory);
+                    break;
+                } catch (final MalformedURLException e) {
+                    Log.e(LOGTAG, "Cannot interpret " + url + " as a URL.", e);
+                } catch (final FileNotFoundException e) {
+                    if (SGConfig.DEBUG) {
+                        Log.v(LOGTAG, "Cannot get " + url + ", file not found.", e);
+                    }
+                } catch (final IOException e) {
+                    if (SGConfig.DEBUG) {
+                        Log.v(LOGTAG, "Cannot get " + url + ".", e);
+                    }
+                } catch (final OutOfMemoryError e) {
+                    Log.e(LOGTAG, "Out of memory when getting to " + url + ".", e);
+                    break;
+                }
+            }
+
+            return response;
+        }
+
 
         /**
          * Try to connect to the remote interactive editor, if a connection does not already exist.
@@ -880,6 +1013,13 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
             editor.apply();
 
             initializeChanges();
+        }
+
+        private void handleHeatMapData(String heatmapData) {
+            SugoHeatMap.setHeatMapData(mContext, heatmapData);
+            initializeChanges();
+            SugoWebEventListener.updateWebViewInject();
+            SugoWebEventListener.updateXWalkViewInject();
         }
 
         /**
@@ -1308,6 +1448,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
     }
 
     private String secretKey = null;
+    private String scanUrlType = null;
     private final SGConfig mConfig;
     private final Context mContext;
     private final SugoAPI mMixpanel;
@@ -1321,8 +1462,8 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
     private final List<OnMixpanelTweaksUpdatedListener> mTweaksUpdatedListeners;
 
     public static final String SHARED_PREF_EDITS_FILE = "mixpanel.viewcrawler.changes";
-    private static final String SHARED_PREF_CHANGES_KEY = "mixpanel.viewcrawler.changes";
-    private static final String SHARED_PREF_BINDINGS_KEY = "mixpanel.viewcrawler.bindings";
+    public static final String SHARED_PREF_CHANGES_KEY = "mixpanel.viewcrawler.changes";
+    public static final String SHARED_PREF_BINDINGS_KEY = "mixpanel.viewcrawler.bindings";
     public static final String SHARED_PREF_H5_BINDINGS_KEY = "mixpanel.viewcrawler.h5_bindings";
     public static final String SHARED_PREF_PAGE_INFO_KEY = "mixpanel.viewcrawler.page_info";
     public static final String SHARED_PREF_DIMENSIONS_KEY = "mixpanel.viewcrawler.dimensions";
@@ -1345,6 +1486,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
     private static final int MESSAGE_SEND_TEST_EVENT = 14;
     private static final int MESSAGE_HANDLE_PAGE_INFO_EVENT = 15;
     private static final int MESSAGE_HANDLE_DIMENSIONS_EVENT = 16;
+    private static final int MESSAGE_GET_HEAT_MAP_DATA = 17;
     private static final int EMULATOR_CONNECT_ATTEMPT_INTERVAL_MILLIS = 1000 * 30;
 
     @SuppressWarnings("unused")
