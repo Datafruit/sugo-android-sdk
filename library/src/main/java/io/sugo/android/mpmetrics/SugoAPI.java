@@ -393,7 +393,11 @@ public class SugoAPI {
         SharedPreferences preferences = mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
         String storeInfo = preferences.getString(ViewCrawler.SHARED_PREF_DIMENSIONS_KEY, null);
         if (storeInfo != null && !storeInfo.equals("")) {
-            SugoDimensionManager.getInstance().setDimensionsDefault();
+            try {
+                SugoDimensionManager.getInstance().setDimensions(new JSONArray(storeInfo));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
     }
 

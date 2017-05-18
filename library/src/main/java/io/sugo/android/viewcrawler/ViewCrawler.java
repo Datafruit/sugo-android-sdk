@@ -1056,33 +1056,27 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
          * Accept and apply a persistent h5 event binding from a non-interactive source.
          */
         private void handleH5EventBindingsReceived(JSONArray eventBindings) {
-            if (!SugoAPI.developmentMode) {
-                final SharedPreferences preferences = getSharedPreferences();
-                final SharedPreferences.Editor editor = preferences.edit();
-                editor.putString(SHARED_PREF_H5_BINDINGS_KEY, eventBindings.toString());
-                editor.apply();
-                SugoWebEventListener.bindEvents(mToken, eventBindings);
-            }
+            final SharedPreferences preferences = getSharedPreferences();
+            final SharedPreferences.Editor editor = preferences.edit();
+            editor.putString(SHARED_PREF_H5_BINDINGS_KEY, eventBindings.toString());
+            editor.apply();
+            SugoWebEventListener.bindEvents(mToken, eventBindings);
         }
 
         private void handlePageInfoReceived(JSONArray pageInfos) {
-            if (!SugoAPI.developmentMode) {
-                final SharedPreferences preferences = getSharedPreferences();
-                final SharedPreferences.Editor editor = preferences.edit();
-                editor.putString(SHARED_PREF_PAGE_INFO_KEY, pageInfos.toString());
-                editor.apply();
-                SugoPageManager.getInstance().setPageInfos(pageInfos);
-            }
+            final SharedPreferences preferences = getSharedPreferences();
+            final SharedPreferences.Editor editor = preferences.edit();
+            editor.putString(SHARED_PREF_PAGE_INFO_KEY, pageInfos.toString());
+            editor.apply();
+            SugoPageManager.getInstance().setPageInfos(pageInfos);
         }
 
         private void handleDimensions(JSONArray array) {
-            if (!SugoAPI.developmentMode) {
-                final SharedPreferences preferences = getSharedPreferences();
-                final SharedPreferences.Editor editor = preferences.edit();
-                editor.putString(SHARED_PREF_DIMENSIONS_KEY, array.toString());
-                editor.apply();
-                SugoDimensionManager.getInstance().setDimensions(array);
-            }
+            final SharedPreferences preferences = getSharedPreferences();
+            final SharedPreferences.Editor editor = preferences.edit();
+            editor.putString(SHARED_PREF_DIMENSIONS_KEY, array.toString());
+            editor.apply();
+            SugoDimensionManager.getInstance().setDimensions(array);
         }
 
         private void handleSendTestEvent(JSONArray events) {
