@@ -1,5 +1,6 @@
 package io.sugo.android.mpmetrics;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 
@@ -18,6 +19,7 @@ public class SugoPageManager {
 
     private static SugoPageManager sInstance = new SugoPageManager();
     private HashMap<String, JSONObject> mPageInfos;
+    private HashMap<String, JSONObject> mTempPageInfos = new HashMap<>();
 
     private SugoPageManager() {
 
@@ -45,6 +47,7 @@ public class SugoPageManager {
                 e.printStackTrace();
             }
         }
+        mTempPageInfos = new HashMap<>(mPageInfos);
     }
 
 
@@ -90,7 +93,20 @@ public class SugoPageManager {
         return null;
     }
 
-    public void replaceCurrentActivityPageName(String activityPage, String pageName) {
+    /**
+     * 因为点击事件是按照 Activity 的路径走的，当点击 Fragment 的时候，
+     * 获取的并不是 Fragment 的页面名称，所以要 Activity 的页面名称改成 Fragment 的页面名称
+     *
+     * @param activity
+     * @param pageName
+     */
+    public void replaceCurrentActivityPageName(Activity activity, String pageName) {
+        String activityPage = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
+            activityPage = activity.getClass().getCanonicalName();
+        } else {
+            activityPage = SugoPageManager.getInstance().getCurrentPage(activity);
+        }
         try {
             JSONObject obj = mPageInfos.get(activityPage);
             if (obj == null) {
@@ -101,6 +117,24 @@ public class SugoPageManager {
 
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * 如果当前 Activity 的页面名称被替换了，可以调用这个方法恢复
+     *
+     * @param activity
+     */
+    public void restoreCurrentActivityPageName(Activity activity) {
+        String page = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
+            page = activity.getClass().getCanonicalName();
+        } else {
+            page = SugoPageManager.getInstance().getCurrentPage(activity);
+        }
+        if (mTempPageInfos != null) {
+            JSONObject obj = mTempPageInfos.get(page);
+            mPageInfos.put(page, obj);
         }
     }
 }
