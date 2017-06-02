@@ -476,14 +476,19 @@ public class SugoAPI {
      * @param eventName the name of the event to track with timing.
      */
     public void timeEvent(@NonNull final String eventName) {
-        timeEvent(eventName, 0);
+        timeEvent(eventName, "", 0);
     }
 
-    public void timeEvent(@NonNull final String eventName, long offset) {
+    public void timeEvent(@NonNull final String eventName, @NonNull final String tag) {
+        timeEvent(eventName, tag, 0);
+    }
+
+    public void timeEvent(@NonNull final String eventName, @NonNull String tag, long offset) {
         final long writeTime = System.currentTimeMillis() + offset;
         synchronized (mEventTimings) {
-            mEventTimings.put(eventName, writeTime);
-            mPersistentIdentity.addTimeEvent(eventName, writeTime);
+            String timeEventName = eventName + tag;
+            mEventTimings.put(timeEventName, writeTime);
+            mPersistentIdentity.addTimeEvent(timeEventName, writeTime);
         }
     }
 
@@ -543,9 +548,14 @@ public class SugoAPI {
         }
         final Long eventBegin;
         synchronized (mEventTimings) {
-            eventBegin = mEventTimings.get(eventName);
-            mEventTimings.remove(eventName);
-            mPersistentIdentity.removeTimeEvent(eventName);
+            String timeEventName = eventName;
+            if (properties != null && properties.has(SGConfig.TIME_EVENT_TAG)) {
+                timeEventName = eventName + properties.optString(SGConfig.TIME_EVENT_TAG, "");
+                properties.remove(SGConfig.TIME_EVENT_TAG);
+            }
+            eventBegin = mEventTimings.get(timeEventName);
+            mEventTimings.remove(timeEventName);
+            mPersistentIdentity.removeTimeEvent(timeEventName);
         }
 
         try {
@@ -1293,58 +1303,31 @@ public class SugoAPI {
     }
 
     public void traceFragmentResumed(Fragment fragment, String pageName) {
-        String page = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-            Activity activity = fragment.getActivity();
-            page = activity.getClass().getCanonicalName();
-        } else {
-            page = SugoPageManager.getInstance().getCurrentPage(mContext);
-        }
-        SugoPageManager.getInstance().replaceCurrentActivityPageName(page, pageName);
-        traceFragment("浏览", fragment.getClass().getName(), pageName);
-        timeEvent("窗口停留");
+        traceFragment("浏览", "", fragment.getClass().getCanonicalName(), pageName);
+        timeEvent("窗口停留", fragment.hashCode() + "");
     }
 
     public void traceFragmentResumed(android.support.v4.app.Fragment fragment, String pageName) {
-        String page = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-            Activity activity = fragment.getActivity();
-            page = activity.getClass().getCanonicalName();
-        } else {
-            page = SugoPageManager.getInstance().getCurrentPage(mContext);
-        }
-        SugoPageManager.getInstance().replaceCurrentActivityPageName(page, pageName);
-        traceFragment("浏览", fragment.getClass().getName(), pageName);
-        timeEvent("窗口停留");
+        traceFragment("浏览", "", fragment.getClass().getCanonicalName(), pageName);
+        timeEvent("窗口停留", fragment.hashCode() + "");
     }
 
-    public void traceFragmentPaused(Fragment fragment) {
-        String page = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-            Activity activity = fragment.getActivity();
-            page = activity.getClass().getCanonicalName();
-        } else {
-            page = SugoPageManager.getInstance().getCurrentPage(mContext);
-        }
-        traceFragment("窗口停留", fragment.getClass().getName(), SugoPageManager.getInstance().getCurrentPageName(page));
+    public void traceFragmentPaused(Fragment fragment, String pageName) {
+        traceFragment("窗口停留", fragment.hashCode() + "", fragment.getClass().getCanonicalName(), pageName);
     }
 
-    public void traceFragmentPaused(android.support.v4.app.Fragment fragment) {
-        String page = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-            Activity activity = fragment.getActivity();
-            page = activity.getClass().getCanonicalName();
-        } else {
-            page = SugoPageManager.getInstance().getCurrentPage(mContext);
-        }
-        traceFragment("窗口停留", fragment.getClass().getName(), SugoPageManager.getInstance().getCurrentPageName(page));
+    public void traceFragmentPaused(android.support.v4.app.Fragment fragment, String pageName) {
+        traceFragment("窗口停留", fragment.hashCode() + "", fragment.getClass().getCanonicalName(), pageName);
     }
 
-    private void traceFragment(String eventName, String pathName, String pageName) {
+    private void traceFragment(String eventName, String timeEventTag, String pathName, String pageName) {
         JSONObject props = new JSONObject();
         try {
             props.put(SGConfig.FIELD_PAGE, pathName);
             props.put(SGConfig.FIELD_PAGE_NAME, pageName);
+            if (timeEventTag != null && !timeEventTag.equals("")) {
+                props.put(SGConfig.TIME_EVENT_TAG, timeEventTag);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
