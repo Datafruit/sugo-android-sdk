@@ -26,7 +26,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
             <intent-filter>
-                <data android:scheme="sugo.5af10fbaeb00c8b1e583d1559d9787e3"/>
+                <data android:scheme="sugo.4ebcb38a24d457c820cccdd9e9883d9a"/>
 
                 <action android:name="android.intent.action.VIEW"/>
 
@@ -55,25 +55,25 @@
             android:name="io.sugo.android.SGConfig.ResourcePackageName"
             android:value="io.sugo.sdkdemo"/>
 
-        <!--<meta-data-->
-        <!--android:name="io.sugo.android.SGConfig.EditorUrl"-->
-        <!--android:value="ws://192.168.0.212:8887/connect/"/>-->
-        <!--<meta-data-->
-        <!--android:name="io.sugo.android.SGConfig.DecideEndpoint"-->
-        <!--android:value="http://192.168.0.212:8000/api/sdk/decide"/>-->
-        <!--<meta-data-->
-        <!--android:name="io.sugo.android.SGConfig.HeatMapEndpoint"-->
-        <!--android:value="http://192.168.0.212:8000/api/sdk/heat"/>-->
-
         <meta-data
             android:name="io.sugo.android.SGConfig.EditorUrl"
-            android:value="ws://58.63.110.97:8887/connect/"/>
+            android:value="ws://insight-uba.infinitus.com.cn:8887/connect/"/>
         <meta-data
             android:name="io.sugo.android.SGConfig.DecideEndpoint"
-            android:value="http://astro.sugo.io/api/sdk/decide"/>
+            android:value="http://insight-uba.infinitus.com.cn/api/sdk/decide"/>
         <meta-data
             android:name="io.sugo.android.SGConfig.HeatMapEndpoint"
-            android:value="http://astro.sugo.io/api/sdk/heat"/>
+            android:value="http://insight-uba.infinitus.com.cn/api/sdk/heat"/>
+
+        <!--<meta-data-->
+        <!--android:name="io.sugo.android.SGConfig.EditorUrl"-->
+        <!--android:value="ws://58.63.110.97:8887/connect/"/>-->
+        <!--<meta-data-->
+        <!--android:name="io.sugo.android.SGConfig.DecideEndpoint"-->
+        <!--android:value="http://astro.sugo.io/api/sdk/decide"/>-->
+        <!--<meta-data-->
+        <!--android:name="io.sugo.android.SGConfig.HeatMapEndpoint"-->
+        <!--android:value="http://astro.sugo.io/api/sdk/heat"/>-->
 
         <activity android:name=".activity.PrivateFuncActivity">
         </activity>

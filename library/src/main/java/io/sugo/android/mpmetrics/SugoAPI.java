@@ -1140,8 +1140,8 @@ public class SugoAPI {
         }
 
         @Override
-        public void sendConnectEditor(Uri data) {
-
+        public boolean sendConnectEditor(Uri data) {
+            return false;
         }
 
         private final Tweaks mTweaks;

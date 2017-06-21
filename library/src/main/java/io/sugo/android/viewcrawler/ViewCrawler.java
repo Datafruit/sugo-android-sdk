@@ -198,12 +198,12 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
     }
 
     @Override
-    public void sendConnectEditor(Uri uri) {
+    public boolean sendConnectEditor(Uri uri) {
         if (mMessageThreadHandler != null) {
             if (uri != null) {
                 String host = uri.getHost();
                 if (host == null) {
-                    return;
+                    return false;
                 }
                 int msgWhat = -1;
                 // 解析浏览器扫描二维码跳转应用的uri
@@ -217,6 +217,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                     }
                     final Message message = mMessageThreadHandler.obtainMessage(msgWhat);
                     mMessageThreadHandler.sendMessage(message);
+                    return true;
                 } else {    // 解析应用内部扫描二维码获取的链接
                     try {
                         String token = uri.getQueryParameter("token");
@@ -229,6 +230,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                             }
                             final Message message = mMessageThreadHandler.obtainMessage(msgWhat);
                             mMessageThreadHandler.sendMessage(message);
+                            return true;
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -236,6 +238,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                 }
             }
         }
+        return false;
     }
 
     private class EmulatorConnector implements Runnable {
@@ -295,8 +298,9 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
             mEditState.add(activity);
             Uri data = activity.getIntent().getData();
             if (data != null) {
-                sendConnectEditor(data);
-                activity.getIntent().setData(null);     // 防止未再次扫码却自动连接的情况
+                if (sendConnectEditor(data)) {
+                    activity.getIntent().setData(null);     // 防止未再次扫码却自动连接的情况
+                }
             }
         }
 

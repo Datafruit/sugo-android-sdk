@@ -21,6 +21,6 @@ public interface UpdatesFromSugo {
     public void addOnMixpanelTweaksUpdatedListener(OnMixpanelTweaksUpdatedListener listener);
     public void removeOnMixpanelTweaksUpdatedListener(OnMixpanelTweaksUpdatedListener listener);
     void setXWalkViewListener(XWalkViewListener XWalkViewListener);
-    void sendConnectEditor(Uri data);
+    boolean sendConnectEditor(Uri data);
 
 }
