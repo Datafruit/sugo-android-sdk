@@ -26,7 +26,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
             <intent-filter>
-                <data android:scheme="sugo.4ebcb38a24d457c820cccdd9e9883d9a"/>
+                <data android:scheme="sugo.5af10fbaeb00c8b1e583d1559d9787e3"/>
 
                 <action android:name="android.intent.action.VIEW"/>
 
@@ -57,13 +57,13 @@
 
         <meta-data
             android:name="io.sugo.android.SGConfig.EditorUrl"
-            android:value="ws://insight-uba.infinitus.com.cn:8887/connect/"/>
+            android:value="ws://58.63.110.97:8887/connect/"/>
         <meta-data
             android:name="io.sugo.android.SGConfig.DecideEndpoint"
-            android:value="http://insight-uba.infinitus.com.cn/api/sdk/decide"/>
+            android:value="http://astro.sugo.io/api/sdk/decide"/>
         <meta-data
             android:name="io.sugo.android.SGConfig.HeatMapEndpoint"
-            android:value="http://insight-uba.infinitus.com.cn/api/sdk/heat"/>
+            android:value="http://astro.sugo.io/api/sdk/heat"/>
 
         <!--<meta-data-->
         <!--android:name="io.sugo.android.SGConfig.EditorUrl"-->
