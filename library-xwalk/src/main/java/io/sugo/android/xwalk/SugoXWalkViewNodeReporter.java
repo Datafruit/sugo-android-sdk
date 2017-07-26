@@ -17,7 +17,7 @@ public class SugoXWalkViewNodeReporter extends SugoWebNodeReporter {
     @Override
     @JavascriptInterface
     @org.xwalk.core.JavascriptInterface
-    public void reportNodes(String url, String nodeJson, int clientWidth, int clientHeight) {
-        super.reportNodes(url,nodeJson,clientWidth,clientHeight);
+    public void reportNodes(String url, String nodeJson, int clientWidth, int clientHeight, String title) {
+        super.reportNodes(url, nodeJson, clientWidth, clientHeight, title);
     }
 }

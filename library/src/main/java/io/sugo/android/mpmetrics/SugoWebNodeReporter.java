@@ -7,20 +7,23 @@ import android.webkit.JavascriptInterface;
  */
 
 public class SugoWebNodeReporter {
-    public  int version = 0;
+    public int version = 0;
     public String webNodeJson = "";
     public String url = null;
-    public  int clientWidth = 0;
-    public  int clientHeight = 0;
+    public int clientWidth = 0;
+    public int clientHeight = 0;
+    public String title;
+
     public SugoWebNodeReporter() {
     }
 
     @JavascriptInterface
-    public void reportNodes(String url, String nodeJson, int clientWidth, int clientHeight) {
+    public void reportNodes(String url, String nodeJson, int clientWidth, int clientHeight, String title) {
         this.webNodeJson = nodeJson;
         this.url = url;
         this.clientWidth = clientWidth;
         this.clientHeight = clientHeight;
-        this.version ++;
+        this.version++;
+        this.title = title;
     }
 }
