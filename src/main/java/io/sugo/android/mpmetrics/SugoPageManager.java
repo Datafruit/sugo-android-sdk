@@ -57,6 +57,15 @@ public class SugoPageManager {
         return currentPageName;
     }
 
+    public String getCurrentPageCategory(String currentPage) {
+        String categoryName = "";
+        JSONObject pageObj = getCurrentPageInfo(currentPage);
+        if (pageObj != null) {
+            categoryName = pageObj.optString("category", "");
+        }
+        return categoryName;
+    }
+
     public JSONObject getCurrentPageInfo(String currentPage) {
         if (mPageInfos != null && (mPageInfos.size() != 0)) {
             return mPageInfos.get(currentPage);
@@ -71,6 +80,15 @@ public class SugoPageManager {
             currentPageName = pageObj.optString("page_name", "");
         }
         return currentPageName;
+    }
+
+    public String getCurrentPageCategory(Context context) {
+        String categoryName = "";
+        JSONObject pageObj = getCurrentPageInfo(context);
+        if (pageObj != null) {
+            categoryName = pageObj.optString("category", "");
+        }
+        return categoryName;
     }
 
     public JSONObject getCurrentPageInfo(Context context) {
@@ -89,20 +107,6 @@ public class SugoPageManager {
             return runningTaskInfos.get(0).topActivity.getClassName();
         }
         return null;
-    }
-
-    public void replaceCurrentActivityPageName(String activityPage, String pageName) {
-        try {
-            JSONObject obj = mPageInfos.get(activityPage);
-            if (obj == null) {
-                obj = new JSONObject();
-                mPageInfos.put(activityPage, obj);
-            }
-            obj.put("page_name", pageName);
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
     }
 
 }
