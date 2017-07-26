@@ -72,6 +72,8 @@ import java.util.HashSet;
             try {
                 props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                 props.put(SGConfig.FIELD_PAGE_NAME, "唤醒");
+                props.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance()
+                        .getCurrentPageCategory(activity.getClass().getCanonicalName()));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -79,12 +81,14 @@ import java.util.HashSet;
             mSugoAPI.timeEvent("APP停留");
         }
 
-        if (!mDisableActivities.contains(activity)) {
+        if (!mDisableActivities.contains(activity) && mSugoAPI.getConfig().isEnablePageEvent()) {
             try {
                 JSONObject props = new JSONObject();
                 props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                 props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
                         .getCurrentPageName(activity.getClass().getCanonicalName()));
+                props.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance()
+                        .getCurrentPageCategory(activity.getClass().getCanonicalName()));
                 mSugoAPI.track("浏览", props);
                 mSugoAPI.timeEvent("窗口停留");
             } catch (JSONException e) {
@@ -112,6 +116,8 @@ import java.util.HashSet;
                     try {
                         props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                         props.put(SGConfig.FIELD_PAGE_NAME, "后台");
+                        props.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance()
+                                .getCurrentPageCategory(activity.getClass().getCanonicalName()));
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -127,12 +133,14 @@ import java.util.HashSet;
             }
         }, CHECK_DELAY);
 
-        if (!mDisableActivities.contains(activity)) {
+        if (!mDisableActivities.contains(activity) && mSugoAPI.getConfig().isEnablePageEvent()) {
             try {
                 JSONObject props = new JSONObject();
                 props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                 props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
                         .getCurrentPageName(activity.getClass().getCanonicalName()));
+                props.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance()
+                        .getCurrentPageCategory(activity.getClass().getCanonicalName()));
                 mSugoAPI.track("窗口停留", props);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -162,6 +170,8 @@ import java.util.HashSet;
 //                props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
 //                props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
 //                        .getCurrentPageName(activity.getClass().getCanonicalName()));
+//        props.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance()
+//                .getCurrentPageCategory(activity.getClass().getCanonicalName()));
 //            } catch (JSONException e) {
 //                e.printStackTrace();
 //            }

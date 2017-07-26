@@ -1,2 +1,2 @@
 include ":"
-rootProject.name = "sugo-android-sdk"
+rootProject.name = "sugo-android-sdk-xwalk"

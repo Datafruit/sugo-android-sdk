@@ -95,7 +95,7 @@ public class SGConfig {
     // Unfortunately, as long as we support building from source in Eclipse,
     // we can't rely on BuildConfig.SUGO_VERSION existing, so this must
     // be hard-coded both in our gradle files and here in code.
-    public static final String VERSION = "1.0.3";
+    public static final String VERSION = "1.1.0";
 
     public static boolean DEBUG = false;
 
@@ -239,6 +239,9 @@ public class SGConfig {
         mProjectId = projectId;
         mEventsEndpoint = eventsEndpoint;
 
+        // 默认开启【页面事件】
+        mEnablePageEvent = metaData.getBoolean("io.sugo.android.SGConfig.EnablePageEvent", true);
+
         String eventsFallbackEndpoint = metaData.getString("io.sugo.android.SGConfig.EventsFallbackEndpoint");
         if (null == eventsFallbackEndpoint) {
             eventsFallbackEndpoint = "http://api.mixpanel.com/track?ip=1";
@@ -303,6 +306,15 @@ public class SGConfig {
         mEventsEndpoint = eventEndPoint;
         mProjectId = Uri.parse(mEventsEndpoint).getQueryParameter("locate");
         return this;
+    }
+
+    public SGConfig enablePageEvent(boolean enable) {
+        mEnablePageEvent = enable;
+        return this;
+    }
+
+    public boolean isEnablePageEvent() {
+        return mEnablePageEvent;
     }
 
     public SGConfig logConfig() {
@@ -532,6 +544,7 @@ public class SGConfig {
     private final String[] mDisableViewCrawlerForProjects;
     private String mProjectId;
     private String mEventsEndpoint;
+    private boolean mEnablePageEvent;
     private final String mEventsFallbackEndpoint;
     private final String mPeopleEndpoint;
     private final String mPeopleFallbackEndpoint;
@@ -586,5 +599,7 @@ public class SGConfig {
     public static final String FIELD_PAGE_NAME = "page_name";
     public static final String FIELD_EVENT_TYPE = "event_type";
     public static final String FIELD_DEVICE_ID = "device_id";
+    public static final String FIELD_PAGE_CATEGORY = "page_category";
     public static final String TIME_EVENT_TAG = "sugo_time_event_tag";
+
 }
