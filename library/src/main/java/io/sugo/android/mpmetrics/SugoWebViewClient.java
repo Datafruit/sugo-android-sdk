@@ -193,9 +193,9 @@ public class SugoWebViewClient extends WebViewClient {
             "    sugo.enable_page_event = $sugo_enable_page_event$;\n" +
             "\n" +
             "    if (window.sugo && sugo.enable_page_event) {\n" +
-            "        const duration = (new Date().getTime() - sugo.enter_time) / 1000;\n" +
-            "        let tmp_props = JSON.parse(JSON.stringify(sugo.view_props));\n" +
-            "        tmp_props.duration = duration;\n" +
+            "        var tmp_duration = (new Date().getTime() - sugo.enter_time) / 1000;\n" +
+            "        var tmp_props = JSON.parse(JSON.stringify(sugo.view_props));\n" +
+            "        tmp_props.duration = tmp_duration;\n" +
             "        sugo.track('停留', tmp_props);\n" +
             "    }\n" +
             "\n" +
@@ -206,7 +206,8 @@ public class SugoWebViewClient extends WebViewClient {
             "    sugo.relative_path += sugo.hash;\n" +
             "    sugo.init = {\n" +
             "        \"code\": \"$sugo_init_code$\",\n" +
-            "        \"page_name\": \"$sugo_init_page_name$\"\n" +
+            "        \"page_name\": \"$sugo_init_page_name$\",\n" +
+            "        \"page_category\": \"$sugo_init_page_category$\"\n" +
             "    };\n" +
             "    sugo.view_props = {};\n" +
             "\n" +
@@ -217,6 +218,9 @@ public class SugoWebViewClient extends WebViewClient {
             "        props.$sugo_path_name$ = sugo.relative_path;\n" +
             "        if (!props.$sugo_page_name$ && sugo.init.page_name) {\n" +
             "            props.$sugo_page_name$ = sugo.init.page_name;\n" +
+            "        }\n" +
+            "        if (!props.$sugo_page_category_key$ && sugo.init.page_category) {\n" +
+            "            props.$sugo_page_category_key$ = sugo.init.page_category;\n" +
             "        }\n" +
             "        window.sugoEventListener.track(event_id, event_name, JSON.stringify(props));\n" +
             "    };\n" +
@@ -234,8 +238,8 @@ public class SugoWebViewClient extends WebViewClient {
             "\n" +
             "    if (sugo.init.code) {\n" +
             "        try {\n" +
-            "            let init_code = new Function('sugo', sugo.init.code);\n" +
-            "            init_code(sugo);\n" +
+            "            var sugo_init_code = new Function('sugo', sugo.init.code);\n" +
+            "            sugo_init_code(sugo);\n" +
             "        } catch (e) {\n" +
             "            console.log(sugo.init.code);\n" +
             "        }\n" +
@@ -247,9 +251,9 @@ public class SugoWebViewClient extends WebViewClient {
             "\n" +
             "    if (!window.sugo && sugo.enable_page_event) {\n" +
             "        window.addEventListener('unload', function (e) {\n" +
-            "            const duration = (new Date().getTime() - sugo.enter_time) / 1000;\n" +
-            "            let tmp_props = JSON.parse(JSON.stringify(sugo.view_props));\n" +
-            "            tmp_props.duration = duration;\n" +
+            "            var tmp_duration = (new Date().getTime() - sugo.enter_time) / 1000;\n" +
+            "            var tmp_props = JSON.parse(JSON.stringify(sugo.view_props));\n" +
+            "            tmp_props.duration = tmp_duration;\n" +
             "            sugo.track('停留', tmp_props);\n" +
             "        });\n" +
             "    }\n" +
@@ -257,11 +261,11 @@ public class SugoWebViewClient extends WebViewClient {
             "    sugo.current_page = '$sugo_activity_name$::' + sugo.relative_path;\n" +
             "    sugo.h5_event_bindings = $sugo_h5_event_bindings$;\n" +
             "    sugo.current_event_bindings = {};\n" +
-            "    for (let i = 0; i < sugo.h5_event_bindings.length; i++) {\n" +
-            "        let b_event = sugo.h5_event_bindings[i];\n" +
-            "        if (b_event.target_activity === sugo.current_page) {\n" +
-            "            let key = JSON.stringify(b_event.path);\n" +
-            "            sugo.current_event_bindings[key] = b_event;\n" +
+            "    for (var i = 0; i < sugo.h5_event_bindings.length; i++) {\n" +
+            "        var b_event = sugo.h5_event_bindings[i];\n" +
+            "        if (b_event.target_activity === sugo.current_page || b_event.cross_page) {\n" +
+            "            var b_key = JSON.stringify(b_event.path);\n" +
+            "            sugo.current_event_bindings[b_key] = b_event;\n" +
             "        }\n" +
             "    }\n" +
             "\n" +
@@ -269,70 +273,70 @@ public class SugoWebViewClient extends WebViewClient {
             "        return ( rect.top >= 0 && rect.left >= 0 && rect.bottom <= sugo.clientHeight && rect.right <= sugo.clientWidth);\n" +
             "    };\n" +
             "\n" +
-            "    sugo.handleNodeChild = function (childrens, jsonArry, parent_path) {\n" +
-            "        for (let i = 0; i < childrens.length; i++) {\n" +
-            "            let children = childrens[i];\n" +
-            "            let path = UTILS.cssPath(children);\n" +
-            "            let htmlNode = {};\n" +
-            "            htmlNode.innerText = children.innerText;\n" +
-            "            htmlNode.path = path;\n" +
-            "            const rect = children.getBoundingClientRect();\n" +
-            "            if (sugo.isElementInViewport(rect) == true) {\n" +
-            "                let temp_rect = {\n" +
+            "    sugo.handleNodeChild = function (childrens, nodeJSONArray, parent_path) {\n" +
+            "        for (var i = 0; i < childrens.length; i++) {\n" +
+            "            var nodeChildren = childrens[i];\n" +
+            "            var childPath = UTILS.cssPath(nodeChildren);\n" +
+            "            var htmlNode = {};\n" +
+            "            htmlNode.innerText = nodeChildren.innerText;\n" +
+            "            htmlNode.path = childPath;\n" +
+            "            var rect = nodeChildren.getBoundingClientRect();\n" +
+            "            if (sugo.isElementInViewport(rect) === true) {\n" +
+            "                var temp_rect = {\n" +
             "                    top: rect.top,\n" +
             "                    left: rect.left,\n" +
             "                    width: rect.width,\n" +
             "                    height: rect.height\n" +
             "                };\n" +
             "                htmlNode.rect = temp_rect;\n" +
-            "                jsonArry.push(htmlNode);\n" +
+            "                nodeJSONArray.push(htmlNode);\n" +
             "            }\n" +
-            "            if (children.children) {\n" +
-            "                sugo.handleNodeChild(children.children, jsonArry, path);\n" +
+            "            if (nodeChildren.children) {\n" +
+            "                sugo.handleNodeChild(nodeChildren.children, nodeJSONArray, childPath);\n" +
             "            }\n" +
             "        }\n" +
             "    };\n" +
             "\n" +
             "    sugo.reportNodes = function () {\n" +
-            "        let jsonArry = [];\n" +
-            "        let body = document.getElementsByTagName('body')[0];\n" +
-            "        let childrens = body.children;\n" +
-            "        let parent_path = '';\n" +
+            "        var nodeJSONArray = [];\n" +
+            "        var body = document.getElementsByTagName('body')[0];\n" +
+            "        var childrens = body.children;\n" +
+            "        var parent_path = '';\n" +
             "        sugo.clientWidth = (window.innerWidth || document.documentElement.clientWidth);\n" +
             "        sugo.clientHeight = (window.innerHeight || document.documentElement.clientHeight);\n" +
-            "        sugo.handleNodeChild(childrens, jsonArry, parent_path);\n" +
+            "        sugo.handleNodeChild(childrens, nodeJSONArray, parent_path);\n" +
             "        if (window.sugoWebNodeReporter) {\n" +
-            "            window.sugoWebNodeReporter.reportNodes(sugo.relative_path, JSON.stringify(jsonArry), sugo.clientWidth, sugo.clientHeight);\n" +
+            "            window.sugoWebNodeReporter.reportNodes(sugo.relative_path, JSON.stringify(nodeJSONArray), sugo.clientWidth, sugo.clientHeight, document.title);\n" +
             "        }\n" +
             "    };\n" +
             "\n" +
             "    sugo.delegate = function (eventType) {\n" +
             "        function handle(e) {\n" +
-            "            let evt = window.event ? window.event : e;\n" +
-            "            let target = evt.target || evt.srcElement;\n" +
-            "            let currentTarget = e ? e.currentTarget : this;\n" +
-            "            let paths = Object.keys(sugo.current_event_bindings);\n" +
-            "            for (let idx = 0; idx < paths.length; idx++) {\n" +
-            "                let path_str = paths[idx];\n" +
-            "                let event = sugo.current_event_bindings[path_str];\n" +
+            "            var evt = window.event ? window.event : e;\n" +
+            "            var target = evt.target || evt.srcElement;\n" +
+            "            var currentTarget = e ? e.currentTarget : this;\n" +
+            "            var paths = Object.keys(sugo.current_event_bindings);\n" +
+            "            for (var idx = 0; idx < paths.length; idx++) {\n" +
+            "                var path_str = paths[idx];\n" +
+            "                var event = sugo.current_event_bindings[path_str];\n" +
             "                if (event.event_type != eventType) {\n" +
             "                    continue;\n" +
             "                }\n" +
-            "                let path = event.path.path;\n" +
+            "                var path = event.path.path;\n" +
             "                if (event.similar === true) {\n" +
             "                    path = path.replace(/:nth-child\\([0-9]*\\)/g, '');\n" +
             "                }\n" +
-            "                let eles = document.querySelectorAll(path);\n" +
+            "                var eles = document.querySelectorAll(path);\n" +
             "                if (eles) {\n" +
-            "                    for (let eles_idx = 0; eles_idx < eles.length; eles_idx++) {\n" +
-            "                        let ele = eles[eles_idx];\n" +
-            "                        let parentNode = target;\n" +
+            "                    for (var eles_idx = 0; eles_idx < eles.length; eles_idx++) {\n" +
+            "                        var ele = eles[eles_idx];\n" +
+            "                        var parentNode = target;\n" +
             "                        while (parentNode) {\n" +
             "                            if (parentNode === ele) {\n" +
-            "                                let custom_props = {};\n" +
+            "                                var custom_props = {};\n" +
             "                                if (event.code && event.code.replace(/(^\\s*)|(\\s*$)/g, '') != '') {\n" +
             "                                    try {\n" +
-            "                                        let sugo_props = new Function('e', 'element', 'conf', 'instance', event.code);\n" +
+            "                                        var sugo_props = new Function('e', 'element', 'conf', 'instance', event.code);\n" +
             "                                        custom_props = sugo_props(e, ele, event, sugo);\n" +
             "                                    } catch (e) {\n" +
             "                                        console.log(event.code);\n" +
@@ -365,23 +369,23 @@ public class SugoWebViewClient extends WebViewClient {
             "    }\n" +
             "\n" +
             "    sugo.showHeatMap = function () {\n" +
-            "        let isShowHeatMap = window.sugoEventListener.isShowHeatMap();\n" +
+            "        var isShowHeatMap = window.sugoEventListener.isShowHeatMap();\n" +
             "        console.log('isShowHeatMap:' + isShowHeatMap);\n" +
             "        if (!isShowHeatMap) {\n" +
             "            return;\n" +
             "        }\n" +
-            "        const pathsOfCurrentEventBindings = Object.keys(sugo.current_event_bindings);\n" +
-            "        for (let idx = 0; idx < pathsOfCurrentEventBindings.length; idx++) {\n" +
-            "            const path_str = pathsOfCurrentEventBindings[idx];\n" +
-            "            let event = sugo.current_event_bindings[path_str];\n" +
-            "            let eventId = event.event_id;\n" +
-            "            let heatColor = window.sugoEventListener.getEventHeatColor(eventId);\n" +
-            "            event.heatColor = heatColor;\n" +
+            "        var pathsOfCurrentEventBindings = Object.keys(sugo.current_event_bindings);\n" +
+            "        for (var idx = 0; idx < pathsOfCurrentEventBindings.length; idx++) {\n" +
+            "            var hm_path_str = pathsOfCurrentEventBindings[idx];\n" +
+            "            var hm_event = sugo.current_event_bindings[hm_path_str];\n" +
+            "            var hm_eventId = hm_event.event_id;\n" +
+            "            var heatColor = window.sugoEventListener.getEventHeatColor(hm_eventId);\n" +
+            "            hm_event.heatColor = heatColor;\n" +
             "        }\n" +
             "\n" +
-            "        let idOfHeatMap = 'sugo_heat_map';\n" +
-            "        let defaultZIndex = 1000;\n" +
-            "        let hmDiv = document.getElementById(idOfHeatMap);\n" +
+            "        var idOfHeatMap = 'sugo_heat_map';\n" +
+            "        var hm_defaultZIndex = 1000;\n" +
+            "        var hmDiv = document.getElementById(idOfHeatMap);\n" +
             "        if (hmDiv) {\n" +
             "            document.body.removeChild(document.getElementById(idOfHeatMap));\n" +
             "        }\n" +
@@ -392,26 +396,26 @@ public class SugoWebViewClient extends WebViewClient {
             "        hmDiv.style.top = '0px';\n" +
             "        hmDiv.style.left = '0px';\n" +
             "        document.body.appendChild(hmDiv);\n" +
-            "        for (let i = 0; i < pathsOfCurrentEventBindings.length; i++) {\n" +
-            "            const path_str = pathsOfCurrentEventBindings[i];\n" +
-            "            let event = sugo.current_event_bindings[path_str];\n" +
-            "            const path = event.path.path;\n" +
-            "            let eles = document.querySelectorAll(path);\n" +
+            "        for (var i = 0; i < pathsOfCurrentEventBindings.length; i++) {\n" +
+            "            var path_str = pathsOfCurrentEventBindings[i];\n" +
+            "            var event = sugo.current_event_bindings[path_str];\n" +
+            "            var path = event.path.path;\n" +
+            "            var eles = document.querySelectorAll(path);\n" +
             "            if (eles && event.heatColor) {\n" +
-            "                let color = event.heatColor;\n" +
-            "                let r_color = (color >> 4) & 0x000000ff;\n" +
-            "                let g_color = (color >> 2) & 0x000000ff;\n" +
-            "                let b_color = color & 0x000000ff;\n" +
+            "                var color = event.heatColor;\n" +
+            "                var r_color = (color >> 4) & 0x000000ff;\n" +
+            "                var g_color = (color >> 2) & 0x000000ff;\n" +
+            "                var b_color = color & 0x000000ff;\n" +
             "\n" +
-            "                for (let index = 0; index < eles.length; index++) {\n" +
-            "                    let div = document.createElement('div');\n" +
+            "                for (var index = 0; index < eles.length; index++) {\n" +
+            "                    var div = document.createElement('div');\n" +
             "                    div.id = event.event_id;\n" +
             "                    div.style.position = 'absolute';\n" +
             "                    div.style.pointerEvents = 'none';\n" +
             "                    div.style.opacity = 0.8;\n" +
-            "                    let z = eles[index].style.zIndex;\n" +
-            "                    div.style.zIndex = z ? parseInt(z) + 1 : defaultZIndex;\n" +
-            "                    let rect = eles[index].getBoundingClientRect();\n" +
+            "                    var z = eles[index].style.zIndex;\n" +
+            "                    div.style.zIndex = z ? parseInt(z) + 1 : hm_defaultZIndex;\n" +
+            "                    var rect = eles[index].getBoundingClientRect();\n" +
             "                    div.style.top = rect.top + 'px';\n" +
             "                    div.style.left = rect.left + 'px';\n" +
             "                    div.style.width = rect.width + 'px';\n" +
@@ -468,9 +472,11 @@ public class SugoWebViewClient extends WebViewClient {
         JSONObject pageInfo = getPageInfo(activity, url, dataPkgPath);
         String initCode = "";
         String pageName = "";
+        String pageCategory = "";
         if (pageInfo != null) {
             initCode = pageInfo.optString("code", "");
             pageName = pageInfo.optString("page_name", "");
+            pageCategory = pageInfo.optString("category", "");
         }
 
         String activityName = activity.getClass().getName();
@@ -478,14 +484,16 @@ public class SugoWebViewClient extends WebViewClient {
         String bindingEvents = getBindingEvents(activity);
 
         String tempTrackJS = trackJS;
-        tempTrackJS = tempTrackJS.replace("$sugo_enable_page_event$", sugoAPI.getConfig().isEnablePageEvent()+"");
+        tempTrackJS = tempTrackJS.replace("$sugo_enable_page_event$", sugoAPI.getConfig().isEnablePageEvent() + "");
         tempTrackJS = tempTrackJS.replace("$sugo_webroot$", webRoot);
         tempTrackJS = tempTrackJS.replace("$sugo_remove_path$", dataPkgPath);
         tempTrackJS = tempTrackJS.replace("$sugo_init_code$", initCode);
         tempTrackJS = tempTrackJS.replace("$sugo_init_page_name$", pageName);
+        tempTrackJS = tempTrackJS.replace("$sugo_init_page_category$", pageCategory);
         tempTrackJS = tempTrackJS.replace("$sugo_activity_name$", activityName);
         tempTrackJS = tempTrackJS.replace("$sugo_path_name$", SGConfig.FIELD_PAGE);
         tempTrackJS = tempTrackJS.replace("$sugo_page_name$", SGConfig.FIELD_PAGE_NAME);
+        tempTrackJS = tempTrackJS.replace("$sugo_page_category_key$", SGConfig.FIELD_PAGE_CATEGORY);
         tempTrackJS = tempTrackJS.replace("$sugo_h5_event_bindings$", bindingEvents);
 
         StringBuffer scriptBuf = new StringBuffer();

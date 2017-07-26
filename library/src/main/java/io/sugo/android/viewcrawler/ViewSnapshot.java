@@ -250,6 +250,7 @@ import io.sugo.android.mpmetrics.SugoWebNodeReporter;
                     j.name("clientWidth").value(sugoWebNodeReporter.clientWidth);
                     j.name("clientHeight").value(sugoWebNodeReporter.clientHeight);
                     j.name("nodes").value(sugoWebNodeReporter.webNodeJson);
+                    j.name("title").value(sugoWebNodeReporter.title);
                     j.endObject();
                 }
             } else {

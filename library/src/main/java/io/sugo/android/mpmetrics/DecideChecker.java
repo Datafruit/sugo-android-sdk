@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
@@ -251,7 +252,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         return ret;
     }
 
-    private String getDecideResponseFromServer(String unescapedToken, String unescapedDistinctId, RemoteService poster)
+    private String getDecideResponseFromServer(@NonNull String unescapedToken, String unescapedDistinctId, RemoteService poster)
             throws RemoteService.ServiceUnavailableException {
         final String escapedToken;
         final String escapedId;

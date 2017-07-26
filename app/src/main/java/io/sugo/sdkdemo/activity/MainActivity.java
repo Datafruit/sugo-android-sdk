@@ -62,14 +62,17 @@ public class MainActivity extends AppCompatActivity {
 //        SugoAPI.setSuperPropertiesBeforeStartSugo(this, "key", "value");
 
         SugoAPI.startSugo(this, SGConfig.getInstance(this)
-                .setToken("5af10fbaeb00c8b1e583d1559d9787e3")
-                .setEventsEndPoint("http://collect.sugo.io/post?locate=com_SJLnjowGe_project_Hyv0LtEae")
+                .setToken("d3a66ce81be70e5e0ce841bcc62f0c67")
+//                .setEventsEndPoint("http://139.198.4.214/post?locate=com_SyEPViN8W_project_Hk28_jN8b")
+//                .setEventsEndPoint("http://collect.sugo.net/post?locate=com_SJLnjowGe_project_HyErw0VBW")
+//                .setEventsEndPoint("http://collect.sugo.io/post?locate=com_SJLnjowGe_project_Hyv0LtEae")
+                .setEventsEndPoint("http://dev220.sugo.net/post?locate=com_SJLnjowGe_project_HyErw0VBW")
                 .enablePageEvent(true)
                 .logConfig());
 
 //        SugoAPI.startSugo(this, SGConfig.getInstance(this)
-//                .setToken("2dc8aa74c5727067cca466af7d966116")
-//                .setProjectId("com_HyoaKhQMl_project_rJIXzFOpe")
+//                .setToken("c6749a4f1ef039ca196148ed1cb65d87")
+//                .setProjectId("com_HyoaKhQMl_project_B1Nycjsne")
 //                .logConfig());
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {

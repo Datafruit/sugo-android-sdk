@@ -67,6 +67,8 @@ import java.util.HashSet;
                 props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                 props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
                         .getCurrentPageName(activity.getClass().getCanonicalName()));
+                props.put(SGConfig.FIELD_PAGE_CATEGORY,SugoPageManager.getInstance()
+                        .getCurrentPageCategory(activity.getClass().getCanonicalName()));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -80,6 +82,8 @@ import java.util.HashSet;
                 props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                 props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
                         .getCurrentPageName(activity.getClass().getCanonicalName()));
+                props.put(SGConfig.FIELD_PAGE_CATEGORY,SugoPageManager.getInstance()
+                        .getCurrentPageCategory(activity.getClass().getCanonicalName()));
                 mSugoAPI.track("浏览", props);
                 mSugoAPI.timeEvent("窗口停留");
             } catch (JSONException e) {
@@ -109,6 +113,8 @@ import java.util.HashSet;
                         props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                         props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
                                 .getCurrentPageName(activity.getClass().getCanonicalName()));
+                        props.put(SGConfig.FIELD_PAGE_CATEGORY,SugoPageManager.getInstance()
+                                .getCurrentPageCategory(activity.getClass().getCanonicalName()));
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -124,6 +130,8 @@ import java.util.HashSet;
                 props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                 props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
                         .getCurrentPageName(activity.getClass().getCanonicalName()));
+                props.put(SGConfig.FIELD_PAGE_CATEGORY,SugoPageManager.getInstance()
+                        .getCurrentPageCategory(activity.getClass().getCanonicalName()));
                 mSugoAPI.track("窗口停留", props);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -149,6 +157,8 @@ import java.util.HashSet;
                 props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                 props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
                         .getCurrentPageName(activity.getClass().getCanonicalName()));
+                props.put(SGConfig.FIELD_PAGE_CATEGORY,SugoPageManager.getInstance()
+                        .getCurrentPageCategory(activity.getClass().getCanonicalName()));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
