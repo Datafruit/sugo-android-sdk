@@ -13,7 +13,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,8 +44,6 @@ public class MainActivity extends AppCompatActivity {
     ImageView mToWebImg;
     @BindView(R.id.to_web_txt)
     TextView mToWebTxt;
-    @BindView(R.id.activity_main)
-    LinearLayout mActivityMain;
 
     private long mClickTitleTimes = 0;
     private long mLastClickTime = 0;
@@ -62,11 +59,11 @@ public class MainActivity extends AppCompatActivity {
 //        SugoAPI.setSuperPropertiesBeforeStartSugo(this, "key", "value");
 
         SugoAPI.startSugo(this, SGConfig.getInstance(this)
-                .setToken("25d2722c5688be58b0fdbd49124b9f45")
-                .setEventsEndPoint("http://139.198.4.214/post?locate=com_SyEPViN8W_project_Hk28_jN8b")
+                .setToken("d3a66ce81be70e5e0ce841bcc62f0c67")
+//                .setEventsEndPoint("http://139.198.4.214/post?locate=com_SyEPViN8W_project_Hk28_jN8b")
 //                .setEventsEndPoint("http://collect.sugo.net/post?locate=com_SJLnjowGe_project_HyErw0VBW")
 //                .setEventsEndPoint("http://collect.sugo.io/post?locate=com_SJLnjowGe_project_Hyv0LtEae")
-//                .setEventsEndPoint("http://dev220.sugo.net/post?locate=com_SJLnjowGe_project_HyErw0VBW")
+                .setEventsEndPoint("http://dev220.sugo.net/post?locate=com_SJLnjowGe_project_HyErw0VBW")
                 .enablePageEvent(true)
                 .logConfig());
 
@@ -97,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @OnClick({R.id.title_txt, R.id.shuoming_img, R.id.shuoming_txt, R.id.scan_img,
-            R.id.to_native_img, R.id.to_native_txt,
+            R.id.to_native_img, R.id.to_native_txt, R.id.floatingActionButton,
             R.id.to_web_img, R.id.to_web_txt})
     public void onClick(View view) {
         switch (view.getId()) {
@@ -138,6 +135,11 @@ public class MainActivity extends AppCompatActivity {
             case R.id.to_web_img:
             case R.id.to_web_txt:
                 startActivity(new Intent(this, WebActivity.class));
+                break;
+            case R.id.floatingActionButton:
+                startActivity(new Intent(this, SendTestDataActivity.class));
+                break;
+            default:
                 break;
         }
     }
