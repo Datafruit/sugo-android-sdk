@@ -59,11 +59,12 @@ public class MainActivity extends AppCompatActivity {
 //        SugoAPI.setSuperPropertiesBeforeStartSugo(this, "key", "value");
 
         SugoAPI.startSugo(this, SGConfig.getInstance(this)
-                .setToken("d3a66ce81be70e5e0ce841bcc62f0c67")
-//                .setEventsEndPoint("http://139.198.4.214/post?locate=com_SyEPViN8W_project_Hk28_jN8b")
+                .setToken("e506a10832ed9a168b79c8000f217098")
+//                .setEventsEndPoint("http://139.198.4.214/post?locate=com_SJel3hLRGb_project_S1DtBDhIZ")
+                .setEventsEndPoint("http://139.198.13.221/post?locate=com_ry7kltM_W_project_B1gOj2MuZ")
 //                .setEventsEndPoint("http://collect.sugo.net/post?locate=com_SJLnjowGe_project_HyErw0VBW")
 //                .setEventsEndPoint("http://collect.sugo.io/post?locate=com_SJLnjowGe_project_Hyv0LtEae")
-                .setEventsEndPoint("http://dev220.sugo.net/post?locate=com_SJLnjowGe_project_HyErw0VBW")
+//                .setEventsEndPoint("http://dev220.sugo.net/post?locate=com_SJLnjowGe_project_HyErw0VBW")
                 .enablePageEvent(true)
                 .logConfig());
 

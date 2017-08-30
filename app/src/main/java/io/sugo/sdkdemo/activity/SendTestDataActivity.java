@@ -9,10 +9,15 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.sugo.android.mpmetrics.SGConfig;
 import io.sugo.android.mpmetrics.SugoAPI;
+import io.sugo.sdkdemo.GenTestData;
 import io.sugo.sdkdemo.R;
 
 public class SendTestDataActivity extends AppCompatActivity {
@@ -43,13 +48,26 @@ public class SendTestDataActivity extends AppCompatActivity {
             @Override
             public void handleMessage(Message msg) {
                 if (msg.what == 666) {
-                    mSendCountTxt.setText(String.format("已发送数据： %s 条", mSendCount));
-                    mHandler.sendEmptyMessageDelayed(666, 1000);
-                    for (int i = 0; i < mSendFreq; i++) {
-                        mSugoAPI.track("AutoEvent");
+                    JSONObject newUser = GenTestData.getRandomPhone(true);
+                    mSugoAPI.track("浏览", newUser);
+
+                    for (int i = 0; i < mSendFreq - 1; i++) {
+                        mSugoAPI.track("测试事件", GenTestData.getRandomPhone(false));
                     }
+
+                    JSONObject stay = GenTestData.getRandomPhone(false);
+                    try {
+                        stay.put(SGConfig.FIELD_DURATION, GenTestData.sRandom.nextInt(100));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    mSugoAPI.track("窗口停留", stay);
+
                     mSugoAPI.flush();
                     mSendCount += mSendFreq;
+
+                    mSendCountTxt.setText(String.format("已发送数据： %s 条", mSendCount));
+                    mHandler.sendEmptyMessageDelayed(666, 1000);
                 }
             }
         };
