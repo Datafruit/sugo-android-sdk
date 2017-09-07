@@ -17,6 +17,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.regex.Pattern;
 
+import io.sugo.android.util.StringEscapeUtils;
 import io.sugo.android.viewcrawler.ViewCrawler;
 
 /**
@@ -489,6 +490,9 @@ public class SugoWebViewClient extends WebViewClient {
             initCode = pageInfo.optString("code", "");
             pageName = pageInfo.optString("page_name", "");
             pageCategory = pageInfo.optString("category", "");
+        }
+        if (!TextUtils.isEmpty(initCode)) {
+            initCode = StringEscapeUtils.escapeJava(initCode);
         }
 
         String activityName = activity.getClass().getName();
