@@ -428,7 +428,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                     case MESSAGE_CONNECT_TO_EDITOR:
                         // 热图模式下无法埋点
                         if (!SugoHeatMap.isShowHeatMap()) {
-                            connectToEditor();
+                            connectToEditor(secretKey);
                         }
                         break;
                     case MESSAGE_SEND_DEVICE_INFO:
@@ -693,7 +693,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
         /**
          * Try to connect to the remote interactive editor, if a connection does not already exist.
          */
-        private void connectToEditor() {
+        private void connectToEditor(String skey) {
             if (SGConfig.DEBUG) {
                 Log.v(LOGTAG, "connecting to editor");
             }
@@ -713,7 +713,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                 return;
             }
 
-            final String url = SGConfig.getInstance(mContext).getEditorUrl() + mToken;
+            final String url = SGConfig.getInstance(mContext).getEditorUrl() + mToken + "?sKey=" + skey;
             try {
                 Socket socket;
                 if (url.startsWith("wss://"))

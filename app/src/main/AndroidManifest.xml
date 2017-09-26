@@ -26,7 +26,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
             <intent-filter>
-                <data android:scheme="sugo.fe4a604d4709cab05c507eee451f1128"/>
+                <data android:scheme="sugo.d3a66ce81be70e5e0ce841bcc62f0c67"/>
 
                 <action android:name="android.intent.action.VIEW"/>
 
@@ -54,25 +54,26 @@
         <meta-data
             android:name="io.sugo.android.SGConfig.ResourcePackageName"
             android:value="io.sugo.sdkdemo"/>
-        <meta-data
-            android:name="io.sugo.android.SGConfig.EditorUrl"
-            android:value="ws://192.168.0.220:8887/connect/"/>
-        <meta-data
-            android:name="io.sugo.android.SGConfig.DecideEndpoint"
-            android:value="http://192.168.0.220:8000/api/sdk/decide"/>
-        <meta-data
-            android:name="io.sugo.android.SGConfig.HeatMapEndpoint"
-            android:value="http://192.168.0.220:8000/api/sdk/heat"/>
 
-        <!-- <meta-data -->
-        <!-- android:name="io.sugo.android.SGConfig.EditorUrl" -->
-        <!-- android:value="ws://58.63.110.97:8887/connect/"/> -->
-        <!-- <meta-data -->
-        <!-- android:name="io.sugo.android.SGConfig.DecideEndpoint" -->
-        <!-- android:value="http://astro.sugo.io/api/sdk/decide"/> -->
-        <!-- <meta-data -->
-        <!-- android:name="io.sugo.android.SGConfig.HeatMapEndpoint" -->
-        <!-- android:value="http://astro.sugo.io/api/sdk/heat"/> -->
+        <!--<meta-data-->
+            <!--android:name="io.sugo.android.SGConfig.EditorUrl"-->
+            <!--android:value="ws://58.63.110.97:2227/connect/"/>-->
+        <!--<meta-data-->
+            <!--android:name="io.sugo.android.SGConfig.DecideEndpoint"-->
+            <!--android:value="http://tsa.sugo.io/api/sdk/decide"/>-->
+        <!--<meta-data-->
+            <!--android:name="io.sugo.android.SGConfig.HeatMapEndpoint"-->
+            <!--android:value="http://tsa.sugo.io/api/sdk/heat"/>-->
+
+         <meta-data
+         android:name="io.sugo.android.SGConfig.EditorUrl"
+         android:value="ws://192.168.0.220:8887/connect/"/>
+         <meta-data
+         android:name="io.sugo.android.SGConfig.DecideEndpoint"
+         android:value="http://192.168.0.220:8000/api/sdk/decide"/>
+         <meta-data
+         android:name="io.sugo.android.SGConfig.HeatMapEndpoint"
+         android:value="http://192.168.0.220:8000/api/sdk/heat"/>
 
         <activity android:name=".activity.PrivateFuncActivity">
         </activity>
