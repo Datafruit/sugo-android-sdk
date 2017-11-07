@@ -255,6 +255,10 @@ public class SugoAPI {
         }
 
         if (!mPersistentIdentity.hasTrackedIntegration()) {
+            Map<String, Object> firstTime = new HashMap<>();
+            firstTime.put(SGConfig.FIELD_FIRST_TIME, System.currentTimeMillis());
+            registerSuperPropertiesMap(firstTime);
+            track("首次访问");
             track("APP安装");
             flush();
             mPersistentIdentity.setTrackedIntegration(true);
