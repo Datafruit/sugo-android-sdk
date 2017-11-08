@@ -4,7 +4,7 @@ android {
     compileSdkVersion 25
     buildToolsVersion '26.0.2'
     defaultConfig {
-        applicationId "io.sugo.sdkdemo.DEV220_17"
+        applicationId "io.sugo.sdkdemo.DEV220"
         minSdkVersion 9
         targetSdkVersion 25
         versionCode 4
