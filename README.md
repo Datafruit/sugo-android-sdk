@@ -51,19 +51,6 @@ dependencies {
 
     >
     ...
-    <meta-data
-            android:name="io.sugo.android.SGConfig.EnableDebugLogging"
-            android:value="false"/>
-
-    <!-- 也可以在代码中设置 Token 和 ProjectId -->
-    <meta-data
-            android:name="io.sugo.android.SGConfig.token"
-            android:value="{YOUR_TOKEN}" />
-
-    <meta-data
-            android:name="io.sugo.android.SGConfig.ProjectId"
-            android:value="{YOUR_PROJECT}" />
-
   </application>
 </manifest>
 ```
@@ -93,20 +80,26 @@ dependencies {
 ```
 
 #### 2.1.3 数据上报网关地址以及 Project Id 配置   
+> 必填   
+
 ```xml
 <meta-data
         android:name="io.sugo.android.SGConfig.EventsEndpoint"
-        android:value="{EVENTS_ENDPOINT}?locate={YOUR_PROJECT}" />
+        android:value="{EVENTS_URL}?locate={YOUR_PROJECT}" />
 ```
 
 #### 2.1.4 部署地址配置   
+> 必填   
+
 ```xml
 <meta-data
         android:name="io.sugo.android.SGConfig.DecideEndpoint"
-        android:value="{DECIDE_ENDPOINT}/api/sdk/decide" />
+        android:value="{DECIDE_URL}/api/sdk/decide" />
 ```
 
 #### 2.1.5 可视化埋点链接地址配置   
+> 必填   
+
 ```xml
 <meta-data
         android:name="io.sugo.android.SGConfig.EditorUrl"
@@ -119,7 +112,7 @@ dependencies {
 
 ```
     <intent-filter>
-        <data android:scheme="sugo.c6749a4f1ef039ca196148ed1cb65d87"/>
+        <data android:scheme="sugo.{TOKEN}"/>
 
         <action android:name="android.intent.action.VIEW"/>
 
