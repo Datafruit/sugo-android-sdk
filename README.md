@@ -85,7 +85,7 @@ dependencies {
 ```xml
 <meta-data
         android:name="io.sugo.android.SGConfig.EventsEndpoint"
-        android:value="{EVENTS_URL}?locate={YOUR_PROJECT}" />
+        android:value="{EVENTS_URL}/post?locate={YOUR_PROJECT_ID}" />
 ```
 
 #### 2.1.4 部署地址配置   
@@ -112,8 +112,7 @@ dependencies {
 
 ```
     <intent-filter>
-        <data android:scheme="sugo.{TOKEN}"/>
-
+        <data android:scheme="sugo.{YOUR_TOKEN}"/>
         <action android:name="android.intent.action.VIEW"/>
 
         <category android:name="android.intent.category.DEFAULT"/>
@@ -150,6 +149,11 @@ dependencies {
 ---
 
 ## 3. SDK 使用   
+
+初始化   
+```Java
+    SugoAPI.startSugo(this, SGConfig.getInstance(this));
+```   
 
 标准的使用实例，应该是在 APP 启动的第一个`Activity`中，添加以下代码
 ```Java
