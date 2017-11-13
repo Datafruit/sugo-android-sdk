@@ -1,41 +1,42 @@
-# Sugo Android SDK 使用文档
+# Sugo Android SDK 使用文档   
 
-## 1. SDK 集成
-> 集成 Sugo Android SDK 有三种方式，**选择其中一种即可**。
+## 1. SDK 集成   
+> 集成 Sugo Android SDK 有三种方式，**选择其中一种即可**。   
 
-**1.1 Gradle 集成**
-```Groovy
+**1.1 Gradle 集成**   
+```Groovy   
 dependencies {
-    compile 'io.sugo.android:sugo-android-sdk:2.0.0'
+    compile 'io.sugo.android:sugo-android-sdk:2.1.0'
 }
 ```
 
-> 如果需要支持`XWalkView`，请另外再添加
+> 如果需要支持`XWalkView`，请另外再添加   
+(如果不知道这个，就不需要)   
 
-```Groovy
+```Groovy   
 dependencies {
-    compile 'io.sugo.android:sugo-xwalkview-support:2.0.0'
+    compile 'io.sugo.android:sugo-xwalkview-support:2.1.0'
 }
 ```
 
-**1.2 下载 SDK 并集成**
-下载 SDK 压缩包，解压后将其中的 sugo-android-sdk.jar 导入你的项目 libs 目录中
-> 如果需要支持`XWalkView`，请另外再导入`sugo-android-sdk-xwalk.jar`
+**1.2 下载 SDK 并集成**   
+下载 SDK 压缩包，解压后将其中的 sugo-android-sdk.jar 导入你的项目 libs 目录中   
+> 如果需要支持`XWalkView`，请另外再导入`sugo-android-sdk-xwalk.jar`   
 
 ---
 
-## 2. SDK 配置
+## 2. SDK 配置   
 
-> 请先登录您的【数果星盘】管理台，在数据管理-埋点项目-新建项目-新建应用中，创建您的应用，以获取对应的 Token 等。
+> 请先登录您的【数果星盘】管理台，在数据管理-埋点项目-新建项目-新建应用中，创建您的应用，以获取对应的 Token 等。   
 
-![image](doc/img/create_app.png)
+![image](doc/img/create_app.png)   
 
-![image](doc/img/APP_INFO.png)
+![image](doc/img/APP_INFO.png)   
 
 
 
-### 2.1 AndroidManifest.xml 基本配置
-```xml
+### 2.1 AndroidManifest.xml 基本配置   
+```xml   
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     >
 
@@ -67,23 +68,23 @@ dependencies {
 </manifest>
 ```
 
-- SDK 配置说明
+- SDK 配置说明   
 
-> 以下配置不包括`{}`，填入配置时，请删除大括号`{}`
+> 以下配置不包括`{}`，填入配置时，请删除大括号`{}`   
 
-#### 2.1.0 权限说明
+#### 2.1.0 权限说明   
 
-#### 2.1.1 调试模式
-> 开启调试模式，可以输出 SugoSDK 的日志
+#### 2.1.1 调试模式   
+> 开启调试模式，可以输出 SugoSDK 的日志   
 
-```xml
-<meta-data
+```xml   
+<meta-data   
         android:name="io.sugo.android.SGConfig.EnableDebugLogging"
         android:value="true"/>
 ```
 
-#### 2.1.2 Token 设置
-> 必填
+#### 2.1.2 Token 设置  
+> 必填   
 
 ```xml
 <meta-data
@@ -91,41 +92,44 @@ dependencies {
         android:value="{YOUR_TOKEN}" />
 ```
 
-#### 2.1.3 Project Id 配置
-> 必填
-
-```xml
-<meta-data
-        android:name="io.sugo.android.SGConfig.ProjectId"
-        android:value="{YOUR_PROJECT}" />
-```
-如果是私有云，请换成该配置
+#### 2.1.3 数据上报网关地址以及 Project Id 配置   
 ```xml
 <meta-data
         android:name="io.sugo.android.SGConfig.EventsEndpoint"
         android:value="{EVENTS_ENDPOINT}?locate={YOUR_PROJECT}" />
 ```
 
-#### 2.1.4 部署地址配置
-> 仅私有云配置
-
+#### 2.1.4 部署地址配置   
 ```xml
 <meta-data
         android:name="io.sugo.android.SGConfig.DecideEndpoint"
-        android:value="{DECIDE_ENDPOINT}" />
+        android:value="{DECIDE_ENDPOINT}/api/sdk/decide" />
 ```
 
-#### 2.1.5 可视化埋点链接地址配置
-> 仅私有云配置
-
+#### 2.1.5 可视化埋点链接地址配置   
 ```xml
 <meta-data
         android:name="io.sugo.android.SGConfig.EditorUrl"
-        android:value="{EDITOR_URL} />
+        android:value="{EDITOR_URL}/connect/" />
 ```
 
-#### 2.1... 代码混淆
-> 如果您的应用使用了代码混淆， 请添加
+#### 2.1.6 扫码跳转页面   
+
+在启动的 Activity 上（该 Activity 不能在初始化`Sugo.startSugo()`被调用之前），配置
+
+```
+    <intent-filter>
+        <data android:scheme="sugo.c6749a4f1ef039ca196148ed1cb65d87"/>
+
+        <action android:name="android.intent.action.VIEW"/>
+
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+    </intent-filter>
+```
+
+#### 2.1... 代码混淆   
+> 如果您的应用使用了代码混淆， 请添加   
 
 
 ```
@@ -152,7 +156,7 @@ dependencies {
 
 ---
 
-## 3. SDK 使用
+## 3. SDK 使用   
 
 标准的使用实例，应该是在 APP 启动的第一个`Activity`中，添加以下代码
 ```Java
@@ -163,8 +167,6 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle saved) {
         // SDK 将会初始化，此处若设置 Token 、 ProjectId，将覆盖 AndroidManifest 中的设置
         SugoAPI.startSugo(this, SGConfig.getInstance(this)
-            .setToken("38c07f58b8f6e1df82ea29f794b6e097")
-            .setProjectId("com_HyoaKhQMl_project_B1GjJOHFg")
             .logConfig());
 
         // 获取 SugoAPI 实例，在第一次调用时，

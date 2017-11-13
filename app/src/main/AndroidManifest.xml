@@ -51,16 +51,16 @@
             android:screenOrientation="portrait"
             tools:replace="screenOrientation" />
 
-        <!-- <meta-data -->
-        <!-- android:name="io.sugo.android.SGConfig.UpdateDecideInterval" -->
-        <!-- android:value="10000"/> -->
+         <meta-data
+         android:name="io.sugo.android.SGConfig.UpdateDecideInterval"
+         android:value="10000"/>
 
         <meta-data
             android:name="io.sugo.android.SGConfig.EnableDebugLogging"
             android:value="true" />
-        <!--<meta-data-->
-            <!--android:name="io.sugo.android.SGConfig.ResourcePackageName"-->
-            <!--android:value="io.sugo.sdkdemo" />-->
+        <meta-data
+            android:name="io.sugo.android.SGConfig.ResourcePackageName"
+            android:value="io.sugo.sdkdemo" />
 
          <!--<meta-data-->
          <!--android:name="io.sugo.android.SGConfig.EditorUrl"-->
@@ -78,6 +78,9 @@
         <meta-data
             android:name="io.sugo.android.SGConfig.DecideEndpoint"
             android:value="http://192.168.0.220:8000/api/sdk/decide" />
+        <meta-data
+            android:name="io.sugo.android.SGConfig.EventsEndpoint"
+            android:value="http://dev220.sugo.net/post?locate=com_SJLnjowGe_project_HyErw0VBW"/>
         <meta-data
             android:name="io.sugo.android.SGConfig.HeatMapEndpoint"
             android:value="http://192.168.0.220:8000/api/sdk/heat" />
