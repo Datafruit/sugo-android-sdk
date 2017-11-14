@@ -29,11 +29,12 @@
 
         </activity>
 
-        <activity android:name=".activity.MainActivity"
+        <activity
+            android:name=".activity.MainActivity"
             android:launchMode="singleTask">
 
             <intent-filter>
-                <data android:scheme="sugo.d3a66ce81be70e5e0ce841bcc62f0c67" />
+                <data android:scheme="sugo.6c12098134a9f19d38afb9b42e045e48" />
 
                 <action android:name="android.intent.action.VIEW" />
 
@@ -51,39 +52,32 @@
             android:screenOrientation="portrait"
             tools:replace="screenOrientation" />
 
-         <meta-data
-         android:name="io.sugo.android.SGConfig.UpdateDecideInterval"
-         android:value="10000"/>
-
         <meta-data
-            android:name="io.sugo.android.SGConfig.EnableDebugLogging"
-            android:value="true" />
+            android:name="io.sugo.android.SGConfig.UpdateDecideInterval"
+            android:value="10000" />
         <meta-data
             android:name="io.sugo.android.SGConfig.ResourcePackageName"
             android:value="io.sugo.sdkdemo" />
 
-         <!--<meta-data-->
-         <!--android:name="io.sugo.android.SGConfig.EditorUrl"-->
-         <!--android:value="wss://sgio.igola.com:8887/connect/"/>-->
-         <!--<meta-data-->
-         <!--android:name="io.sugo.android.SGConfig.DecideEndpoint"-->
-         <!--android:value="https://sgio.igola.com:8000/api/sdk/decide"/>-->
-         <!--<meta-data-->
-         <!--android:name="io.sugo.android.SGConfig.HeatMapEndpoint"-->
-         <!--android:value="https://sgio.igola.com:8000/api/sdk/heat"/>-->
+        <meta-data
+            android:name="io.sugo.android.SGConfig.EnableDebugLogging"
+            android:value="true" />
 
         <meta-data
-            android:name="io.sugo.android.SGConfig.EditorUrl"
-            android:value="ws://192.168.0.220:8887/connect/" />
+            android:name="io.sugo.android.SGConfig.token"
+            android:value="6c12098134a9f19d38afb9b42e045e48" />
         <meta-data
             android:name="io.sugo.android.SGConfig.DecideEndpoint"
-            android:value="http://192.168.0.220:8000/api/sdk/decide" />
+            android:value="https://sgio.igola.com:8000/api/sdk/decide" />
         <meta-data
             android:name="io.sugo.android.SGConfig.EventsEndpoint"
-            android:value="http://dev220.sugo.net/post?locate=com_SJLnjowGe_project_HyErw0VBW"/>
+            android:value="https://sgio.igola.com/posts?locate=com_BJNK2Lvsb_project_B1VoXnIRW" />
+        <meta-data
+            android:name="io.sugo.android.SGConfig.EditorUrl"
+            android:value="wss://sgio.igola.com:8887/connect/" />
         <meta-data
             android:name="io.sugo.android.SGConfig.HeatMapEndpoint"
-            android:value="http://192.168.0.220:8000/api/sdk/heat" />
+            android:value="https://sgio.igola.com:8000/api/sdk/heat" />
 
         <activity android:name=".activity.PrivateFuncActivity" />
         <activity android:name=".activity.DebugViewPagerActivity" />

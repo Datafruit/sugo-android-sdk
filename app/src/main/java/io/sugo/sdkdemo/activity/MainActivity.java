@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
 //        SugoAPI.setSuperPropertiesOnceBeforeStartSugo(this, "key-once", "value-once22");
 //        SugoAPI.setSuperPropertiesBeforeStartSugo(this, "key", "value");
 
-        SugoAPI.startSugo(this, SGConfig.getInstance(this)
+        SugoAPI.startSugo(this, SGConfig.getInstance(this).logConfig());
 //                .setToken("6c12098134a9f19d38afb9b42e045e48")
 //                .setEventsEndPoint("https://sgio.igola.com/posts?locate=com_BJNK2Lvsb_project_B1VoXnIRW")
 //                .setToken("d3a66ce81be70e5e0ce841bcc62f0c67")
@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
 //                .setEventsEndPoint("http://collect.sugo.io/post?locate=com_SJLnjowGe_project_Hyv0LtEae")
 //                .setEventsEndPoint("http://58.63.110.97:2271/post?locate=com_H1bIzqK2SZ_project_HybrS_99b")
 //                .enablePageEvent(true)
-                .logConfig());
+//                .logConfig());
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE,
