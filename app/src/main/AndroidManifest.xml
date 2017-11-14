@@ -34,7 +34,7 @@
             android:launchMode="singleTask">
 
             <intent-filter>
-                <data android:scheme="sugo.6c12098134a9f19d38afb9b42e045e48" />
+                <data android:scheme="sugo.d3a66ce81be70e5e0ce841bcc62f0c67" />
 
                 <action android:name="android.intent.action.VIEW" />
 
@@ -65,19 +65,20 @@
 
         <meta-data
             android:name="io.sugo.android.SGConfig.token"
-            android:value="6c12098134a9f19d38afb9b42e045e48" />
+            android:value="d3a66ce81be70e5e0ce841bcc62f0c67" />
         <meta-data
             android:name="io.sugo.android.SGConfig.DecideEndpoint"
-            android:value="https://sgio.igola.com:8000/api/sdk/decide" />
+            android:value="http://dev220.sugo.net:8000/api/sdk/decide" />
         <meta-data
             android:name="io.sugo.android.SGConfig.EventsEndpoint"
-            android:value="https://sgio.igola.com/posts?locate=com_BJNK2Lvsb_project_B1VoXnIRW" />
+            android:value="http://dev220.sugo.net/posts?locate=com_SJLnjowGe_project_HyErw0VBW" />
         <meta-data
             android:name="io.sugo.android.SGConfig.EditorUrl"
-            android:value="wss://sgio.igola.com:8887/connect/" />
+            android:value="ws://dev220.sugo.net:8887/connect/" />
         <meta-data
             android:name="io.sugo.android.SGConfig.HeatMapEndpoint"
-            android:value="https://sgio.igola.com:8000/api/sdk/heat" />
+            android:value="http://dev220.sugo.net:8000/api/sdk/heat" />
+
 
         <activity android:name=".activity.PrivateFuncActivity" />
         <activity android:name=".activity.DebugViewPagerActivity" />
