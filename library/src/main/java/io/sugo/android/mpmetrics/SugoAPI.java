@@ -26,9 +26,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -255,9 +261,9 @@ public class SugoAPI {
         }
 
         if (!mPersistentIdentity.hasTrackedIntegration()) {
-            Map<String, Object> firstTime = new HashMap<>();
-            firstTime.put(SGConfig.FIELD_FIRST_TIME, System.currentTimeMillis());
-            registerSuperPropertiesMap(firstTime);
+            Map<String, Object> firstVisitTime = new HashMap<>();
+            firstVisitTime.put(SGConfig.FIELD_FIRST_VISIT_TIME, System.currentTimeMillis());
+            registerSuperPropertiesMap(firstVisitTime);
             track("首次访问");
             track("APP安装");
             flush();
@@ -1335,6 +1341,36 @@ public class SugoAPI {
             e.printStackTrace();
         }
         track(eventName, props);
+    }
+
+    public void login(String userId) {
+        try {
+            URL url = new URL("");
+            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            if (urlConnection.getResponseCode() == 200) {
+                InputStream inputStream = urlConnection.getInputStream();
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                byte[] buffers = new byte[1024];
+                int len = 0;
+                while (-1 != (len = inputStream.read(buffers))) {
+                    baos.write(buffers, 0, len);
+                    baos.flush();
+                }
+                String result = baos.toString("utf-8");
+                long firstLoginTime = 0;
+                Map<String, Object> firstLoginTimeMap = new HashMap<>();
+                firstLoginTimeMap.put(SGConfig.FIELD_FIRST_LOGIN_TIME, firstLoginTime);
+                registerSuperPropertiesMap(firstLoginTimeMap);
+                boolean firstLogin = true;
+                if (firstLogin) {
+                    track("首次登录");
+                }
+            }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private final Context mContext;

@@ -4,7 +4,7 @@ android {
     compileSdkVersion 25
     buildToolsVersion '26.0.2'
     defaultConfig {
-        applicationId "io.sugo.sdkdemo"
+        applicationId "io.sugo.sdkdemo.dev220kf"
         minSdkVersion 9
         targetSdkVersion 25
         versionCode 4
@@ -23,7 +23,7 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.releaseConfig
         }

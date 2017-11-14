@@ -34,7 +34,7 @@
             android:launchMode="singleTask">
 
             <intent-filter>
-                <data android:scheme="sugo.d3a66ce81be70e5e0ce841bcc62f0c67" />
+                <data android:scheme="sugo.5bab5fa8dccf2a91320223ca9f8df327" />
 
                 <action android:name="android.intent.action.VIEW" />
 
@@ -65,13 +65,13 @@
 
         <meta-data
             android:name="io.sugo.android.SGConfig.token"
-            android:value="d3a66ce81be70e5e0ce841bcc62f0c67" />
+            android:value="5bab5fa8dccf2a91320223ca9f8df327" />
         <meta-data
             android:name="io.sugo.android.SGConfig.DecideEndpoint"
             android:value="http://dev220.sugo.net:8000/api/sdk/decide" />
         <meta-data
             android:name="io.sugo.android.SGConfig.EventsEndpoint"
-            android:value="http://dev220.sugo.net/posts?locate=com_SJLnjowGe_project_HyErw0VBW" />
+            android:value="http://dev220.sugo.net/posts?locate=com_SJLnjowGe_project_SyHwyk1kf" />
         <meta-data
             android:name="io.sugo.android.SGConfig.EditorUrl"
             android:value="ws://dev220.sugo.net:8887/connect/" />

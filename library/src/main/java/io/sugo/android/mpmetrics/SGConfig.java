@@ -603,7 +603,8 @@ public class SGConfig {
     public static final String FIELD_EVENT_TYPE = "event_type";
     public static final String FIELD_DEVICE_ID = "device_id";
     public static final String FIELD_PAGE_CATEGORY = "page_category";
-    public static final String FIELD_FIRST_TIME = "first_time";
+    public static final String FIELD_FIRST_VISIT_TIME = "first_visit_time";
+    public static final String FIELD_FIRST_LOGIN_TIME = "first_login_time";
 
     public static final String TIME_EVENT_TAG = "sugo_time_event_tag";
 }
