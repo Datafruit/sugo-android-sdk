@@ -92,10 +92,89 @@ import io.sugo.android.util.OfflineMode;
  */
 public class SGConfig {
 
-    // Unfortunately, as long as we support building from source in Eclipse,
-    // we can't rely on BuildConfig.SUGO_VERSION existing, so this must
-    // be hard-coded both in our gradle files and here in code.
-    public static final String VERSION = "2.0.0";
+    private static final String LOGTAG = "SugoAPI.Conf";
+
+    /**
+     * Unfortunately, as long as we support building from source in Eclipse,
+     * we can't rely on BuildConfig.SUGO_VERSION existing, so this must
+     * be hard-coded both in our gradle files and here in code.
+     */
+    public static final String VERSION = "2.2.0";
+
+    static final String FIELD_APP_BUILD_NUMBER       = "app_build_number";
+    static final String FIELD_APP_VERSION_STRING     = "app_version";
+    static final String FIELD_BLUETOOTH_ENABLED      = "has_bluetooth";
+    static final String FIELD_BLUETOOTH_VERSION      = "bluetooth_version";
+    static final String FIELD_BRAND                  = "device_brand";
+    static final String FIELD_CARRIER                = "carrier";
+    static final String FIELD_FROM_BINDING           = "from_binding";
+    static final String FIELD_GOOGLE_PLAY_SERVICES   = "google_play_services";
+    static final String FIELD_HAS_NFC                = "has_nfc";
+    static final String FIELD_HAS_TELEPHONE          = "has_telephone";
+    static final String FIELD_LIB_VERSION            = "sdk_version";
+    static final String FIELD_MANUFACTURER           = "manufacturer";
+    static final String FIELD_MODEL                  = "device_model";
+    static final String FIELD_OS                     = "system_name";
+    static final String FIELD_OS_VERSION             = "system_version";
+    static final String FIELD_SCREEN_DPI             = "screen_dpi";
+    static final String FIELD_SCREEN_HEIGHT          = "screen_height";
+    static final String FIELD_SCREEN_WIDTH           = "screen_width";
+    static final String FIELD_TEXT                   = "event_label";
+    static final String FIELD_CLIENT_NETWORK         = "network";
+    static final String FIELD_WIFI                   = "has_wifi";
+    static final String FIELD_DISTINCT_ID            = "distinct_id";
+    static final String FIELD_EVENT_ID               = "event_id";
+    static final String FIELD_EVENT_NAME             = "event_name";
+    static final String FIELD_MP_LIB                 = "sugo_lib";
+    static final String FIELD_TIME                   = "event_time";
+    static final String FIELD_TOKEN                  = "token";
+    static final String FIELD_PAGE                   = "path_name";
+    static final String FIELD_DURATION               = "duration";
+    static final String SESSION_ID                   = "session_id";
+    static final String FIELD_PAGE_NAME              = "page_name";
+    static final String FIELD_EVENT_TYPE             = "event_type";
+    static final String FIELD_DEVICE_ID              = "device_id";
+    static final String FIELD_PAGE_CATEGORY          = "page_category";
+    static final String FIELD_FIRST_VISIT_TIME       = "first_visit_time";
+    static final String FIELD_FIRST_LOGIN_TIME       = "first_login_time";
+
+    static final String TIME_EVENT_TAG               = "sugo_time_event_tag";
+
+    private final String mToken;
+    private final String mProjectId;
+    private final String mEventsEndpoint;
+    private final String mDecideEndpoint;
+    private final String mHeatMapEndpoint;
+    private final String mFirstLoginEndpoint;
+    private final String mEditorUrl;
+    private final String mResourcePackageName;
+    private final boolean mEnablePageEvent;
+    private final int mBulkUploadLimit;
+    private final int mFlushInterval;
+    private final long mUpdateDecideInterval;
+    private final int mDataExpiration;
+    private final int mMinimumDatabaseLimit;
+    private final String mEventsFallbackEndpoint;
+    private final String mPeopleEndpoint;
+    private final String mPeopleFallbackEndpoint;
+    private final String mDecideFallbackEndpoint;
+    private final boolean mDisableFallback;
+    private final boolean mTestMode;
+    private final boolean mDisableGestureBindingUI;
+    private final boolean mDisableEmulatorBindingUI;
+    private final boolean mDisableAppOpenEvent;
+    private final boolean mDisableViewCrawler;
+    private final String[] mDisableViewCrawlerForProjects;
+    private final boolean mAutoShowMixpanelUpdates;
+    private final boolean mDisableDecideChecker;
+    private final int mImageCacheMaxMemoryFactor;
+    private final String webRoot;
+    // Mutable, with synchronized accessor and mutator
+    private SSLSocketFactory mSSLSocketFactory;
+    private OfflineMode mOfflineMode;
+
+    private static SGConfig sInstance;
+    private static final Object sInstanceLock = new Object();
 
     public static boolean DEBUG = false;
 
@@ -122,6 +201,114 @@ public class SGConfig {
         }
 
         return sInstance;
+    }
+
+    /**
+     * Package access for testing only- do not call directly in library code
+     */
+    static SGConfig readConfig(Context appContext) {
+        final String packageName = appContext.getPackageName();
+        try {
+            final ApplicationInfo appInfo = appContext.getPackageManager().getApplicationInfo(packageName, PackageManager.GET_META_DATA);
+            Bundle configBundle = appInfo.metaData;
+            if (null == configBundle) {
+                configBundle = new Bundle();
+            }
+            return new SGConfig(configBundle, appContext);
+        } catch (final NameNotFoundException e) {
+            throw new RuntimeException("Can't configure Sugo with package name " + packageName, e);
+        }
+    }
+
+    SGConfig(Bundle metaData, Context context) {
+
+        // By default, we use a clean, FACTORY default SSLSocket. In general this is the right
+        // thing to do, and some other third party libraries change the
+        SSLSocketFactory foundSSLFactory;
+        myX509TrustManager xtm = new myX509TrustManager();
+        myHostnameVerifier hnv = new myHostnameVerifier();
+        try {
+            final SSLContext sslContext = SSLContext.getInstance("TLS");
+            X509TrustManager[] xtmArray = new X509TrustManager[]{xtm};
+            sslContext.init(null, xtmArray, new java.security.SecureRandom());
+            foundSSLFactory = sslContext.getSocketFactory();
+        } catch (final GeneralSecurityException e) {
+            Log.i("SugoAPI.Conf", "System has no SSL support. Built-in events editor will not be available", e);
+            foundSSLFactory = null;
+        }
+        mSSLSocketFactory = foundSSLFactory;
+
+        DEBUG = metaData.getBoolean("io.sugo.android.SGConfig.EnableDebugLogging", false);
+
+        mTestMode = metaData.getBoolean("io.sugo.android.SGConfig.TestMode", false);
+
+        mToken = metaData.getString("io.sugo.android.SGConfig.token");
+        mProjectId = metaData.getString("io.sugo.android.SGConfig.ProjectId");
+        String apiHost = metaData.getString("io.sugo.android.SGConfig.APIHost");
+        String eventsHost = metaData.getString("io.sugo.android.SGConfig.EventsHost");
+        String editorHost = metaData.getString("io.sugo.android.SGConfig.EditorHost");
+
+        mDecideEndpoint = apiHost + "/api/sdk/decide";
+        mHeatMapEndpoint = apiHost + "/api/sdk/heat";
+        mFirstLoginEndpoint = apiHost + "/api/sdk/get-first-login-time?userId=";
+        mEventsEndpoint = eventsHost + "/posts?locate=" + mProjectId;
+        mEditorUrl = editorHost + "/connect/";
+        mEnablePageEvent = metaData.getBoolean("io.sugo.android.SGConfig.EnablePageEvent", true);
+        mFlushInterval = metaData.getInt("io.sugo.android.SGConfig.FlushInterval", 60 * 1000);
+        mUpdateDecideInterval = metaData.getInt("io.sugo.android.SGConfig.UpdateDecideInterval", 60 * 60 * 1000);
+
+        mBulkUploadLimit = metaData.getInt("io.sugo.android.SGConfig.BulkUploadLimit", 40); // 40 records default
+        mDataExpiration = metaData.getInt("io.sugo.android.SGConfig.DataExpiration", 1000 * 60 * 60 * 24 * 5); // 5 days default
+        mMinimumDatabaseLimit = metaData.getInt("io.sugo.android.SGConfig.MinimumDatabaseLimit", 20 * 1024 * 1024); // 20 Mb
+        mDisableFallback = metaData.getBoolean("io.sugo.android.SGConfig.DisableFallback", true);
+        mResourcePackageName = metaData.getString("io.sugo.android.SGConfig.ResourcePackageName"); // default is null
+        mDisableGestureBindingUI = metaData.getBoolean("io.sugo.android.SGConfig.DisableGestureBindingUI", false);
+        mDisableEmulatorBindingUI = metaData.getBoolean("io.sugo.android.SGConfig.DisableEmulatorBindingUI", false);
+        mDisableAppOpenEvent = metaData.getBoolean("io.sugo.android.SGConfig.DisableAppOpenEvent", true);
+        mDisableViewCrawler = metaData.getBoolean("io.sugo.android.SGConfig.DisableViewCrawler", false);
+        mDisableDecideChecker = metaData.getBoolean("io.sugo.android.SGConfig.DisableDecideChecker", false);
+        mImageCacheMaxMemoryFactor = metaData.getInt("io.sugo.android.SGConfig.ImageCacheMaxMemoryFactor", 10);
+        webRoot = metaData.getString("io.sugo.android.SGConfig.webRoot");
+        // Disable if EITHER of these is present and false, otherwise enable
+        final boolean surveysAutoCheck = metaData.getBoolean("io.sugo.android.SGConfig.AutoCheckForSurveys", true);
+        final boolean mixpanelUpdatesAutoShow = metaData.getBoolean("io.sugo.android.SGConfig.AutoShowMixpanelUpdates", true);
+        mAutoShowMixpanelUpdates = surveysAutoCheck && mixpanelUpdatesAutoShow;
+
+        String eventsFallbackEndpoint = metaData.getString("io.sugo.android.SGConfig.EventsFallbackEndpoint");
+        if (null == eventsFallbackEndpoint) {
+            eventsFallbackEndpoint = "http://api.mixpanel.com/track?ip=1";
+        }
+        mEventsFallbackEndpoint = eventsFallbackEndpoint;
+
+        String peopleEndpoint = metaData.getString("io.sugo.android.SGConfig.PeopleEndpoint");
+        if (null == peopleEndpoint) {
+            peopleEndpoint = "https://api.mixpanel.com/engage";
+        }
+        mPeopleEndpoint = peopleEndpoint;
+
+        String peopleFallbackEndpoint = metaData.getString("io.sugo.android.SGConfig.PeopleFallbackEndpoint");
+        if (null == peopleFallbackEndpoint) {
+            peopleFallbackEndpoint = "http://api.mixpanel.com/engage";
+        }
+        mPeopleFallbackEndpoint = peopleFallbackEndpoint;
+
+        String decideFallbackEndpoint = metaData.getString("io.sugo.android.SGConfig.DecideFallbackEndpoint");
+        if (null == decideFallbackEndpoint) {
+            decideFallbackEndpoint = "http://decide.mixpanel.com/decide";
+        }
+        mDecideFallbackEndpoint = decideFallbackEndpoint;
+
+        int resourceId = metaData.getInt("io.sugo.android.SGConfig.DisableViewCrawlerForProjects", -1);
+        if (resourceId != -1) {
+            mDisableViewCrawlerForProjects = context.getResources().getStringArray(resourceId);
+        } else {
+            mDisableViewCrawlerForProjects = new String[0];
+        }
+
+    }
+
+    String getFirstLoginEndpoint() {
+        return mFirstLoginEndpoint;
     }
 
     /**
@@ -174,134 +361,6 @@ public class SGConfig {
      */
     public synchronized void setOfflineMode(OfflineMode offlineMode) {
         mOfflineMode = offlineMode;
-    }
-
-    /* package */ SGConfig(Bundle metaData, Context context) {
-
-        // By default, we use a clean, FACTORY default SSLSocket. In general this is the right
-        // thing to do, and some other third party libraries change the
-        SSLSocketFactory foundSSLFactory;
-        myX509TrustManager xtm = new myX509TrustManager();
-        myHostnameVerifier hnv = new myHostnameVerifier();
-        try {
-            final SSLContext sslContext = SSLContext.getInstance("TLS");
-            X509TrustManager[] xtmArray = new X509TrustManager[]{xtm};
-            sslContext.init(null, xtmArray, new java.security.SecureRandom());
-            foundSSLFactory = sslContext.getSocketFactory();
-        } catch (final GeneralSecurityException e) {
-            Log.i("SugoAPI.Conf", "System has no SSL support. Built-in events editor will not be available", e);
-            foundSSLFactory = null;
-        }
-        mSSLSocketFactory = foundSSLFactory;
-
-        DEBUG = metaData.getBoolean("io.sugo.android.SGConfig.EnableDebugLogging", false);
-
-        if (metaData.containsKey("io.sugo.android.SGConfig.AutoCheckForSurveys")) {
-            Log.w(LOGTAG, "io.sugo.android.SGConfig.AutoCheckForSurveys has been deprecated in favor of " +
-                    "io.sugo.android.SGConfig.AutoShowMixpanelUpdates. Please update this key as soon as possible.");
-        }
-        if (metaData.containsKey("io.sugo.android.SGConfig.DebugFlushInterval")) {
-            Log.w(LOGTAG, "We do not support io.sugo.android.SGConfig.DebugFlushInterval anymore. There will only be one flush interval. Please, update your AndroidManifest.xml.");
-        }
-
-        mBulkUploadLimit = metaData.getInt("io.sugo.android.SGConfig.BulkUploadLimit", 40); // 40 records default
-        mFlushInterval = metaData.getInt("io.sugo.android.SGConfig.FlushInterval", 60 * 1000); // one minute default
-        mUpdateDecideInterval = metaData.getInt("io.sugo.android.SGConfig.UpdateDecideInterval", 60 * 60 * 1000); // 60 minute default
-        mDataExpiration = metaData.getInt("io.sugo.android.SGConfig.DataExpiration", 1000 * 60 * 60 * 24 * 5); // 5 days default
-        mMinimumDatabaseLimit = metaData.getInt("io.sugo.android.SGConfig.MinimumDatabaseLimit", 20 * 1024 * 1024); // 20 Mb
-        mDisableFallback = metaData.getBoolean("io.sugo.android.SGConfig.DisableFallback", true);
-        mResourcePackageName = metaData.getString("io.sugo.android.SGConfig.ResourcePackageName"); // default is null
-        mDisableGestureBindingUI = metaData.getBoolean("io.sugo.android.SGConfig.DisableGestureBindingUI", false);
-        mDisableEmulatorBindingUI = metaData.getBoolean("io.sugo.android.SGConfig.DisableEmulatorBindingUI", false);
-        mDisableAppOpenEvent = metaData.getBoolean("io.sugo.android.SGConfig.DisableAppOpenEvent", true);
-        mDisableViewCrawler = metaData.getBoolean("io.sugo.android.SGConfig.DisableViewCrawler", false);
-        mDisableDecideChecker = metaData.getBoolean("io.sugo.android.SGConfig.DisableDecideChecker", false);
-        mImageCacheMaxMemoryFactor = metaData.getInt("io.sugo.android.SGConfig.ImageCacheMaxMemoryFactor", 10);
-        mToken = metaData.getString("io.sugo.android.SGConfig.token");
-        webRoot = metaData.getString("io.sugo.android.SGConfig.webRoot");
-        // Disable if EITHER of these is present and false, otherwise enable
-        final boolean surveysAutoCheck = metaData.getBoolean("io.sugo.android.SGConfig.AutoCheckForSurveys", true);
-        final boolean mixpanelUpdatesAutoShow = metaData.getBoolean("io.sugo.android.SGConfig.AutoShowMixpanelUpdates", true);
-        mAutoShowMixpanelUpdates = surveysAutoCheck && mixpanelUpdatesAutoShow;
-
-        mTestMode = metaData.getBoolean("io.sugo.android.SGConfig.TestMode", false);
-        mHeatMapEndpoint = metaData.getString("io.sugo.android.SGConfig.HeatMapEndpoint");
-
-        String eventsEndpoint = metaData.getString("io.sugo.android.SGConfig.EventsEndpoint");
-        String projectId = metaData.getString("io.sugo.android.SGConfig.ProjectId");
-        if (!TextUtils.isEmpty(eventsEndpoint)) {
-            projectId = Uri.parse(eventsEndpoint).getQueryParameter("locate");
-        } else if (!TextUtils.isEmpty(projectId)) {
-            eventsEndpoint = "http://collect.sugo.net/post?locate=" + projectId;
-        } else {
-            Log.v("SGConfig ", "AndroidManifest 中未设置 Project Id, 可以在代码中添加");
-        }
-        mProjectId = projectId;
-        mEventsEndpoint = eventsEndpoint;
-
-        // 默认开启【页面事件】
-        mEnablePageEvent = metaData.getBoolean("io.sugo.android.SGConfig.EnablePageEvent", true);
-
-        String eventsFallbackEndpoint = metaData.getString("io.sugo.android.SGConfig.EventsFallbackEndpoint");
-        if (null == eventsFallbackEndpoint) {
-            eventsFallbackEndpoint = "http://api.mixpanel.com/track?ip=1";
-        }
-        mEventsFallbackEndpoint = eventsFallbackEndpoint;
-
-        String peopleEndpoint = metaData.getString("io.sugo.android.SGConfig.PeopleEndpoint");
-        if (null == peopleEndpoint) {
-            peopleEndpoint = "https://api.mixpanel.com/engage";
-        }
-        mPeopleEndpoint = peopleEndpoint;
-
-        String peopleFallbackEndpoint = metaData.getString("io.sugo.android.SGConfig.PeopleFallbackEndpoint");
-        if (null == peopleFallbackEndpoint) {
-            peopleFallbackEndpoint = "http://api.mixpanel.com/engage";
-        }
-        mPeopleFallbackEndpoint = peopleFallbackEndpoint;
-
-        String decideEndpoint = metaData.getString("io.sugo.android.SGConfig.DecideEndpoint");
-        if (null == decideEndpoint) {
-            decideEndpoint = "https://decide.mixpanel.com/decide";
-        }
-        mDecideEndpoint = decideEndpoint;
-
-        String decideFallbackEndpoint = metaData.getString("io.sugo.android.SGConfig.DecideFallbackEndpoint");
-        if (null == decideFallbackEndpoint) {
-            decideFallbackEndpoint = "http://decide.mixpanel.com/decide";
-        }
-        mDecideFallbackEndpoint = decideFallbackEndpoint;
-
-        String editorUrl = metaData.getString("io.sugo.android.SGConfig.EditorUrl");
-        if (null == editorUrl) {
-            editorUrl = "wss://switchboard.mixpanel.com/connect/";
-        }
-        mEditorUrl = editorUrl;
-
-        int resourceId = metaData.getInt("io.sugo.android.SGConfig.DisableViewCrawlerForProjects", -1);
-        if (resourceId != -1) {
-            mDisableViewCrawlerForProjects = context.getResources().getStringArray(resourceId);
-        } else {
-            mDisableViewCrawlerForProjects = new String[0];
-        }
-
-    }
-
-    public SGConfig setProjectId(String projectId) {
-        mProjectId = projectId;
-        mEventsEndpoint = "http://collect.sugo.net/post?locate=" + projectId;
-        return this;
-    }
-
-    public SGConfig setEventsEndPoint(String eventEndPoint) {
-        mEventsEndpoint = eventEndPoint;
-        mProjectId = Uri.parse(mEventsEndpoint).getQueryParameter("locate");
-        return this;
-    }
-
-    public SGConfig enablePageEvent(boolean enable) {
-        mEnablePageEvent = enable;
-        return this;
     }
 
     public SGConfig logConfig() {
@@ -433,7 +492,7 @@ public class SGConfig {
         return mDecideEndpoint;
     }
 
-    public String getHeatMapEndpoint(){
+    public String getHeatMapEndpoint() {
         return mHeatMapEndpoint;
     }
 
@@ -445,14 +504,6 @@ public class SGConfig {
 
     public String getToken() {
         return mToken;
-    }
-
-    /**
-     * 这个方法只用于 SugoAPI 的构造函数中，其它情况不应该调用
-     */
-    public SGConfig setToken(String token) {
-        mToken = token;
-        return this;
     }
 
     // Fallback URL for tracking events if post to preferred URL fails
@@ -515,96 +566,4 @@ public class SGConfig {
         return mImageCacheMaxMemoryFactor;
     }
 
-    ///////////////////////////////////////////////
-
-    // Package access for testing only- do not call directly in library code
-    /* package */
-    static SGConfig readConfig(Context appContext) {
-        final String packageName = appContext.getPackageName();
-        try {
-            final ApplicationInfo appInfo = appContext.getPackageManager().getApplicationInfo(packageName, PackageManager.GET_META_DATA);
-            Bundle configBundle = appInfo.metaData;
-            if (null == configBundle) {
-                configBundle = new Bundle();
-            }
-            return new SGConfig(configBundle, appContext);
-        } catch (final NameNotFoundException e) {
-            throw new RuntimeException("Can't configure Mixpanel with package name " + packageName, e);
-        }
-    }
-
-    private final int mBulkUploadLimit;
-    private final int mFlushInterval;
-    private final long mUpdateDecideInterval;
-    private final int mDataExpiration;
-    private final int mMinimumDatabaseLimit;
-    private final boolean mDisableFallback;
-    private final boolean mTestMode;
-    private final boolean mDisableGestureBindingUI;
-    private final boolean mDisableEmulatorBindingUI;
-    private final boolean mDisableAppOpenEvent;
-    private final boolean mDisableViewCrawler;
-    private final String[] mDisableViewCrawlerForProjects;
-    private String mProjectId;
-    private String mEventsEndpoint;
-    private boolean mEnablePageEvent;
-    private final String mEventsFallbackEndpoint;
-    private final String mPeopleEndpoint;
-    private final String mPeopleFallbackEndpoint;
-    private final String mDecideEndpoint;
-    private final String mDecideFallbackEndpoint;
-    private final boolean mAutoShowMixpanelUpdates;
-    private final String mEditorUrl;
-    private final String mResourcePackageName;
-    private final boolean mDisableDecideChecker;
-    private final int mImageCacheMaxMemoryFactor;
-    private String mToken;
-    private String webRoot;
-    // Mutable, with synchronized accessor and mutator
-    private SSLSocketFactory mSSLSocketFactory;
-    private OfflineMode mOfflineMode;
-    private String mHeatMapEndpoint;
-
-    private static SGConfig sInstance;
-    private static final Object sInstanceLock = new Object();
-    private static final String LOGTAG = "SugoAPI.Conf";
-
-    public static final String FIELD_APP_BUILD_NUMBER = "app_build_number";
-    public static final String FIELD_APP_VERSION_STRING = "app_version";
-    public static final String FIELD_BLUETOOTH_ENABLED = "has_bluetooth";
-    public static final String FIELD_BLUETOOTH_VERSION = "bluetooth_version";
-    public static final String FIELD_BRAND = "device_brand";
-    public static final String FIELD_CARRIER = "carrier";
-    public static final String FIELD_FROM_BINDING = "from_binding";
-    public static final String FIELD_GOOGLE_PLAY_SERVICES = "google_play_services";
-    public static final String FIELD_HAS_NFC = "has_nfc";
-    public static final String FIELD_HAS_TELEPHONE = "has_telephone";
-    public static final String FIELD_LIB_VERSION = "sdk_version";
-    public static final String FIELD_MANUFACTURER = "manufacturer";
-    public static final String FIELD_MODEL = "device_model";
-    public static final String FIELD_OS = "system_name";
-    public static final String FIELD_OS_VERSION = "system_version";
-    public static final String FIELD_SCREEN_DPI = "screen_dpi";
-    public static final String FIELD_SCREEN_HEIGHT = "screen_height";
-    public static final String FIELD_SCREEN_WIDTH = "screen_width";
-    public static final String FIELD_TEXT = "event_label";
-    public static final String FIELD_CLIENT_NETWORK = "network";
-    public static final String FIELD_WIFI = "has_wifi";
-    public static final String FIELD_DISTINCT_ID = "distinct_id";
-    public static final String FIELD_EVENT_ID = "event_id";
-    public static final String FIELD_EVENT_NAME = "event_name";
-    public static final String FIELD_MP_LIB = "sugo_lib";
-    public static final String FIELD_TIME = "event_time";
-    public static final String FIELD_TOKEN = "token";
-    public static final String FIELD_PAGE = "path_name";
-    public static final String FIELD_DURATION = "duration";
-    public static final String SESSION_ID = "session_id";
-    public static final String FIELD_PAGE_NAME = "page_name";
-    public static final String FIELD_EVENT_TYPE = "event_type";
-    public static final String FIELD_DEVICE_ID = "device_id";
-    public static final String FIELD_PAGE_CATEGORY = "page_category";
-    public static final String FIELD_FIRST_VISIT_TIME = "first_visit_time";
-    public static final String FIELD_FIRST_LOGIN_TIME = "first_login_time";
-
-    public static final String TIME_EVENT_TAG = "sugo_time_event_tag";
 }

@@ -17,6 +17,7 @@ import android.widget.TextView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.sugo.android.mpmetrics.SugoAPI;
 import io.sugo.sdkdemo.R;
 
 public class NativeActivity extends AppCompatActivity {
@@ -83,8 +84,12 @@ public class NativeActivity extends AppCompatActivity {
                 onBackPressed();
                 break;
             case R.id.a_btn:
+                SugoAPI.getInstance(getApplicationContext()).login("testUserId123");
                 break;
             case R.id.b_btn:
+                SugoAPI.getInstance(getApplicationContext()).logout();
+                break;
+            default:
                 break;
         }
     }

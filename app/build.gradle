@@ -6,7 +6,7 @@ android {
     defaultConfig {
         applicationId "io.sugo.sdkdemo.dev220kf"
         minSdkVersion 9
-        targetSdkVersion 25
+        targetSdkVersion 22
         versionCode 4
         versionName "1.3"
     }

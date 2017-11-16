@@ -58,7 +58,6 @@
         <meta-data
             android:name="io.sugo.android.SGConfig.ResourcePackageName"
             android:value="io.sugo.sdkdemo" />
-
         <meta-data
             android:name="io.sugo.android.SGConfig.EnableDebugLogging"
             android:value="true" />
@@ -67,18 +66,17 @@
             android:name="io.sugo.android.SGConfig.token"
             android:value="5bab5fa8dccf2a91320223ca9f8df327" />
         <meta-data
-            android:name="io.sugo.android.SGConfig.DecideEndpoint"
-            android:value="http://dev220.sugo.net:8000/api/sdk/decide" />
+            android:name="io.sugo.android.SGConfig.ProjectId"
+            android:value="com_SJLnjowGe_project_SyHwyk1kf" />
         <meta-data
-            android:name="io.sugo.android.SGConfig.EventsEndpoint"
-            android:value="http://dev220.sugo.net/posts?locate=com_SJLnjowGe_project_SyHwyk1kf" />
+            android:name="io.sugo.android.SGConfig.APIHost"
+            android:value="http://dev220.sugo.net:8000" />
         <meta-data
-            android:name="io.sugo.android.SGConfig.EditorUrl"
-            android:value="ws://dev220.sugo.net:8887/connect/" />
+            android:name="io.sugo.android.SGConfig.EventsHost"
+            android:value="http://dev220.sugo.net" />
         <meta-data
-            android:name="io.sugo.android.SGConfig.HeatMapEndpoint"
-            android:value="http://dev220.sugo.net:8000/api/sdk/heat" />
-
+            android:name="io.sugo.android.SGConfig.EditorHost"
+            android:value="ws://dev220.sugo.net:8887" />
 
         <activity android:name=".activity.PrivateFuncActivity" />
         <activity android:name=".activity.DebugViewPagerActivity" />

@@ -333,11 +333,11 @@ public class SugoAPI {
             }
         }
         if (TextUtils.isEmpty(sgConfig.getToken())) {
-            Log.e(LOGTAG, "未检测到 SugoSDK 的 Token，请正确设置 SGConfig.setToken");
+            Log.e(LOGTAG, "未检测到 SugoSDK 的 Token，请正确设置 io.sugo.android.SGConfig.token");
             return;
         }
         if (TextUtils.isEmpty(sgConfig.getProjectId())) {
-            Log.e(LOGTAG, "未检测到 SugoSDK 的 ProjectId，请正确设置 SGConfig.setProjectId");
+            Log.e(LOGTAG, "未检测到 SugoSDK 的 ProjectId，请正确设置 io.sugo.android.SGConfig.ProjectId");
             return;
         }
 
@@ -1345,7 +1345,7 @@ public class SugoAPI {
 
     public void login(String userId) {
         try {
-            URL url = new URL("");
+            URL url = new URL(mConfig.getFirstLoginEndpoint() + userId);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             if (urlConnection.getResponseCode() == 200) {
                 InputStream inputStream = urlConnection.getInputStream();
@@ -1357,20 +1357,31 @@ public class SugoAPI {
                     baos.flush();
                 }
                 String result = baos.toString("utf-8");
-                long firstLoginTime = 0;
-                Map<String, Object> firstLoginTimeMap = new HashMap<>();
-                firstLoginTimeMap.put(SGConfig.FIELD_FIRST_LOGIN_TIME, firstLoginTime);
-                registerSuperPropertiesMap(firstLoginTimeMap);
-                boolean firstLogin = true;
-                if (firstLogin) {
-                    track("首次登录");
+                JSONObject dataObj = new JSONObject(result);
+                boolean success = dataObj.optBoolean("success", false);
+                if (success && dataObj.has("result")
+                        && dataObj.getJSONObject("result").has("firstLoginTime")) {
+                    long firstLoginTime = dataObj.getJSONObject("result").getLong("firstLoginTime");
+                    Map<String, Object> firstLoginTimeMap = new HashMap<>();
+                    firstLoginTimeMap.put(SGConfig.FIELD_FIRST_LOGIN_TIME, firstLoginTime);
+                    registerSuperPropertiesMap(firstLoginTimeMap);
+                    boolean firstLogin = dataObj.getJSONObject("result").optBoolean("isFirstLogin", false);
+                    if (firstLogin) {
+                        track("首次登录");
+                    }
                 }
             }
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
+    }
+
+    public void logout() {
+        unregisterSuperProperty(SGConfig.FIELD_FIRST_LOGIN_TIME);
     }
 
     private final Context mContext;
