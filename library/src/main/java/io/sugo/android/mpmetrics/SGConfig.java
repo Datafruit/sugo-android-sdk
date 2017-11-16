@@ -101,42 +101,42 @@ public class SGConfig {
      */
     public static final String VERSION = "2.2.0";
 
-    static final String FIELD_APP_BUILD_NUMBER       = "app_build_number";
-    static final String FIELD_APP_VERSION_STRING     = "app_version";
-    static final String FIELD_BLUETOOTH_ENABLED      = "has_bluetooth";
-    static final String FIELD_BLUETOOTH_VERSION      = "bluetooth_version";
-    static final String FIELD_BRAND                  = "device_brand";
-    static final String FIELD_CARRIER                = "carrier";
-    static final String FIELD_FROM_BINDING           = "from_binding";
-    static final String FIELD_GOOGLE_PLAY_SERVICES   = "google_play_services";
-    static final String FIELD_HAS_NFC                = "has_nfc";
-    static final String FIELD_HAS_TELEPHONE          = "has_telephone";
-    static final String FIELD_LIB_VERSION            = "sdk_version";
-    static final String FIELD_MANUFACTURER           = "manufacturer";
-    static final String FIELD_MODEL                  = "device_model";
-    static final String FIELD_OS                     = "system_name";
-    static final String FIELD_OS_VERSION             = "system_version";
-    static final String FIELD_SCREEN_DPI             = "screen_dpi";
-    static final String FIELD_SCREEN_HEIGHT          = "screen_height";
-    static final String FIELD_SCREEN_WIDTH           = "screen_width";
-    static final String FIELD_TEXT                   = "event_label";
-    static final String FIELD_CLIENT_NETWORK         = "network";
-    static final String FIELD_WIFI                   = "has_wifi";
-    static final String FIELD_DISTINCT_ID            = "distinct_id";
-    static final String FIELD_EVENT_ID               = "event_id";
-    static final String FIELD_EVENT_NAME             = "event_name";
-    static final String FIELD_MP_LIB                 = "sugo_lib";
-    static final String FIELD_TIME                   = "event_time";
-    static final String FIELD_TOKEN                  = "token";
-    static final String FIELD_PAGE                   = "path_name";
-    static final String FIELD_DURATION               = "duration";
-    static final String SESSION_ID                   = "session_id";
-    static final String FIELD_PAGE_NAME              = "page_name";
-    static final String FIELD_EVENT_TYPE             = "event_type";
-    static final String FIELD_DEVICE_ID              = "device_id";
-    static final String FIELD_PAGE_CATEGORY          = "page_category";
-    static final String FIELD_FIRST_VISIT_TIME       = "first_visit_time";
-    static final String FIELD_FIRST_LOGIN_TIME       = "first_login_time";
+    public static final String FIELD_APP_BUILD_NUMBER       = "app_build_number";
+    public static final String FIELD_APP_VERSION_STRING     = "app_version";
+    public static final String FIELD_BLUETOOTH_ENABLED      = "has_bluetooth";
+    public static final String FIELD_BLUETOOTH_VERSION      = "bluetooth_version";
+    public static final String FIELD_BRAND                  = "device_brand";
+    public static final String FIELD_CARRIER                = "carrier";
+    public static final String FIELD_FROM_BINDING           = "from_binding";
+    public static final String FIELD_GOOGLE_PLAY_SERVICES   = "google_play_services";
+    public static final String FIELD_HAS_NFC                = "has_nfc";
+    public static final String FIELD_HAS_TELEPHONE          = "has_telephone";
+    public static final String FIELD_LIB_VERSION            = "sdk_version";
+    public static final String FIELD_MANUFACTURER           = "manufacturer";
+    public static final String FIELD_MODEL                  = "device_model";
+    public static final String FIELD_OS                     = "system_name";
+    public static final String FIELD_OS_VERSION             = "system_version";
+    public static final String FIELD_SCREEN_DPI             = "screen_dpi";
+    public static final String FIELD_SCREEN_HEIGHT          = "screen_height";
+    public static final String FIELD_SCREEN_WIDTH           = "screen_width";
+    public static final String FIELD_TEXT                   = "event_label";
+    public static final String FIELD_CLIENT_NETWORK         = "network";
+    public static final String FIELD_WIFI                   = "has_wifi";
+    public static final String FIELD_DISTINCT_ID            = "distinct_id";
+    public static final String FIELD_EVENT_ID               = "event_id";
+    public static final String FIELD_EVENT_NAME             = "event_name";
+    public static final String FIELD_MP_LIB                 = "sugo_lib";
+    public static final String FIELD_TIME                   = "event_time";
+    public static final String FIELD_TOKEN                  = "token";
+    public static final String FIELD_PAGE                   = "path_name";
+    public static final String FIELD_DURATION               = "duration";
+    public static final String SESSION_ID                   = "session_id";
+    public static final String FIELD_PAGE_NAME              = "page_name";
+    public static final String FIELD_EVENT_TYPE             = "event_type";
+    public static final String FIELD_DEVICE_ID              = "device_id";
+    public static final String FIELD_PAGE_CATEGORY          = "page_category";
+    public static final String FIELD_FIRST_VISIT_TIME       = "first_visit_time";
+    public static final String FIELD_FIRST_LOGIN_TIME       = "first_login_time";
 
     static final String TIME_EVENT_TAG               = "sugo_time_event_tag";
 
@@ -168,7 +168,7 @@ public class SGConfig {
     private final boolean mAutoShowMixpanelUpdates;
     private final boolean mDisableDecideChecker;
     private final int mImageCacheMaxMemoryFactor;
-    private final String webRoot;
+    private String webRoot;
     // Mutable, with synchronized accessor and mutator
     private SSLSocketFactory mSSLSocketFactory;
     private OfflineMode mOfflineMode;
@@ -406,12 +406,15 @@ public class SGConfig {
         public myX509TrustManager() {
         }
 
+        @Override
         public void checkClientTrusted(X509Certificate[] chain, String authType) {
         }
 
+        @Override
         public void checkServerTrusted(X509Certificate[] chain, String authType) {
         }
 
+        @Override
         public X509Certificate[] getAcceptedIssuers() {
             return null;
         }
@@ -421,6 +424,7 @@ public class SGConfig {
         public myHostnameVerifier() {
         }
 
+        @Override
         public boolean verify(String hostname, SSLSession session) {
             return true;
         }
@@ -497,8 +501,9 @@ public class SGConfig {
     }
 
     public String getWebRoot() {
-        if (webRoot == null || webRoot.equals(""))
+        if (webRoot == null || webRoot.equals("")) {
             webRoot = " ";
+        }
         return webRoot;
     }
 

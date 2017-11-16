@@ -176,6 +176,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
         mTweaksUpdatedListeners.remove(listener);
     }
 
+    @Override
     public void setXWalkViewListener(XWalkViewListener XWalkViewListener) {
         mXWalkViewListener = XWalkViewListener;
     }
@@ -1355,6 +1356,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                         variantObject.put(Integer.toString(experimentId), variantId);
 
                         mMixpanel.updateSuperProperties(new SuperPropertyUpdate() {
+                            @Override
                             public JSONObject update(JSONObject in) {
                                 try {
                                     in.put("$experiments", variantObject);

@@ -14,6 +14,8 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
@@ -48,6 +50,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import io.sugo.android.BuildConfig;
 import io.sugo.android.viewcrawler.TrackingDebug;
 import io.sugo.android.viewcrawler.UpdatesFromSugo;
 import io.sugo.android.viewcrawler.ViewCrawler;
@@ -107,6 +110,7 @@ import io.sugo.android.viewcrawler.XWalkViewListener;
  * <p>There are also <a href="https://mixpanel.com/docs/">step-by-step getting started documents</a>
  * available at mixpanel.com
  *
+ * @author Administrator
  * @see <a href="https://mixpanel.com/docs/integration-libraries/android">getting started documentation for tracking events</a>
  * @see <a href="https://mixpanel.com/docs/people-analytics/android">getting started documentation for People Analytics</a>
  * @see <a href="https://mixpanel.com/docs/people-analytics/android-push">getting started with push notifications for Android</a>
@@ -546,7 +550,7 @@ public class SugoAPI {
             Log.e("SugoAPI.track", "track failure. eventName can't be empty");
             return;
         }
-        if (SugoAPI.developmentMode) {
+        if (SugoAPI.developmentMode && isMainThread()) {
             Toast.makeText(this.mContext, eventName, Toast.LENGTH_SHORT).show();
         }
         final Long eventBegin;
@@ -1343,45 +1347,84 @@ public class SugoAPI {
         track(eventName, props);
     }
 
-    public void login(String userId) {
-        try {
-            URL url = new URL(mConfig.getFirstLoginEndpoint() + userId);
-            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-            if (urlConnection.getResponseCode() == 200) {
-                InputStream inputStream = urlConnection.getInputStream();
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                byte[] buffers = new byte[1024];
-                int len = 0;
-                while (-1 != (len = inputStream.read(buffers))) {
-                    baos.write(buffers, 0, len);
-                    baos.flush();
-                }
-                String result = baos.toString("utf-8");
-                JSONObject dataObj = new JSONObject(result);
-                boolean success = dataObj.optBoolean("success", false);
-                if (success && dataObj.has("result")
-                        && dataObj.getJSONObject("result").has("firstLoginTime")) {
-                    long firstLoginTime = dataObj.getJSONObject("result").getLong("firstLoginTime");
-                    Map<String, Object> firstLoginTimeMap = new HashMap<>();
-                    firstLoginTimeMap.put(SGConfig.FIELD_FIRST_LOGIN_TIME, firstLoginTime);
-                    registerSuperPropertiesMap(firstLoginTimeMap);
-                    boolean firstLogin = dataObj.getJSONObject("result").optBoolean("isFirstLogin", false);
-                    if (firstLogin) {
-                        track("首次登录");
+    public void login(final String userId) {
+        if (readUserLoginTime(userId) > 0) {
+            Map<String, Object> firstLoginTimeMap = new HashMap<>();
+            firstLoginTimeMap.put(SGConfig.FIELD_FIRST_LOGIN_TIME, readUserLoginTime(userId));
+            registerSuperPropertiesMap(firstLoginTimeMap);
+            return;
+        }
+        Thread loginThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (SGConfig.DEBUG) {
+                        Log.i(LOGTAG, "query user first login time for : " + userId);
                     }
+                    URL url = new URL(mConfig.getFirstLoginEndpoint() + userId);
+                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                    if (urlConnection.getResponseCode() == 200) {
+                        InputStream inputStream = urlConnection.getInputStream();
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        byte[] buffers = new byte[1024];
+                        int len = 0;
+                        while (-1 != (len = inputStream.read(buffers))) {
+                            baos.write(buffers, 0, len);
+                            baos.flush();
+                        }
+                        String result = baos.toString("utf-8");
+                        if (SGConfig.DEBUG) {
+                            Log.i(LOGTAG, "query user first login time result : " + result);
+                        }
+                        JSONObject dataObj = new JSONObject(result);
+                        boolean success = dataObj.optBoolean("success", false);
+                        if (success && dataObj.has("result")
+                                && dataObj.getJSONObject("result").has("firstLoginTime")) {
+                            long firstLoginTime = dataObj.getJSONObject("result").getLong("firstLoginTime");
+                            Map<String, Object> firstLoginTimeMap = new HashMap<>();
+                            firstLoginTimeMap.put(SGConfig.FIELD_FIRST_LOGIN_TIME, firstLoginTime);
+                            registerSuperPropertiesMap(firstLoginTimeMap);
+                            // 存储起来，下次调用 login 不再请求网络
+                            writeUserLoginTime(userId, firstLoginTime);
+                            boolean firstLogin = dataObj.getJSONObject("result").optBoolean("isFirstLogin", false);
+                            if (firstLogin) {
+                                track("首次登录");
+                            }
+                        }
+                    }
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
             }
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        });
+        loginThread.start();
+
     }
 
     public void logout() {
         unregisterSuperProperty(SGConfig.FIELD_FIRST_LOGIN_TIME);
+    }
+
+    private boolean isMainThread() {
+        return Looper.getMainLooper() == Looper.myLooper();
+    }
+
+    private void writeUserLoginTime(String userId, long time) {
+        final String sharedPrefsName = ViewCrawler.SHARED_PREF_EDITS_FILE + mToken;
+        SharedPreferences preferences = mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
+        final SharedPreferences.Editor editor = preferences.edit();
+        editor.putLong(userId, time);
+        editor.commit();
+    }
+
+    private long readUserLoginTime(String userId) {
+        final String sharedPrefsName = ViewCrawler.SHARED_PREF_EDITS_FILE + mToken;
+        SharedPreferences preferences = mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
+        return preferences.getLong(userId, 0);
     }
 
     private final Context mContext;
@@ -1408,6 +1451,7 @@ public class SugoAPI {
     private static final String APP_LINKS_LOGTAG = "SugoAPI.AL";
     private static final String ENGAGE_DATE_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ss";
 
+    private static final String KEY_USER_ID_LOGIN_TIME = "SUGO_USER_ID_LOGIN_TIME";
     private boolean mDisableDecideChecker;
 
     // SugoAPI 实例化之前设置 superProperties 的临时变量
