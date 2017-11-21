@@ -4,9 +4,7 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.net.Uri;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 
 import java.security.GeneralSecurityException;
@@ -250,7 +248,7 @@ public class SGConfig {
 
         mDecideEndpoint = apiHost + "/api/sdk/decide";
         mHeatMapEndpoint = apiHost + "/api/sdk/heat";
-        mFirstLoginEndpoint = apiHost + "/api/sdk/get-first-login-time?userId=";
+        mFirstLoginEndpoint = apiHost + "/api/sdk/get-first-login-time";
         mEventsEndpoint = eventsHost + "/posts?locate=" + mProjectId;
         mEditorUrl = editorHost + "/connect/";
         mEnablePageEvent = metaData.getBoolean("io.sugo.android.SGConfig.EnablePageEvent", true);
