@@ -94,7 +94,7 @@ dependencies {
 ```xml
     <meta-data
         android:name="io.sugo.android.SGConfig.APIHost"
-        android:value="{DECIDE_URL}" />
+        android:value="{API_URL}" />
 ```
 
 #### 2.1.5 可视化埋点地址   
@@ -112,7 +112,7 @@ dependencies {
 ```xml
     <meta-data
         android:name="io.sugo.android.SGConfig.EventsHost"
-        android:value="http://dev220.sugo.net" />
+        android:value="{EVENTS_URL}" />
 ```
 
 #### 2.1.7 扫码跳转页面   
@@ -335,15 +335,9 @@ sugoAPI.registerSuperProperties(props);
 
 ### 3.2 热图
 
-1 设置热图数据请求 Endpoint ,例如
-
-```xml
-    <meta-data
-        android:name="io.sugo.android.SGConfig.HeatMapEndpoint"
-        android:value="http://192.168.0.62:8080/api/sdk/heat"/>
-```
 
 2 在启动的 Activity 上，配置
+> 如果已经配置了可视化埋点，这里也是一样的，可以跳过   
 
 ```
     <intent-filter>
