@@ -159,6 +159,14 @@ dependencies {
 
 ## 3. SDK 使用   
 
+添加依赖   
+
+```groovy
+    compile 'com.android.support:support-annotations:{support_version}'
+    compile 'com.android.support:support-compat:{support_version}'
+    compile 'com.android.support:support-v4:{support_version}'
+```
+
 初始化   
 
 ```Java
