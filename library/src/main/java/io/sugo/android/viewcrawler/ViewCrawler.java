@@ -82,6 +82,8 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
 
         Context appContext = context.getApplicationContext();
         mContext = appContext;
+        restorePageInfo();
+        restoreDimensions();
 
         mEditState = new EditState();
         mTweaks = tweaks;
@@ -107,6 +109,30 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
             }
         });
 
+    }
+
+    private void restorePageInfo() {
+        final SharedPreferences preferences = getSharedPreferences();
+        final String storeInfo = preferences.getString(ViewCrawler.SHARED_PREF_PAGE_INFO_KEY, null);
+        if (storeInfo != null && !storeInfo.equals("")) {
+            try {
+                SugoPageManager.getInstance().setPageInfos(new JSONArray(storeInfo));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void restoreDimensions() {
+        final SharedPreferences preferences = getSharedPreferences();
+        String storeInfo = preferences.getString(ViewCrawler.SHARED_PREF_DIMENSIONS_KEY, null);
+        if (storeInfo != null && !storeInfo.equals("")) {
+            try {
+                SugoDimensionManager.getInstance().setDimensions(new JSONArray(storeInfo));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -176,6 +202,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
         mTweaksUpdatedListeners.remove(listener);
     }
 
+    @Override
     public void setXWalkViewListener(XWalkViewListener XWalkViewListener) {
         mXWalkViewListener = XWalkViewListener;
     }
@@ -476,6 +503,8 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                     case MESSAGE_HANDLE_EDITOR_CLOSED:
                         handleEditorClosed();
                         break;
+                    default:
+                        break;
                 }
             } finally {
                 mStartLock.unlock();
@@ -607,7 +636,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                     .append(escapedToken)
                     .append("&projectId=").append(SGConfig.getInstance(mContext).getProjectId());
 
-            SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + mToken, Context.MODE_PRIVATE);
+            final SharedPreferences preferences = getSharedPreferences();
             int oldEventBindingVersion = preferences.getInt(ViewCrawler.SP_EVENT_BINDING_VERSION, -1);
             queryBuilder.append("&event_bindings_version=").append(oldEventBindingVersion);
 
@@ -1355,6 +1384,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                         variantObject.put(Integer.toString(experimentId), variantId);
 
                         mMixpanel.updateSuperProperties(new SuperPropertyUpdate() {
+                            @Override
                             public JSONObject update(JSONObject in) {
                                 try {
                                     in.put("$experiments", variantObject);
@@ -1371,11 +1401,6 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                     Log.wtf(LOGTAG, "Could not build JSON for reporting experiment start", e);
                 }
             }
-        }
-
-        private SharedPreferences getSharedPreferences() {
-            final String sharedPrefsName = SHARED_PREF_EDITS_FILE + mToken;
-            return mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
         }
 
         private EditorConnection mEditorConnection;
@@ -1482,6 +1507,11 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
     private XWalkViewListener mXWalkViewListener;
 
     private final List<OnMixpanelTweaksUpdatedListener> mTweaksUpdatedListeners;
+
+    private SharedPreferences getSharedPreferences() {
+        final String sharedPrefsName = SHARED_PREF_EDITS_FILE + mConfig.getToken();
+        return mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
+    }
 
     public static final String SHARED_PREF_EDITS_FILE = "mixpanel.viewcrawler.changes";
 

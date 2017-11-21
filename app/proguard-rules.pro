@@ -15,3 +15,20 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+#保护注解
+-keepattributes *Annotation*
+#不混淆资源类
+-keepclassmembers class **.R$* {
+    public static <fields>;
+}
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+-keepattributes *JavascriptInterface*
+
+-keep class io.sugo.* { *; }
+-keep class io.sugo.android.mpmetrics.SugoAPI { *; }
+-keep class io.sugo.android.mpmetrics.SugoWebEventListener { *; }
+-keep class io.sugo.android.mpmetrics.SugoWebNodeReporter { *; }

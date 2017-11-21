@@ -58,18 +58,7 @@ public class MainActivity extends AppCompatActivity {
 //        SugoAPI.setSuperPropertiesOnceBeforeStartSugo(this, "key-once", "value-once22");
 //        SugoAPI.setSuperPropertiesBeforeStartSugo(this, "key", "value");
 
-        SugoAPI.startSugo(this, SGConfig.getInstance(this)
-                .setToken("d3a66ce81be70e5e0ce841bcc62f0c67")
-                .setEventsEndPoint("http://dev220.sugo.net/post?locate=com_SJLnjowGe_project_HyErw0VBW")
-//                .setEventsEndPoint("http://collect.sugo.io/post?locate=com_SJLnjowGe_project_Hyv0LtEae")
-//                .setEventsEndPoint("http://58.63.110.97:2271/post?locate=com_H1bIzqK2SZ_project_HybrS_99b")
-                .enablePageEvent(true)
-                .logConfig());
-
-//        SugoAPI.startSugo(this, SGConfig.getInstance(this)
-//                .setToken("c6749a4f1ef039ca196148ed1cb65d87")
-//                .setProjectId("com_HyoaKhQMl_project_B1Nycjsne")
-//                .logConfig());
+        SugoAPI.startSugo(this, SGConfig.getInstance(this).logConfig());
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE,
@@ -149,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void openQRCodeScan() {
-        new IntentIntegrator(this).setOrientationLocked(true).initiateScan(); // `this` is the current Activity
+        new IntentIntegrator(this).setOrientationLocked(true).initiateScan();
     }
 
     @Override

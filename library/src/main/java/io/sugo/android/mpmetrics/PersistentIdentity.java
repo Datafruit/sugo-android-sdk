@@ -65,10 +65,14 @@ import java.util.concurrent.Future;
         }
     }
 
-    public PersistentIdentity(Future<SharedPreferences> referrerPreferences, Future<SharedPreferences> storedPreferences, Future<SharedPreferences> timeEventsPreferences) {
+    public PersistentIdentity(Future<SharedPreferences> referrerPreferences,
+                              Future<SharedPreferences> storedPreferences,
+                              Future<SharedPreferences> timeEventsPreferences,
+                              Future<SharedPreferences> sugoPreferences) {
         mLoadReferrerPreferences = referrerPreferences;
         mLoadStoredPreferences = storedPreferences;
         mTimeEventsPreferences = timeEventsPreferences;
+        mSugoPreferences = sugoPreferences;
         mSuperPropertiesCache = null;
         mReferrerPropertiesCache = null;
         mIdentitiesLoaded = false;
@@ -81,6 +85,61 @@ import java.util.concurrent.Future;
                 }
             }
         };
+    }
+
+
+    void writeFirstVisitTime(long time) {
+        SharedPreferences preferences = null;
+        try {
+            preferences = mSugoPreferences.get();
+            final SharedPreferences.Editor editor = preferences.edit();
+            editor.putLong("first_visit_time", time);
+            editor.commit();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    long readFirstVisitTime() {
+        SharedPreferences preferences = null;
+        try {
+            preferences = mSugoPreferences.get();
+            return preferences.getLong("first_visit_time", 0);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    void writeUserLoginTime(String userId, long time) {
+        SharedPreferences preferences = null;
+        try {
+            preferences = mSugoPreferences.get();
+            final SharedPreferences.Editor editor = preferences.edit();
+            editor.putLong("first_login_time_" + userId, time);
+            editor.commit();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    long readUserLoginTime(String userId) {
+        SharedPreferences preferences = null;
+        try {
+            preferences = mSugoPreferences.get();
+            return preferences.getLong("first_login_time_" + userId, 0);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     public synchronized void addSuperPropertiesToObject(JSONObject ob) {
@@ -134,14 +193,14 @@ import java.util.concurrent.Future;
     }
 
     public synchronized String getEventsDistinctId() {
-        if (! mIdentitiesLoaded) {
+        if (!mIdentitiesLoaded) {
             readIdentities();
         }
         return mEventsDistinctId;
     }
 
     public synchronized void setEventsDistinctId(String eventsDistinctId) {
-        if (! mIdentitiesLoaded) {
+        if (!mIdentitiesLoaded) {
             readIdentities();
         }
         mEventsDistinctId = eventsDistinctId;
@@ -149,14 +208,14 @@ import java.util.concurrent.Future;
     }
 
     public synchronized String getPeopleDistinctId() {
-        if (! mIdentitiesLoaded) {
+        if (!mIdentitiesLoaded) {
             readIdentities();
         }
         return mPeopleDistinctId;
     }
 
     public synchronized void setPeopleDistinctId(String peopleDistinctId) {
-        if (! mIdentitiesLoaded) {
+        if (!mIdentitiesLoaded) {
             readIdentities();
         }
         mPeopleDistinctId = peopleDistinctId;
@@ -164,14 +223,14 @@ import java.util.concurrent.Future;
     }
 
     public synchronized boolean hasTrackedIntegration() {
-        if (! mIdentitiesLoaded) {
+        if (!mIdentitiesLoaded) {
             readIdentities();
         }
         return mTrackedIntegration;
     }
 
     public synchronized void setTrackedIntegration(boolean trackedIntegration) {
-        if (! mIdentitiesLoaded) {
+        if (!mIdentitiesLoaded) {
             readIdentities();
         }
         mTrackedIntegration = trackedIntegration;
@@ -179,7 +238,7 @@ import java.util.concurrent.Future;
     }
 
     public synchronized void storeWaitingPeopleRecord(JSONObject record) {
-        if (! mIdentitiesLoaded) {
+        if (!mIdentitiesLoaded) {
             readIdentities();
         }
         if (null == mWaitingPeopleRecords) {
@@ -228,7 +287,7 @@ import java.util.concurrent.Future;
         for (final Iterator<?> iter = superProperties.keys(); iter.hasNext(); ) {
             final String key = (String) iter.next();
             try {
-               propCache.put(key, superProperties.get(key));
+                propCache.put(key, superProperties.get(key));
             } catch (final JSONException e) {
                 Log.e(LOGTAG, "Exception registering super property.", e);
             }
@@ -335,7 +394,7 @@ import java.util.concurrent.Future;
 
         for (final Iterator<?> iter = superProperties.keys(); iter.hasNext(); ) {
             final String key = (String) iter.next();
-            if (! propCache.has(key)) {
+            if (!propCache.has(key)) {
                 try {
                     propCache.put(key, superProperties.get(key));
                 } catch (final JSONException e) {
@@ -497,6 +556,7 @@ import java.util.concurrent.Future;
     private final Future<SharedPreferences> mLoadStoredPreferences;
     private final Future<SharedPreferences> mLoadReferrerPreferences;
     private final Future<SharedPreferences> mTimeEventsPreferences;
+    private final Future<SharedPreferences> mSugoPreferences;
     private final SharedPreferences.OnSharedPreferenceChangeListener mReferrerChangeListener;
     private JSONObject mSuperPropertiesCache;
     private Map<String, String> mReferrerPropertiesCache;

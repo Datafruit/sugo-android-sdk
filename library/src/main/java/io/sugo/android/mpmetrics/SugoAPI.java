@@ -14,6 +14,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
@@ -26,9 +27,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -101,6 +108,7 @@ import io.sugo.android.viewcrawler.XWalkViewListener;
  * <p>There are also <a href="https://mixpanel.com/docs/">step-by-step getting started documents</a>
  * available at mixpanel.com
  *
+ * @author Administrator
  * @see <a href="https://mixpanel.com/docs/integration-libraries/android">getting started documentation for tracking events</a>
  * @see <a href="https://mixpanel.com/docs/people-analytics/android">getting started documentation for People Analytics</a>
  * @see <a href="https://mixpanel.com/docs/people-analytics/android-push">getting started with push notifications for Android</a>
@@ -191,23 +199,21 @@ public class SugoAPI {
      * Use SugoAPI.getInstance to get an instance.
      */
 
-    SugoAPI(Context context, Future<SharedPreferences> referrerPreferences) {
-        this(context, referrerPreferences, SGConfig.getInstance(context));
+    SugoAPI(Context context) {
+        this(context, SGConfig.getInstance(context));
     }
 
     /**
      * You shouldn't instantiate SugoAPI objects directly.
      * Use SugoAPI.getInstance to get an instance.
      */
-    SugoAPI(Context context, Future<SharedPreferences> referrerPreferences, SGConfig config) {
+    SugoAPI(Context context, SGConfig config) {
         Context appContext = context.getApplicationContext();
         mContext = appContext;
         mConfig = config;
         mToken = config.getToken();
 
         mSessionId = generateSessionId();
-        restorePageInfo();
-        restoreDimensions();
 
         final Map<String, String> deviceInfo = new HashMap<String, String>();
         deviceInfo.put("$android_lib_version", SGConfig.VERSION);
@@ -228,7 +234,7 @@ public class SugoAPI {
 
         mUpdatesFromSugo = constructUpdatesFromSugo(context, mToken);
         mTrackingDebug = constructTrackingDebug();
-        mPersistentIdentity = getPersistentIdentity(appContext, referrerPreferences, mToken);
+        mPersistentIdentity = getPersistentIdentity(appContext, mToken);
         registerSuperProperties(sPreSuperProps);
         registerSuperPropertiesOnce(sPreSuperPropsOnce);
         mEventTimings = mPersistentIdentity.getTimeEvents();
@@ -255,9 +261,11 @@ public class SugoAPI {
         }
 
         if (!mPersistentIdentity.hasTrackedIntegration()) {
-            Map<String, Object> firstTime = new HashMap<>();
-            firstTime.put(SGConfig.FIELD_FIRST_TIME, System.currentTimeMillis());
-            registerSuperPropertiesMap(firstTime);
+            long firstVisitTime = System.currentTimeMillis();
+            Map<String, Object> firstVisitTimeMap = new HashMap<>();
+            firstVisitTimeMap.put(SGConfig.FIELD_FIRST_VISIT_TIME, System.currentTimeMillis());
+            registerSuperPropertiesMap(firstVisitTimeMap);
+            mPersistentIdentity.writeFirstVisitTime(firstVisitTime);
             track("首次访问");
             track("APP安装");
             flush();
@@ -298,13 +306,9 @@ public class SugoAPI {
         synchronized (sInstanceMap) {
             final Context appContext = context.getApplicationContext();
 
-            if (null == sReferrerPrefs) {
-                sReferrerPrefs = sPrefsLoader.loadPreferences(context, SGConfig.REFERRER_PREFS_NAME, null);
-            }
-
             SugoAPI instance = sInstanceMap.get(appContext);
             if (null == instance && ConfigurationChecker.checkBasicConfiguration(appContext)) {
-                instance = new SugoAPI(context, sReferrerPrefs);
+                instance = new SugoAPI(context);
                 registerAppLinksListeners(context, instance);
                 sInstanceMap.put(appContext, instance);
             }
@@ -327,11 +331,11 @@ public class SugoAPI {
             }
         }
         if (TextUtils.isEmpty(sgConfig.getToken())) {
-            Log.e(LOGTAG, "未检测到 SugoSDK 的 Token，请正确设置 SGConfig.setToken");
+            Log.e(LOGTAG, "未检测到 SugoSDK 的 Token，请正确设置 io.sugo.android.SGConfig.token");
             return;
         }
         if (TextUtils.isEmpty(sgConfig.getProjectId())) {
-            Log.e(LOGTAG, "未检测到 SugoSDK 的 ProjectId，请正确设置 SGConfig.setProjectId");
+            Log.e(LOGTAG, "未检测到 SugoSDK 的 ProjectId，请正确设置 io.sugo.android.SGConfig.ProjectId");
             return;
         }
 
@@ -540,7 +544,7 @@ public class SugoAPI {
             Log.e("SugoAPI.track", "track failure. eventName can't be empty");
             return;
         }
-        if (SugoAPI.developmentMode) {
+        if (SugoAPI.developmentMode && isMainThread()) {
             Toast.makeText(this.mContext, eventName, Toast.LENGTH_SHORT).show();
         }
         final Long eventBegin;
@@ -969,7 +973,7 @@ public class SugoAPI {
         return AnalyticsMessages.getInstance(mContext);
     }
 
-    /* package */ PersistentIdentity getPersistentIdentity(final Context context, Future<SharedPreferences> referrerPreferences, final String token) {
+    /* package */ PersistentIdentity getPersistentIdentity(final Context context, final String token) {
         final SharedPreferencesLoader.OnPrefsLoadedListener listener = new SharedPreferencesLoader.OnPrefsLoadedListener() {
             @Override
             public void onPrefsLoaded(SharedPreferences preferences) {
@@ -980,13 +984,17 @@ public class SugoAPI {
             }
         };
 
+        final Future<SharedPreferences> referrerPrefs = sPrefsLoader.loadPreferences(context, SGConfig.REFERRER_PREFS_NAME, null);
+
         final String prefsName = "io.sugo.android.mpmetrics.MixpanelAPI_" + token;
         final Future<SharedPreferences> storedPreferences = sPrefsLoader.loadPreferences(context, prefsName, listener);
 
         final String timeEventsPrefsName = "SugoAPI.TimeEvents_" + token;
         final Future<SharedPreferences> timeEventsPrefs = sPrefsLoader.loadPreferences(context, timeEventsPrefsName, null);
 
-        return new PersistentIdentity(referrerPreferences, storedPreferences, timeEventsPrefs);
+        final String sugoPrefsName = "io.sugo.android.mpmetrics.SugoAPI_" + token;
+        final Future<SharedPreferences> sugoPrefs = sPrefsLoader.loadPreferences(context, sugoPrefsName, null);
+        return new PersistentIdentity(referrerPrefs, storedPreferences, timeEventsPrefs, sugoPrefs);
     }
 
     /* package */ DecideMessages constructDecideUpdates(final String token, final DecideMessages.OnNewResultsListener listener, UpdatesFromSugo updatesFromSugo) {
@@ -1337,6 +1345,83 @@ public class SugoAPI {
         track(eventName, props);
     }
 
+    public void login(final String userId) {
+        if (mPersistentIdentity.readUserLoginTime(userId) > 0) {
+            Map<String, Object> firstLoginTimeMap = new HashMap<>();
+            firstLoginTimeMap.put(SGConfig.FIELD_FIRST_LOGIN_TIME, mPersistentIdentity.readUserLoginTime(userId));
+            registerSuperPropertiesMap(firstLoginTimeMap);
+            unregisterSuperProperty(SGConfig.FIELD_FIRST_VISIT_TIME);
+            return;
+        }
+        Thread loginThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (SGConfig.DEBUG) {
+                        Log.i(LOGTAG, "query user first login time for : " + userId);
+                    }
+                    StringBuilder urlBuilder = new StringBuilder();
+                    urlBuilder.append(mConfig.getFirstLoginEndpoint())
+                            .append("?userId=")
+                            .append(userId)
+                            .append("&projectId=")
+                            .append(mConfig.getProjectId());
+                    URL url = new URL(urlBuilder.toString());
+                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                    if (urlConnection.getResponseCode() == 200) {
+                        InputStream inputStream = urlConnection.getInputStream();
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        byte[] buffers = new byte[1024];
+                        int len = 0;
+                        while (-1 != (len = inputStream.read(buffers))) {
+                            baos.write(buffers, 0, len);
+                            baos.flush();
+                        }
+                        String result = baos.toString("utf-8");
+                        if (SGConfig.DEBUG) {
+                            Log.i(LOGTAG, "query user first login time result : " + result);
+                        }
+                        JSONObject dataObj = new JSONObject(result);
+                        boolean success = dataObj.optBoolean("success", false);
+                        if (success && dataObj.has("result")
+                                && dataObj.getJSONObject("result").has("firstLoginTime")) {
+                            long firstLoginTime = dataObj.getJSONObject("result").getLong("firstLoginTime");
+                            Map<String, Object> firstLoginTimeMap = new HashMap<>();
+                            firstLoginTimeMap.put(SGConfig.FIELD_FIRST_LOGIN_TIME, firstLoginTime);
+                            registerSuperPropertiesMap(firstLoginTimeMap);
+                            unregisterSuperProperty(SGConfig.FIELD_FIRST_VISIT_TIME);
+                            // 存储起来，下次调用 login 不再请求网络
+                            mPersistentIdentity.writeUserLoginTime(userId, firstLoginTime);
+                            boolean firstLogin = dataObj.getJSONObject("result").optBoolean("isFirstLogin", false);
+                            if (firstLogin) {
+                                track("首次登录");
+                            }
+                        }
+                    }
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        loginThread.start();
+
+    }
+
+    public void logout() {
+        unregisterSuperProperty(SGConfig.FIELD_FIRST_LOGIN_TIME);
+        Map<String, Object> firstVisitTime = new HashMap<>();
+        firstVisitTime.put(SGConfig.FIELD_FIRST_VISIT_TIME, mPersistentIdentity.readFirstVisitTime());
+        registerSuperPropertiesMap(firstVisitTime);
+    }
+
+    private boolean isMainThread() {
+        return Looper.getMainLooper() == Looper.myLooper();
+    }
+
     private final Context mContext;
     private final AnalyticsMessages mMessages;
     private final SGConfig mConfig;
@@ -1355,12 +1440,12 @@ public class SugoAPI {
     private static final Map<Context, SugoAPI> sInstanceMap = new HashMap<Context, SugoAPI>();
     private static final SharedPreferencesLoader sPrefsLoader = new SharedPreferencesLoader();
     private static final Tweaks sSharedTweaks = new Tweaks();
-    private static Future<SharedPreferences> sReferrerPrefs;
 
     private static final String LOGTAG = "SugoAPI.API";
     private static final String APP_LINKS_LOGTAG = "SugoAPI.AL";
     private static final String ENGAGE_DATE_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ss";
 
+    private static final String KEY_USER_ID_LOGIN_TIME = "SUGO_USER_ID_LOGIN_TIME";
     private boolean mDisableDecideChecker;
 
     // SugoAPI 实例化之前设置 superProperties 的临时变量

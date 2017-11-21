@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:tools="http://schemas.android.com/tools"
-          package="io.sugo.sdkdemo">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="io.sugo.sdkdemo">
 
-    <uses-sdk tools:overrideLibrary="io.sugo.android.xwalk, org.xwalk.core, com.uuzuche.lib_zxing"/>
+    <uses-sdk tools:overrideLibrary="io.sugo.android.xwalk, org.xwalk.core, com.uuzuche.lib_zxing" />
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
-    <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
 
     <application
         android:name=".App"
@@ -19,72 +19,70 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.MainActivity">
+
+        <activity android:name=".activity.LoadingActivity">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+        </activity>
+
+        <activity
+            android:name=".activity.MainActivity"
+            android:launchMode="singleTask">
+
             <intent-filter>
-                <data android:scheme="sugo.d3a66ce81be70e5e0ce841bcc62f0c67"/>
+                <data android:scheme="sugo.5bab5fa8dccf2a91320223ca9f8df327" />
 
-                <action android:name="android.intent.action.VIEW"/>
+                <action android:name="android.intent.action.VIEW" />
 
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
             </intent-filter>
         </activity>
-        <activity android:name=".activity.NativeActivity">
-        </activity>
-        <activity android:name=".activity.DescriptionActivity"/>
-        <activity android:name=".activity.WebActivity">
-        </activity>
+
+
+        <activity android:name=".activity.NativeActivity" />
+        <activity android:name=".activity.DescriptionActivity" />
+        <activity android:name=".activity.WebActivity" />
         <activity
             android:name="com.journeyapps.barcodescanner.CaptureActivity"
             android:screenOrientation="portrait"
-            tools:replace="screenOrientation"/>
-
-        <!-- <meta-data -->
-        <!-- android:name="io.sugo.android.SGConfig.UpdateDecideInterval" -->
-        <!-- android:value="10000"/> -->
+            tools:replace="screenOrientation" />
 
         <meta-data
-            android:name="io.sugo.android.SGConfig.EnableDebugLogging"
-            android:value="true"/>
+            android:name="io.sugo.android.SGConfig.UpdateDecideInterval"
+            android:value="10000" />
         <meta-data
             android:name="io.sugo.android.SGConfig.ResourcePackageName"
-            android:value="io.sugo.sdkdemo"/>
+            android:value="io.sugo.sdkdemo" />
+        <meta-data
+            android:name="io.sugo.android.SGConfig.EnableDebugLogging"
+            android:value="true" />
 
-        <!--<meta-data-->
-            <!--android:name="io.sugo.android.SGConfig.EditorUrl"-->
-            <!--android:value="ws://58.63.110.97:2227/connect/"/>-->
-        <!--<meta-data-->
-            <!--android:name="io.sugo.android.SGConfig.DecideEndpoint"-->
-            <!--android:value="http://tsa.sugo.io/api/sdk/decide"/>-->
-        <!--<meta-data-->
-            <!--android:name="io.sugo.android.SGConfig.HeatMapEndpoint"-->
-            <!--android:value="http://tsa.sugo.io/api/sdk/heat"/>-->
+        <meta-data
+            android:name="io.sugo.android.SGConfig.token"
+            android:value="5bab5fa8dccf2a91320223ca9f8df327" />
+        <meta-data
+            android:name="io.sugo.android.SGConfig.ProjectId"
+            android:value="com_SJLnjowGe_project_SyHwyk1kf" />
+        <meta-data
+            android:name="io.sugo.android.SGConfig.APIHost"
+            android:value="http://dev220.sugo.net:8000" />
+        <meta-data
+            android:name="io.sugo.android.SGConfig.EventsHost"
+            android:value="http://dev220.sugo.net" />
+        <meta-data
+            android:name="io.sugo.android.SGConfig.EditorHost"
+            android:value="ws://dev220.sugo.net:8887" />
 
-         <meta-data
-         android:name="io.sugo.android.SGConfig.EditorUrl"
-         android:value="ws://192.168.0.220:8887/connect/"/>
-         <meta-data
-         android:name="io.sugo.android.SGConfig.DecideEndpoint"
-         android:value="http://192.168.0.220:8000/api/sdk/decide"/>
-         <meta-data
-         android:name="io.sugo.android.SGConfig.HeatMapEndpoint"
-         android:value="http://192.168.0.220:8000/api/sdk/heat"/>
-
-        <activity android:name=".activity.PrivateFuncActivity">
-        </activity>
-        <activity android:name=".activity.DebugViewPagerActivity">
-        </activity>
-        <activity android:name=".activity.DebugFragmentsActivity">
-        </activity>
-        <activity android:name=".activity.TestViewActivity">
-        </activity>
-        <activity android:name=".activity.SendTestDataActivity">
-        </activity>
+        <activity android:name=".activity.PrivateFuncActivity" />
+        <activity android:name=".activity.DebugViewPagerActivity" />
+        <activity android:name=".activity.DebugFragmentsActivity" />
+        <activity android:name=".activity.TestViewActivity" />
+        <activity android:name=".activity.SendTestDataActivity" />
     </application>
 
 </manifest>

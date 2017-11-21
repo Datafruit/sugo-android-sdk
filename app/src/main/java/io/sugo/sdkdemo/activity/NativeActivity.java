@@ -6,6 +6,7 @@ import android.support.v7.widget.AppCompatSeekBar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SwitchCompat;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -17,6 +18,7 @@ import android.widget.TextView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.sugo.android.mpmetrics.SugoAPI;
 import io.sugo.sdkdemo.R;
 
 public class NativeActivity extends AppCompatActivity {
@@ -83,8 +85,16 @@ public class NativeActivity extends AppCompatActivity {
                 onBackPressed();
                 break;
             case R.id.a_btn:
+                String userId = mAEdit.getText().toString();
+                if (TextUtils.isEmpty(userId)) {
+                    userId = "userId123";
+                }
+                SugoAPI.getInstance(getApplicationContext()).login(userId);
                 break;
             case R.id.b_btn:
+                SugoAPI.getInstance(getApplicationContext()).logout();
+                break;
+            default:
                 break;
         }
     }
