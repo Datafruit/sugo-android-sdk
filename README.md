@@ -6,7 +6,7 @@
 **1.1 Gradle 集成**   
 ```Groovy   
 dependencies {
-    compile 'io.sugo.android:sugo-android-sdk:2.1.0'
+    compile 'io.sugo.android:sugo-android-sdk:2.2.0'
 }
 ```
 
@@ -64,49 +64,58 @@ dependencies {
 #### 2.1.1 调试模式   
 > 开启调试模式，可以输出 SugoSDK 的日志   
 
-```xml   
-<meta-data   
+```xml
+    <meta-data
         android:name="io.sugo.android.SGConfig.EnableDebugLogging"
         android:value="true"/>
 ```
 
-#### 2.1.2 Token 设置  
+#### 2.1.2 Token 配置  
 > 必填   
 
 ```xml
-<meta-data
+    <meta-data
         android:name="io.sugo.android.SGConfig.token"
         android:value="{YOUR_TOKEN}" />
 ```
 
-#### 2.1.3 数据上报网关地址以及 Project Id 配置   
+#### 2.1.3 Project Id 配置   
+> 必填   
+
+```xml
+    <meta-data
+        android:name="io.sugo.android.SGConfig.ProjectId"
+        android:value="{YOUR_PROJECT_ID}" />
+```
+
+#### 2.1.4 埋点配置地址   
+> 必填   
+
+```xml
+    <meta-data
+        android:name="io.sugo.android.SGConfig.APIHost"
+        android:value="{DECIDE_URL}" />
+```
+
+#### 2.1.5 可视化埋点地址   
 > 必填   
 
 ```xml
 <meta-data
-        android:name="io.sugo.android.SGConfig.EventsEndpoint"
-        android:value="{EVENTS_URL}/post?locate={YOUR_PROJECT_ID}" />
+        android:name="io.sugo.android.SGConfig.EditorHost"
+        android:value="{EDITOR_URL}" />
 ```
 
-#### 2.1.4 部署地址配置   
+#### 2.1.6 数据上报地址   
 > 必填   
 
 ```xml
-<meta-data
-        android:name="io.sugo.android.SGConfig.DecideEndpoint"
-        android:value="{DECIDE_URL}/api/sdk/decide" />
+    <meta-data
+        android:name="io.sugo.android.SGConfig.EventsHost"
+        android:value="http://dev220.sugo.net" />
 ```
 
-#### 2.1.5 可视化埋点链接地址配置   
-> 必填   
-
-```xml
-<meta-data
-        android:name="io.sugo.android.SGConfig.EditorUrl"
-        android:value="{EDITOR_URL}/connect/" />
-```
-
-#### 2.1.6 扫码跳转页面   
+#### 2.1.7 扫码跳转页面   
 
 在启动的 Activity 上（该 Activity 不能在初始化`Sugo.startSugo()`被调用之前），配置
 
@@ -151,11 +160,13 @@ dependencies {
 ## 3. SDK 使用   
 
 初始化   
+
 ```Java
     SugoAPI.startSugo(this, SGConfig.getInstance(this));
 ```   
 
-标准的使用实例，应该是在 APP 启动的第一个`Activity`中，添加以下代码
+标准的使用实例，应该是在 APP 启动的第一个`Activity`中，添加以下代码  
+
 ```Java
 public class MainActivity extends Activity {
 
@@ -352,3 +363,11 @@ sugoAPI.registerSuperProperties(props);
 
 
 ## 4 Q&A
+
+Q. 定位 View 失败   
+A. SDK 通过资源 id 定位 View，如果 applicationId 与应用包名不一致，则需要修改   
+```xml
+        <meta-data
+            android:name="io.sugo.android.SGConfig.ResourcePackageName"
+            android:value="{YOUR_PACKAGE_NAME}" />
+```
