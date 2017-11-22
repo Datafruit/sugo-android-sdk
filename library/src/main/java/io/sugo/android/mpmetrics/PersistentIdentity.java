@@ -87,34 +87,6 @@ import java.util.concurrent.Future;
         };
     }
 
-
-    void writeFirstVisitTime(long time) {
-        SharedPreferences preferences = null;
-        try {
-            preferences = mSugoPreferences.get();
-            final SharedPreferences.Editor editor = preferences.edit();
-            editor.putLong("first_visit_time", time);
-            editor.commit();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-    }
-
-    long readFirstVisitTime() {
-        SharedPreferences preferences = null;
-        try {
-            preferences = mSugoPreferences.get();
-            return preferences.getLong("first_visit_time", 0);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
     void writeUserLoginTime(String userId, long time) {
         SharedPreferences preferences = null;
         try {

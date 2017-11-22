@@ -261,11 +261,9 @@ public class SugoAPI {
         }
 
         if (!mPersistentIdentity.hasTrackedIntegration()) {
-            long firstVisitTime = System.currentTimeMillis();
             Map<String, Object> firstVisitTimeMap = new HashMap<>();
             firstVisitTimeMap.put(SGConfig.FIELD_FIRST_VISIT_TIME, System.currentTimeMillis());
             registerSuperPropertiesMap(firstVisitTimeMap);
-            mPersistentIdentity.writeFirstVisitTime(firstVisitTime);
             track("首次访问");
             track("APP安装");
             flush();
@@ -1350,7 +1348,6 @@ public class SugoAPI {
             Map<String, Object> firstLoginTimeMap = new HashMap<>();
             firstLoginTimeMap.put(SGConfig.FIELD_FIRST_LOGIN_TIME, mPersistentIdentity.readUserLoginTime(userId));
             registerSuperPropertiesMap(firstLoginTimeMap);
-            unregisterSuperProperty(SGConfig.FIELD_FIRST_VISIT_TIME);
             return;
         }
         Thread loginThread = new Thread(new Runnable() {
@@ -1389,7 +1386,6 @@ public class SugoAPI {
                             Map<String, Object> firstLoginTimeMap = new HashMap<>();
                             firstLoginTimeMap.put(SGConfig.FIELD_FIRST_LOGIN_TIME, firstLoginTime);
                             registerSuperPropertiesMap(firstLoginTimeMap);
-                            unregisterSuperProperty(SGConfig.FIELD_FIRST_VISIT_TIME);
                             // 存储起来，下次调用 login 不再请求网络
                             mPersistentIdentity.writeUserLoginTime(userId, firstLoginTime);
                             boolean firstLogin = dataObj.getJSONObject("result").optBoolean("isFirstLogin", false);
@@ -1413,9 +1409,6 @@ public class SugoAPI {
 
     public void logout() {
         unregisterSuperProperty(SGConfig.FIELD_FIRST_LOGIN_TIME);
-        Map<String, Object> firstVisitTime = new HashMap<>();
-        firstVisitTime.put(SGConfig.FIELD_FIRST_VISIT_TIME, mPersistentIdentity.readFirstVisitTime());
-        registerSuperPropertiesMap(firstVisitTime);
     }
 
     private boolean isMainThread() {
