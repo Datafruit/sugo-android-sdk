@@ -5,12 +5,11 @@ android {
     buildToolsVersion '26.0.2'
     defaultConfig {
         applicationId "io.sugo.sdkdemo.dev220kf"
-        minSdkVersion 9
+        minSdkVersion 14
         targetSdkVersion 22
         versionCode 4
         versionName "1.3"
     }
-
 
     // 签名配置
     signingConfigs {
@@ -67,6 +66,7 @@ repositories {
     maven {
         url 'https://download.01.org/crosswalk/releases/crosswalk/android/maven2'
     }
+    jcenter()
     google()
 }
 

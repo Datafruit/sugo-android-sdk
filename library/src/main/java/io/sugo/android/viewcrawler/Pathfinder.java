@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * Paths in the view hierarchy, and the machinery for finding views using them.
- *
+ * <p>
  * An individual pathfinder is NOT THREAD SAFE, and should only be used by one thread at a time.
  */
 /* package */ class Pathfinder {
@@ -19,37 +19,37 @@ import java.util.List;
     /**
      * a path element E matches a view V if each non "prefix" or "index"
      * attribute of E is equal to (or characteristic of) V.
-     *
+     * <p>
      * So
-     *
-     *     E.viewClassName == 'com.mixpanel.Awesome' => V instanceof com.mixpanelAwesome
-     *     E.id == 123 => V.getId() == 123
-     *
+     * <p>
+     * E.viewClassName == 'com.mixpanel.Awesome' => V instanceof com.mixpanelAwesome
+     * E.id == 123 => V.getId() == 123
+     * <p>
      * The index attribute, counting from root to leaf, and first child to last child, selects a particular
      * matching view amongst all possible matches. Indexing starts at zero, like an array
      * index. So E.index == 2 means "Select the third possible match for this element"
-     *
+     * <p>
      * The prefix attribute refers to the position of the matched views in the hierarchy,
      * relative to the current position of the path being searched. The "current position" of
      * a path element is determined by the path that preceeded that element:
-     *
+     * <p>
      * - The current position of the empty path is the root view
-     *
+     * <p>
      * - The current position of a non-empty path is the children of any element that matched the last
-     *   element of that path.
-     *
+     * element of that path.
+     * <p>
      * Prefix values can be:
-     *
-     *     ZERO_LENGTH_PREFIX- the next match must occur at the current position (so at the root
-     *     view if this is the first element of a path, or at the matching children of the views
-     *     already matched by the preceeding portion of the path.) If a path element with ZERO_LENGTH_PREFIX
-     *     has no index, then *all* matching elements of the path will be matched, otherwise indeces
-     *     will count from first child to last child.
-     *
-     *     SHORTEST_PREFIX- the next match must occur at some descendant of the current position.
-     *     SHORTEST_PREFIX elements are indexed depth-first, first child to last child. For performance
-     *     reasons, at most one element will ever be matched to a SHORTEST_PREFIX element, so
-     *     elements with no index will be treated as having index == 0
+     * <p>
+     * ZERO_LENGTH_PREFIX- the next match must occur at the current position (so at the root
+     * view if this is the first element of a path, or at the matching children of the views
+     * already matched by the preceeding portion of the path.) If a path element with ZERO_LENGTH_PREFIX
+     * has no index, then *all* matching elements of the path will be matched, otherwise indeces
+     * will count from first child to last child.
+     * <p>
+     * SHORTEST_PREFIX- the next match must occur at some descendant of the current position.
+     * SHORTEST_PREFIX elements are indexed depth-first, first child to last child. For performance
+     * reasons, at most one element will ever be matched to a SHORTEST_PREFIX element, so
+     * elements with no index will be treated as having index == 0
      */
     public static class PathElement {
         public PathElement(int usePrefix, String vClass, int ix, int vId, String cDesc, String vTag) {
@@ -130,6 +130,13 @@ import java.util.List;
         }
     }
 
+    /**
+     * 查找 path 的每一段
+     *
+     * @param alreadyMatched
+     * @param remainingPath
+     * @param accumulator
+     */
     private void findTargetsInMatchedView(View alreadyMatched, List<PathElement> remainingPath, Accumulator accumulator) {
         // When this is run, alreadyMatched has already been matched to a path prefix.
         // path is a possibly empty "remaining path" suffix left over after the match
@@ -163,6 +170,7 @@ import java.util.List;
             if (null != child) {
                 findTargetsInMatchedView(child, nextPath, accumulator);
             }
+            // 如果当前元素的 index 已经超过了已有的布局的 index ，则退出循环
             if (matchElement.index >= 0 && mIndexStack.read(indexKey) > matchElement.index) {
                 break;
             }
@@ -172,15 +180,28 @@ import java.util.List;
 
     // Finds the first matching view of the path element in the given subject's view hierarchy.
     // If the path is indexed, it needs a start index, and will consume some indexes
+
+    /**
+     * 判断 subject view 是否匹配当前 path
+     * 在匹配 id tag contentDescription 的情况下，判断 index 是否相同
+     * index 一般在那些没有命名 id / tag / contentDescription 的情况下才会有不同，否则都等于 0
+     *
+     * @param findElement
+     * @param subject
+     * @param indexKey
+     * @return
+     */
     private View findPrefixedMatch(PathElement findElement, View subject, int indexKey) {
         final int currentIndex = mIndexStack.read(indexKey);
         if (matches(findElement, subject)) {
-            mIndexStack.increment(indexKey);
             if (findElement.index == -1 || findElement.index == currentIndex) {
                 return subject;
             }
+            // 当前没有匹配上，则匹配下一个 index (外层循环是传一个兄弟 view 进来)
+            mIndexStack.increment(indexKey);
         }
 
+        // 如果是 shortest 规则的元素，则一直递归查找到对应的元素，一般是指 content_view，以优化遍历性能
         if (findElement.prefix == PathElement.SHORTEST_PREFIX && subject instanceof ViewGroup) {
             final ViewGroup group = (ViewGroup) subject;
             final int childCount = group.getChildCount();
@@ -197,20 +218,26 @@ import java.util.List;
     }
 
     private boolean matches(PathElement matchElement, View subject) {
+        // 判断 subject 是否是该元素的类型或父类型
         if (null != matchElement.viewClassName &&
                 !hasClassName(subject, matchElement.viewClassName)) {
             return false;
         }
 
-        if (-1 != matchElement.viewId && subject.getId() != matchElement.viewId) {
+        // 判断 subject 的 id 是否匹配
+        final int subjectId = subject.getId();
+        if (-1 != matchElement.viewId && subjectId != matchElement.viewId) {
             return false;
         }
 
+        // 判断 subject 的 contentDescription 是否匹配
+        final CharSequence subjectContentDescription = subject.getContentDescription();
         if (null != matchElement.contentDescription &&
-                !matchElement.contentDescription.equals(subject.getContentDescription())) {
+                !matchElement.contentDescription.equals(subjectContentDescription == null ? null : subjectContentDescription + "")) {
             return false;
         }
 
+        // 判断 subject 的 tag 是否匹配
         final String matchTag = matchElement.tag;
         if (null != matchElement.tag) {
             final Object subjectTag = subject.getTag();
@@ -222,8 +249,8 @@ import java.util.List;
         return true;
     }
 
-    private static boolean hasClassName(Object o, String className) {
-        Class<?> klass = o.getClass();
+    private static boolean hasClassName(Object subject, String className) {
+        Class<?> klass = subject.getClass();
         while (true) {
             if (klass.getCanonicalName().equals(className)) {
                 return true;

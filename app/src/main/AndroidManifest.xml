@@ -26,13 +26,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
-        </activity>
-
-        <activity
-            android:name=".activity.MainActivity"
-            android:launchMode="singleTask">
-
             <intent-filter>
                 <data android:scheme="sugo.5bab5fa8dccf2a91320223ca9f8df327" />
 
@@ -42,8 +35,9 @@
                 <category android:name="android.intent.category.BROWSABLE" />
             </intent-filter>
         </activity>
-
-
+        <activity
+            android:name=".activity.MainActivity"
+            android:launchMode="singleTask"></activity>
         <activity android:name=".activity.NativeActivity" />
         <activity android:name=".activity.DescriptionActivity" />
         <activity android:name=".activity.WebActivity" />
