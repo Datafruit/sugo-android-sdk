@@ -254,12 +254,6 @@ public class SugoAPI {
             mMessages.installDecideCheck(mDecideMessages);
         }
 
-        registerSugoActivityLifecycleCallbacks();
-
-        if (sendAppOpen()) {
-            track(null, "$app_open", null);
-        }
-
         if (!mPersistentIdentity.hasTrackedIntegration()) {
             Map<String, Object> firstVisitTimeMap = new HashMap<>();
             firstVisitTimeMap.put(SGConfig.FIELD_FIRST_VISIT_TIME, System.currentTimeMillis());
@@ -269,6 +263,8 @@ public class SugoAPI {
             flush();
             mPersistentIdentity.setTrackedIntegration(true);
         }
+
+        registerSugoActivityLifecycleCallbacks();
 
         mUpdatesFromSugo.startUpdates();
     }
@@ -379,32 +375,6 @@ public class SugoAPI {
 
     private String getCurrentSessionId() {
         return mSessionId;
-    }
-
-    private void restorePageInfo() {
-        final String sharedPrefsName = ViewCrawler.SHARED_PREF_EDITS_FILE + mToken;
-        SharedPreferences preferences = mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
-        final String storeInfo = preferences.getString(ViewCrawler.SHARED_PREF_PAGE_INFO_KEY, null);
-        if (storeInfo != null && !storeInfo.equals("")) {
-            try {
-                SugoPageManager.getInstance().setPageInfos(new JSONArray(storeInfo));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void restoreDimensions() {
-        final String sharedPrefsName = ViewCrawler.SHARED_PREF_EDITS_FILE + mToken;
-        SharedPreferences preferences = mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
-        String storeInfo = preferences.getString(ViewCrawler.SHARED_PREF_DIMENSIONS_KEY, null);
-        if (storeInfo != null && !storeInfo.equals("")) {
-            try {
-                SugoDimensionManager.getInstance().setDimensions(new JSONArray(storeInfo));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     /**
@@ -1343,71 +1313,85 @@ public class SugoAPI {
         track(eventName, props);
     }
 
-    public void login(final String userId) {
-        if (mPersistentIdentity.readUserLoginTime(userId) > 0) {
-            Map<String, Object> firstLoginTimeMap = new HashMap<>();
-            firstLoginTimeMap.put(SGConfig.FIELD_FIRST_LOGIN_TIME, mPersistentIdentity.readUserLoginTime(userId));
-            registerSuperPropertiesMap(firstLoginTimeMap);
-            return;
+    /**
+     * @param userIdKey   "userId"
+     * @param userIdValue "123456"
+     */
+    public void login(final String userIdKey, final String userIdValue) {
+        final Map<String, Object> firstLoginTimeMap = new HashMap<>();
+        if (!TextUtils.isEmpty(userIdKey)) {
+            mPersistentIdentity.writeUserIdKey(userIdKey);
+            firstLoginTimeMap.put(userIdKey, userIdValue);
         }
-        Thread loginThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (SGConfig.DEBUG) {
-                        Log.i(LOGTAG, "query user first login time for : " + userId);
-                    }
-                    StringBuilder urlBuilder = new StringBuilder();
-                    urlBuilder.append(mConfig.getFirstLoginEndpoint())
-                            .append("?userId=")
-                            .append(userId)
-                            .append("&projectId=")
-                            .append(mConfig.getProjectId());
-                    URL url = new URL(urlBuilder.toString());
-                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                    if (urlConnection.getResponseCode() == 200) {
-                        InputStream inputStream = urlConnection.getInputStream();
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        byte[] buffers = new byte[1024];
-                        int len = 0;
-                        while (-1 != (len = inputStream.read(buffers))) {
-                            baos.write(buffers, 0, len);
-                            baos.flush();
-                        }
-                        String result = baos.toString("utf-8");
+
+        long recordUserFirstLoginTime = mPersistentIdentity.readUserLoginTime(userIdValue);
+        if (recordUserFirstLoginTime > 0) {
+            firstLoginTimeMap.put(SGConfig.FIELD_FIRST_LOGIN_TIME, recordUserFirstLoginTime);
+            registerSuperPropertiesMap(firstLoginTimeMap);
+        } else {
+            Thread loginThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
                         if (SGConfig.DEBUG) {
-                            Log.i(LOGTAG, "query user first login time result : " + result);
+                            Log.i(LOGTAG, "query user first login time for : " + userIdValue);
                         }
-                        JSONObject dataObj = new JSONObject(result);
-                        boolean success = dataObj.optBoolean("success", false);
-                        if (success && dataObj.has("result")
-                                && dataObj.getJSONObject("result").has("firstLoginTime")) {
-                            long firstLoginTime = dataObj.getJSONObject("result").getLong("firstLoginTime");
-                            Map<String, Object> firstLoginTimeMap = new HashMap<>();
-                            firstLoginTimeMap.put(SGConfig.FIELD_FIRST_LOGIN_TIME, firstLoginTime);
-                            registerSuperPropertiesMap(firstLoginTimeMap);
-                            // 存储起来，下次调用 login 不再请求网络
-                            mPersistentIdentity.writeUserLoginTime(userId, firstLoginTime);
-                            boolean firstLogin = dataObj.getJSONObject("result").optBoolean("isFirstLogin", false);
-                            if (firstLogin) {
-                                track("首次登录");
+                        StringBuilder urlBuilder = new StringBuilder();
+                        urlBuilder.append(mConfig.getFirstLoginEndpoint())
+                                .append("?userId=")
+                                .append(userIdValue)
+                                .append("&projectId=")
+                                .append(mConfig.getProjectId())
+                                .append("&token=")
+                                .append(mConfig.getToken());
+                        URL url = new URL(urlBuilder.toString());
+                        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                        if (urlConnection.getResponseCode() == 200) {
+                            InputStream inputStream = urlConnection.getInputStream();
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            byte[] buffers = new byte[1024];
+                            int len = 0;
+                            while (-1 != (len = inputStream.read(buffers))) {
+                                baos.write(buffers, 0, len);
+                                baos.flush();
+                            }
+                            String result = baos.toString("utf-8");
+                            if (SGConfig.DEBUG) {
+                                Log.i(LOGTAG, "query user first login time result : " + result);
+                            }
+                            JSONObject dataObj = new JSONObject(result);
+                            boolean success = dataObj.optBoolean("success", false);
+                            if (success && dataObj.has("result")
+                                    && dataObj.getJSONObject("result").has("firstLoginTime")) {
+                                long firstLoginTime = dataObj.getJSONObject("result").getLong("firstLoginTime");
+                                firstLoginTimeMap.put(SGConfig.FIELD_FIRST_LOGIN_TIME, firstLoginTime);
+                                registerSuperPropertiesMap(firstLoginTimeMap);
+                                // 存储起来，下次调用 login 不再请求网络
+                                mPersistentIdentity.writeUserLoginTime(userIdValue, firstLoginTime);
+                                boolean firstLogin = dataObj.getJSONObject("result").optBoolean("isFirstLogin", false);
+                                if (firstLogin) {
+                                    track("首次登录");
+                                }
                             }
                         }
+                    } catch (MalformedURLException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
                 }
-            }
-        });
-        loginThread.start();
-
+            });
+            loginThread.start();
+        }
     }
 
     public void logout() {
+        String userIdKey = mPersistentIdentity.readUserIdKey();
+        if (userIdKey != null) {
+            unregisterSuperProperty(userIdKey);
+        }
         unregisterSuperProperty(SGConfig.FIELD_FIRST_LOGIN_TIME);
     }
 

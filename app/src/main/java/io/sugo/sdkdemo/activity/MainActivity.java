@@ -22,7 +22,6 @@ import com.google.zxing.integration.android.IntentResult;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import io.sugo.android.mpmetrics.SGConfig;
 import io.sugo.android.mpmetrics.SugoAPI;
 import io.sugo.sdkdemo.R;
 
@@ -57,8 +56,6 @@ public class MainActivity extends AppCompatActivity {
 
 //        SugoAPI.setSuperPropertiesOnceBeforeStartSugo(this, "key-once", "value-once22");
 //        SugoAPI.setSuperPropertiesBeforeStartSugo(this, "key", "value");
-
-        SugoAPI.startSugo(this, SGConfig.getInstance(this).logConfig());
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE,

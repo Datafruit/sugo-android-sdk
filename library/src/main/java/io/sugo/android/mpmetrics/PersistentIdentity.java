@@ -114,6 +114,34 @@ import java.util.concurrent.Future;
         return 0;
     }
 
+
+    void writeUserIdKey(String userIdKey) {
+        SharedPreferences preferences = null;
+        try {
+            preferences = mSugoPreferences.get();
+            final SharedPreferences.Editor editor = preferences.edit();
+            editor.putString("sugo_user_id_key", userIdKey);
+            editor.commit();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    String readUserIdKey() {
+        SharedPreferences preferences = null;
+        try {
+            preferences = mSugoPreferences.get();
+            return preferences.getString("sugo_user_id_key", null);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public synchronized void addSuperPropertiesToObject(JSONObject ob) {
         final JSONObject superProperties = this.getSuperPropertiesCache();
         final Iterator<?> superIter = superProperties.keys();

@@ -89,7 +89,7 @@ public class NativeActivity extends AppCompatActivity {
                 if (TextUtils.isEmpty(userId)) {
                     userId = "userId123";
                 }
-                SugoAPI.getInstance(getApplicationContext()).login(userId);
+                SugoAPI.getInstance(getApplicationContext()).login("test_user_id", userId);
                 break;
             case R.id.b_btn:
                 SugoAPI.getInstance(getApplicationContext()).logout();
