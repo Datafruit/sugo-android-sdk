@@ -1367,7 +1367,9 @@ public class SugoAPI {
                                 .append("?userId=")
                                 .append(userIdValue)
                                 .append("&projectId=")
-                                .append(mConfig.getProjectId());
+                                .append(mConfig.getProjectId())
+                                .append("&token=")
+                                .append(mConfig.getToken());
                         URL url = new URL(urlBuilder.toString());
                         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                         if (urlConnection.getResponseCode() == 200) {
