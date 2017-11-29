@@ -25,7 +25,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class UpdateDisplayState implements Parcelable {
 
     /**
-     * This class is intended for internal use by the Mixpanel library.
+     * This class is intended for internal use by the Sugo library.
      * Users of the library should not interact directly with this class.
      */
     public static abstract class DisplayState implements Parcelable {
@@ -35,7 +35,7 @@ public class UpdateDisplayState implements Parcelable {
         public abstract String getType();
 
         /**
-         * This class is intended for internal use by the Mixpanel library.
+         * This class is intended for internal use by the Sugo library.
          * Users of the library should not interact directly with this class.
          */
         public static final class InAppNotificationState extends DisplayState {
@@ -101,7 +101,7 @@ public class UpdateDisplayState implements Parcelable {
         }
 
         /**
-         * This class is intended for internal use by the Mixpanel library.
+         * This class is intended for internal use by the Sugo library.
          * Users of the library should not interact directly with this class.
          */
         public static final class SurveyState extends DisplayState {
@@ -235,7 +235,7 @@ public class UpdateDisplayState implements Parcelable {
     }
 
     /**
-     * This class is intended for internal use by the Mixpanel library.
+     * This class is intended for internal use by the Sugo library.
      * Users of the library should not interact directly with this class.
      */
     public static class AnswerMap implements Parcelable {
@@ -327,7 +327,7 @@ public class UpdateDisplayState implements Parcelable {
             ret = sNextIntentId;
         } else {
             if (SGConfig.DEBUG) {
-                Log.v(LOGTAG, "Already showing (or cooking) a Mixpanel update, declining to show another.");
+                Log.v(LOGTAG, "Already showing (or cooking) a Sugo update, declining to show another.");
             }
         }
 

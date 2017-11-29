@@ -14,7 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * BroadcastReceiver for automatically storing Google Play Store referrer information as Mixpanel Super Properties.
+ * BroadcastReceiver for automatically storing Google Play Store referrer information as Sugo Super Properties.
  *
  * <p>You can use InstallReferrerReceiver to capture and store referrer information,
  * and use that information to track how users from different sources are using your app.

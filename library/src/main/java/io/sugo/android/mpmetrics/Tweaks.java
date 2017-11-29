@@ -21,8 +21,8 @@ import java.util.Map;
  */
 public class Tweaks {
     /**
-     * This method is used internally to expose tweaks to the Mixpanel UI,
-     * and will likely not be directly useful to code that imports the Mixpanel library.
+     * This method is used internally to expose tweaks to the Sugo UI,
+     * and will likely not be directly useful to code that imports the Sugo library.
      * The given listener's onTweakDeclared method will be called when a new tweak is declared.
      */
     public synchronized void addOnTweakDeclaredListener(OnTweakDeclaredListener listener) {
@@ -60,7 +60,7 @@ public class Tweaks {
     /**
      * Returns the descriptions of all tweaks that currently exist.
      *
-     * The Mixpanel library uses this method internally to expose tweaks and their types to the UI. Most
+     * The Sugo library uses this method internally to expose tweaks and their types to the UI. Most
      * users will not need to call this method directly.
      */
     public synchronized Map<String, TweakValue> getAllValues() {
@@ -84,39 +84,39 @@ public class Tweaks {
     /**
      * An internal description of the type of a tweak.
      * These values are used internally to expose
-     * tweaks to the Mixpanel UI, and will likely not be directly useful to
-     * code that imports the Mixpanel library.
+     * tweaks to the Sugo UI, and will likely not be directly useful to
+     * code that imports the Sugo library.
      */
     public static final @TweakType int BOOLEAN_TYPE = 1;
 
     /**
      * An internal description of the type of a tweak.
      * These values are used internally to expose
-     * tweaks to the Mixpanel UI, and will likely not be directly useful to
-     * code that imports the Mixpanel library.
+     * tweaks to the Sugo UI, and will likely not be directly useful to
+     * code that imports the Sugo library.
      */
     public static final @TweakType int DOUBLE_TYPE = 2;
 
     /**
      * An internal description of the type of a tweak.
      * These values are used internally to expose
-     * tweaks to the Mixpanel UI, and will likely not be directly useful to
-     * code that imports the Mixpanel library.
+     * tweaks to the Sugo UI, and will likely not be directly useful to
+     * code that imports the Sugo library.
      */
     public static final @TweakType int LONG_TYPE = 3;
 
     /**
      * An internal description of the type of a tweak.
      * These values are used internally to expose
-     * tweaks to the Mixpanel UI, and will likely not be directly useful to
-     * code that imports the Mixpanel library.
+     * tweaks to the Sugo UI, and will likely not be directly useful to
+     * code that imports the Sugo library.
      */
     public static final @TweakType int STRING_TYPE = 4;
 
     /**
      * Represents the value and definition of a tweak known to the system. This class
-     * is used internally to expose tweaks to the Mixpanel UI,
-     * and will likely not be directly useful to code that imports the Mixpanel library.
+     * is used internally to expose tweaks to the Sugo UI,
+     * and will likely not be directly useful to code that imports the Sugo library.
      */
     public static class TweakValue {
         private TweakValue(@TweakType int aType, Object aDefaultValue, Number aMin, Number aMax, Object value) {
@@ -202,8 +202,8 @@ public class Tweaks {
     }
 
     /**
-     * This interface is used internally to expose tweaks to the Mixpanel UI,
-     * and will likely not be directly useful to code that imports the Mixpanel library.
+     * This interface is used internally to expose tweaks to the Sugo UI,
+     * and will likely not be directly useful to code that imports the Sugo library.
      */
     public interface OnTweakDeclaredListener {
         void onTweakDeclared();

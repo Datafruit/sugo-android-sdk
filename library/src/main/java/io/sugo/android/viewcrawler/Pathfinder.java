@@ -14,7 +14,7 @@ import java.util.List;
  * <p>
  * An individual pathfinder is NOT THREAD SAFE, and should only be used by one thread at a time.
  */
-/* package */ class Pathfinder {
+class Pathfinder {
 
     /**
      * a path element E matches a view V if each non "prefix" or "index"
@@ -22,7 +22,7 @@ import java.util.List;
      * <p>
      * So
      * <p>
-     * E.viewClassName == 'com.mixpanel.Awesome' => V instanceof com.mixpanelAwesome
+     * E.viewClassName == 'com.sugo.Awesome' => V instanceof com.sugo.Awesome
      * E.id == 123 => V.getId() == 123
      * <p>
      * The index attribute, counting from root to leaf, and first child to last child, selects a particular

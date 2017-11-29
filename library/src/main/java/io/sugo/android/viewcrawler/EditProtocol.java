@@ -129,7 +129,7 @@ import io.sugo.android.util.JSONUtils;
             } else if ("detected".equals(eventType)) {
                 return new ViewVisitor.ViewDetectorVisitor(path, eventId, eventName, dimMap, listener);
             } else {
-                throw new BadInstructionsException("Mixpanel can't track event type \"" + eventType + "\"");
+                throw new BadInstructionsException("Sugo can't track event type \"" + eventType + "\"");
             }
         } catch (final JSONException e) {
             throw new BadInstructionsException("Can't interpret instructions due to JSONException", e);

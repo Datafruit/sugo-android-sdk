@@ -13,7 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Represents a in-app notification delivered from Mixpanel. Under ordinary circumstances,
+ * Represents a in-app notification delivered from Sugo. Under ordinary circumstances,
  * most code won't have to interact with this class directly, but rather will display
  * InAppNotifications using {@link SugoAPI.People#showNotificationIfAvailable(Activity)}
  * This class is public to
@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 public class InAppNotification implements Parcelable {
 
     /**
-     * InApp Notifications in Mixpanel are either TAKEOVERs, that display full screen,
+     * InApp Notifications in Sugo are either TAKEOVERs, that display full screen,
      * or MINI notifications that appear and disappear on the margins of the screen.
      */
     public enum Type {

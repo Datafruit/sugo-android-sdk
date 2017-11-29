@@ -174,7 +174,7 @@ import java.util.concurrent.Future;
 
         final JSONObject replacementCache = updates.update(copy);
         if (null == replacementCache) {
-            Log.w(LOGTAG, "An update to Mixpanel's super properties returned null, and will have no effect.");
+            Log.w(LOGTAG, "An update to Sugo's super properties returned null, and will have no effect.");
             return;
         }
 
@@ -207,21 +207,6 @@ import java.util.concurrent.Future;
         writeIdentities();
     }
 
-    public synchronized String getPeopleDistinctId() {
-        if (!mIdentitiesLoaded) {
-            readIdentities();
-        }
-        return mPeopleDistinctId;
-    }
-
-    public synchronized void setPeopleDistinctId(String peopleDistinctId) {
-        if (!mIdentitiesLoaded) {
-            readIdentities();
-        }
-        mPeopleDistinctId = peopleDistinctId;
-        writeIdentities();
-    }
-
     public synchronized boolean hasTrackedIntegration() {
         if (!mIdentitiesLoaded) {
             readIdentities();
@@ -235,31 +220,6 @@ import java.util.concurrent.Future;
         }
         mTrackedIntegration = trackedIntegration;
         writeIdentities();
-    }
-
-    public synchronized void storeWaitingPeopleRecord(JSONObject record) {
-        if (!mIdentitiesLoaded) {
-            readIdentities();
-        }
-        if (null == mWaitingPeopleRecords) {
-            mWaitingPeopleRecords = new JSONArray();
-        }
-        mWaitingPeopleRecords.put(record);
-        writeIdentities();
-    }
-
-    public synchronized JSONArray waitingPeopleRecordsForSending() {
-        JSONArray ret = null;
-        try {
-            final SharedPreferences prefs = mLoadStoredPreferences.get();
-            ret = waitingPeopleRecordsForSending(prefs);
-            readIdentities();
-        } catch (final ExecutionException e) {
-            Log.e(LOGTAG, "Couldn't read waiting people records from shared preferences.", e.getCause());
-        } catch (final InterruptedException e) {
-            Log.e(LOGTAG, "Couldn't read waiting people records from shared preferences.", e);
-        }
-        return ret;
     }
 
     public synchronized void clearPreferences() {

@@ -156,5 +156,5 @@ import java.lang.reflect.Method;
     private final Method mTargetMethod;
 
     @SuppressWarnings("unused")
-    private static final String LOGTAG = "MixpanelABTest.Caller";
+    private static final String LOGTAG = "SugoABTest.Caller";
 }

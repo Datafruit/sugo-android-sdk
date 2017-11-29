@@ -29,7 +29,7 @@ import java.util.Set;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * This file has been modified from its original version by Mixpanel, Inc. The original
+ * This file has been modified from its original version by Sugo, Inc. The original
  * contents were part of GCMRegistrar, retrieved from
  * https://code.google.com/p/gcm/source/browse/gcm-client/src/com/google/android/gcm/GCMRegistrar.java
  * on Jan 3, 2013
@@ -49,7 +49,7 @@ import java.util.Set;
             return false;
         }
         if (PackageManager.PERMISSION_GRANTED != packageManager.checkPermission("android.permission.INTERNET", packageName)) {
-            Log.w(LOGTAG, "Package does not have permission android.permission.INTERNET - Mixpanel will not work at all!");
+            Log.w(LOGTAG, "Package does not have permission android.permission.INTERNET - Sugo will not work at all!");
             Log.i(LOGTAG, "You can fix this by adding the following to your AndroidManifest.xml file:\n" +
                     "<uses-permission android:name=\"android.permission.INTERNET\" />");
             return false;
@@ -62,7 +62,7 @@ import java.util.Set;
 
         if (Build.VERSION.SDK_INT < 8) {
             // Not a warning, may be expected behavior
-            Log.i(LOGTAG, "Mixpanel push notifications not supported in SDK " + Build.VERSION.SDK_INT);
+            Log.i(LOGTAG, "Sugo push notifications not supported in SDK " + Build.VERSION.SDK_INT);
             return false;
         }
 
@@ -112,7 +112,7 @@ import java.util.Set;
         // This permission is only required on older devices
         if (PackageManager.PERMISSION_GRANTED != packageManager.checkPermission("android.permission.GET_ACCOUNTS", packageName)) {
             Log.i(LOGTAG, "Package does not have permission android.permission.GET_ACCOUNTS");
-            Log.i(LOGTAG, "Android versions below 4.1 require GET_ACCOUNTS to receive Mixpanel push notifications.\n" +
+            Log.i(LOGTAG, "Android versions below 4.1 require GET_ACCOUNTS to receive Sugo push notifications.\n" +
                     "Devices with later OS versions will still be able to receive messages, but if you'd like to support " +
                     "older devices, you'll need to add the following to your AndroidManifest.xml file:\n" +
                     "<uses-permission android:name=\"android.permission.GET_ACCOUNTS\" />");

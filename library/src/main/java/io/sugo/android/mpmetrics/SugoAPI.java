@@ -4,16 +4,12 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Application;
 import android.app.Fragment;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
@@ -30,8 +26,6 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -40,13 +34,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import io.sugo.android.viewcrawler.TrackingDebug;
@@ -55,20 +45,20 @@ import io.sugo.android.viewcrawler.ViewCrawler;
 import io.sugo.android.viewcrawler.XWalkViewListener;
 
 /**
- * Core class for interacting with Mixpanel Analytics.
+ * Core class for interacting with Sugo Analytics.
  * <p>
  * <p>Call {@link #getInstance(Context)} with
- * your main application activity and your Mixpanel API token as arguments
+ * your main application activity and your Sugo API token as arguments
  * an to get an instance you can use to report how users are using your
  * application.
  * <p>
- * <p>Once you have an instance, you can send events to Mixpanel
+ * <p>Once you have an instance, you can send events to Sugo
  * using {@link #track(String, JSONObject)}
  * <p>
- * <p>The Mixpanel library will periodically send information to
- * Mixpanel servers, so your application will need to have
+ * <p>The Sugo library will periodically send information to
+ * Sugo servers, so your application will need to have
  * <tt>android.permission.INTERNET</tt>. In addition, to preserve
- * battery life, messages to Mixpanel servers may not be sent immediately
+ * battery life, messages to Sugo servers may not be sent immediately
  * when you call <tt>track</tt>.
  * The library will send messages periodically throughout the lifetime
  * of your application, but you will need to call {@link #flush()}
@@ -80,22 +70,22 @@ import io.sugo.android.viewcrawler.XWalkViewListener;
  * <pre>
  * {@code
  * public class MainActivity extends Activity {
- *      SugoAPI mMixpanel;
+ *      SugoAPI mSugo;
  *
  *      public void onCreate(Bundle saved) {
- *          mMixpanel = SugoAPI.getInstance(this, "YOUR MIXPANEL API TOKEN");
+ *          mSugo = SugoAPI.getInstance(this, "YOUR SUGO API TOKEN");
  *          ...
  *      }
  *
  *      public void whenSomethingInterestingHappens(int flavor) {
  *          JSONObject properties = new JSONObject();
  *          properties.put("flavor", flavor);
- *          mMixpanel.track("Something Interesting Happened", properties);
+ *          mSugo.track("Something Interesting Happened", properties);
  *          ...
  *      }
  *
  *      public void onDestroy() {
- *          mMixpanel.flush();
+ *          mSugo.flush();
  *          super.onDestroy();
  *      }
  * }
@@ -103,16 +93,16 @@ import io.sugo.android.viewcrawler.XWalkViewListener;
  * </pre>
  * <p>
  * <p>In addition to this documentation, you may wish to take a look at
- * <a href="https://github.com/mixpanel/sample-android-mixpanel-integration">the Mixpanel sample Android application</a>.
+ * <a href="https://github.com/sugo/sample-android-sugo-integration">the Sugo sample Android application</a>.
  * <p>
- * <p>There are also <a href="https://mixpanel.com/docs/">step-by-step getting started documents</a>
- * available at mixpanel.com
+ * <p>There are also <a href="https://sugo.com/docs/">step-by-step getting started documents</a>
+ * available at sugo.com
  *
  * @author Administrator
- * @see <a href="https://mixpanel.com/docs/integration-libraries/android">getting started documentation for tracking events</a>
- * @see <a href="https://mixpanel.com/docs/people-analytics/android">getting started documentation for People Analytics</a>
- * @see <a href="https://mixpanel.com/docs/people-analytics/android-push">getting started with push notifications for Android</a>
- * @see <a href="https://github.com/mixpanel/sample-android-mixpanel-integration">The Mixpanel Android sample application</a>
+ * @see <a href="https://sugo.com/docs/integration-libraries/android">getting started documentation for tracking events</a>
+ * @see <a href="https://sugo.com/docs/people-analytics/android">getting started documentation for People Analytics</a>
+ * @see <a href="https://sugo.com/docs/people-analytics/android-push">getting started with push notifications for Android</a>
+ * @see <a href="https://github.com/sugo/sample-android-sugo-integration">The Sugo Android sample application</a>
  */
 public class SugoAPI {
     /**
@@ -120,79 +110,35 @@ public class SugoAPI {
      */
     public static final String VERSION = SGConfig.VERSION;
 
+    private static final String LOGTAG = "SugoAPI.API";
+
     public static boolean developmentMode = false;
 
-    /**
-     * Declare a string-valued tweak, and return a reference you can use to read the value of the tweak.
-     * Tweaks can be changed in Mixpanel A/B tests, and can allow you to alter your customers' experience
-     * in your app without re-deploying your application through the app store.
-     */
-    public static Tweak<String> stringTweak(String tweakName, String defaultValue) {
-        return sSharedTweaks.stringTweak(tweakName, defaultValue);
-    }
+    private final Context mContext;
+    private final AnalyticsMessages mMessages;
+    private final SGConfig mConfig;
+    private final String mToken;
+    private final String mSessionId;
+    private final UpdatesFromSugo mUpdatesFromSugo;
+    private final PersistentIdentity mPersistentIdentity;
+    private final TrackingDebug mTrackingDebug;
+    private final Map<String, String> mDeviceInfo;
+    private final Map<String, Long> mEventTimings;
+    private SugoActivityLifecycleCallbacks mSugoActivityLifecycleCallbacks;
 
-    /**
-     * Declare a boolean-valued tweak, and return a reference you can use to read the value of the tweak.
-     * Tweaks can be changed in Mixpanel A/B tests, and can allow you to alter your customers' experience
-     * in your app without re-deploying your application through the app store.
-     */
-    public static Tweak<Boolean> booleanTweak(String tweakName, boolean defaultValue) {
-        return sSharedTweaks.booleanTweak(tweakName, defaultValue);
-    }
+    // Maps each token to a singleton SugoAPI instance
+    private static final Map<Context, SugoAPI> sInstanceMap = new HashMap<Context, SugoAPI>();
+    private static final SharedPreferencesLoader sPrefsLoader = new SharedPreferencesLoader();
 
-    /**
-     * Declare a double-valued tweak, and return a reference you can use to read the value of the tweak.
-     * Tweaks can be changed in Mixpanel A/B tests, and can allow you to alter your customers' experience
-     * in your app without re-deploying your application through the app store.
-     */
-    public static Tweak<Double> doubleTweak(String tweakName, double defaultValue) {
-        return sSharedTweaks.doubleTweak(tweakName, defaultValue);
-    }
+    private static final String APP_LINKS_LOGTAG = "SugoAPI.AL";
+    private static final String ENGAGE_DATE_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ss";
 
-    /**
-     * Declare a float-valued tweak, and return a reference you can use to read the value of the tweak.
-     * Tweaks can be changed in Mixpanel A/B tests, and can allow you to alter your customers' experience
-     * in your app without re-deploying your application through the app store.
-     */
-    public static Tweak<Float> floatTweak(String tweakName, float defaultValue) {
-        return sSharedTweaks.floatTweak(tweakName, defaultValue);
-    }
+    private static final String KEY_USER_ID_LOGIN_TIME = "SUGO_USER_ID_LOGIN_TIME";
+    private boolean mDisableDecideChecker;
 
-    /**
-     * Declare a long-valued tweak, and return a reference you can use to read the value of the tweak.
-     * Tweaks can be changed in Mixpanel A/B tests, and can allow you to alter your customers' experience
-     * in your app without re-deploying your application through the app store.
-     */
-    public static Tweak<Long> longTweak(String tweakName, long defaultValue) {
-        return sSharedTweaks.longTweak(tweakName, defaultValue);
-    }
-
-    /**
-     * Declare an int-valued tweak, and return a reference you can use to read the value of the tweak.
-     * Tweaks can be changed in Mixpanel A/B tests, and can allow you to alter your customers' experience
-     * in your app without re-deploying your application through the app store.
-     */
-    public static Tweak<Integer> intTweak(String tweakName, int defaultValue) {
-        return sSharedTweaks.intTweak(tweakName, defaultValue);
-    }
-
-    /**
-     * Declare short-valued tweak, and return a reference you can use to read the value of the tweak.
-     * Tweaks can be changed in Mixpanel A/B tests, and can allow you to alter your customers' experience
-     * in your app without re-deploying your application through the app store.
-     */
-    public static Tweak<Short> shortTweak(String tweakName, short defaultValue) {
-        return sSharedTweaks.shortTweak(tweakName, defaultValue);
-    }
-
-    /**
-     * Declare byte-valued tweak, and return a reference you can use to read the value of the tweak.
-     * Tweaks can be changed in Mixpanel A/B tests, and can allow you to alter your customers' experience
-     * in your app without re-deploying your application through the app store.
-     */
-    public static Tweak<Byte> byteTweak(String tweakName, byte defaultValue) {
-        return sSharedTweaks.byteTweak(tweakName, defaultValue);
-    }
+    // SugoAPI 实例化之前设置 superProperties 的临时变量
+    private static JSONObject sPreSuperProps = new JSONObject();
+    private static JSONObject sPreSuperPropsOnce = new JSONObject();
 
     /**
      * You shouldn't instantiate SugoAPI objects directly.
@@ -238,20 +184,15 @@ public class SugoAPI {
         registerSuperProperties(sPreSuperProps);
         registerSuperPropertiesOnce(sPreSuperPropsOnce);
         mEventTimings = mPersistentIdentity.getTimeEvents();
-        mUpdatesListener = constructUpdatesListener();
-        mDecideMessages = constructDecideUpdates(mToken, mUpdatesListener, mUpdatesFromSugo);
 
         // TODO reading persistent identify immediately forces the lazy load of the preferences, and defeats the
         // purpose of PersistentIdentity's laziness.
-        String decideId = mPersistentIdentity.getPeopleDistinctId();
-        if (null == decideId) {
-            decideId = mPersistentIdentity.getEventsDistinctId();
-        }
-        mDecideMessages.setDistinctId(decideId);
-        mMessages = getAnalyticsMessages();
+        String distinctId = mPersistentIdentity.getEventsDistinctId();
+        mConfig.setDistinctId(distinctId);
+        mMessages = getAnalyticsMessages(mUpdatesFromSugo);
 
         if (!mConfig.getDisableDecideChecker()) {
-            mMessages.installDecideCheck(mDecideMessages);
+            mMessages.startApiCheck();
         }
 
         if (!mPersistentIdentity.hasTrackedIntegration()) {
@@ -270,11 +211,11 @@ public class SugoAPI {
     }
 
     /**
-     * Get the instance of SugoAPI associated with your Mixpanel project token.
+     * Get the instance of SugoAPI associated with your Sugo project token.
      * <p>
      * <p>Use getInstance to get a reference to a shared
      * instance of SugoAPI you can use to send events
-     * and People Analytics updates to Mixpanel.</p>
+     * and People Analytics updates to Sugo.</p>
      * <p>getInstance is thread safe, but the returned instance is not,
      * and may be shared with other callers of getInstance.
      * The best practice is to call getInstance, and use the returned SugoAPI,
@@ -303,11 +244,8 @@ public class SugoAPI {
             SugoAPI instance = sInstanceMap.get(appContext);
             if (null == instance && ConfigurationChecker.checkBasicConfiguration(appContext)) {
                 instance = new SugoAPI(context);
-                registerAppLinksListeners(context, instance);
                 sInstanceMap.put(appContext, instance);
             }
-
-            checkIntentForInboundAppLink(context);
 
             return instance;
         }
@@ -337,38 +275,6 @@ public class SugoAPI {
         Log.i("Sugo", "SugoSDK 初始化成功！");
     }
 
-    /**
-     * This call is a no-op, and will be removed in future versions.
-     *
-     * @deprecated in 4.0.0, use io.sugo.android.SGConfig.FlushInterval application metadata instead
-     */
-    @Deprecated
-    public static void setFlushInterval(Context context, long milliseconds) {
-        Log.i(
-                LOGTAG,
-                "SugoAPI.setFlushInterval is deprecated. Calling is now a no-op.\n" +
-                        "    To set a custom Mixpanel flush interval for your application, add\n" +
-                        "    <meta-data android:name=\"io.sugo.android.SGConfig.FlushInterval\" android:value=\"YOUR_INTERVAL\" />\n" +
-                        "    to the <application> section of your AndroidManifest.xml."
-        );
-    }
-
-    /**
-     * This call is a no-op, and will be removed in future versions of the library.
-     *
-     * @deprecated in 4.0.0, use io.sugo.android.SGConfig.EventsFallbackEndpoint, io.sugo.android.SGConfig.PeopleFallbackEndpoint, or io.sugo.android.SGConfig.DecideFallbackEndpoint instead
-     */
-    @Deprecated
-    public static void enableFallbackServer(Context context, boolean enableIfTrue) {
-        Log.i(
-                LOGTAG,
-                "SugoAPI.enableFallbackServer is deprecated. This call is a no-op.\n" +
-                        "    To enable fallback in your application, add\n" +
-                        "    <meta-data android:name=\"io.sugo.android.SGConfig.DisableFallback\" android:value=\"false\" />\n" +
-                        "    to the <application> section of your AndroidManifest.xml."
-        );
-    }
-
     private String generateSessionId() {
         return UUID.randomUUID().toString().toUpperCase();
     }
@@ -378,43 +284,13 @@ public class SugoAPI {
     }
 
     /**
-     * This function creates a distinct_id alias from alias to original. If original is null, then it will create an alias
-     * to the current events distinct_id, which may be the distinct_id randomly generated by the Mixpanel library
-     * before {@link #identify(String)} is called.
-     * <p>
-     * <p>This call does not identify the user after. You must still call both {@link #identify(String)} and
-     *
-     * @param alias    the new distinct_id that should represent original.
-     * @param original the old distinct_id that alias will be mapped to.
-     */
-    private void alias(String alias, String original) {
-        if (original == null) {
-            original = getDistinctId();
-        }
-        if (alias.equals(original)) {
-            Log.w(LOGTAG, "Attempted to alias identical distinct_ids " + alias + ". Alias message will not be sent.");
-            return;
-        }
-
-        try {
-            final JSONObject j = new JSONObject();
-            j.put("alias", alias);
-            j.put("original", original);
-            track(null, "$create_alias", j);
-        } catch (final JSONException e) {
-            Log.e(LOGTAG, "Failed to alias", e);
-        }
-        flush();
-    }
-
-    /**
      * Associate all future calls to {@link #track(String, JSONObject)} with the user identified by
      * the given distinct id.
      * <p>
      * <p>
      * <p>Calls to {@link #track(String, JSONObject)} made before corresponding calls to
      * identify will use an internally generated distinct id, which means it is best
-     * to call identify early to ensure that your Mixpanel funnels and retention
+     * to call identify early to ensure that your Sugo funnels and retention
      * analytics can continue to track the user throughout their lifetime. We recommend
      * calling identify as early as you can.
      * <p>
@@ -422,18 +298,15 @@ public class SugoAPI {
      * application.
      *
      * @param distinctId a string uniquely identifying this user. Events sent to
-     *                   Mixpanel using the same disinct_id will be considered associated with the
+     *                   Sugo using the same disinct_id will be considered associated with the
      *                   same visitor/customer for retention and funnel reporting, so be sure that the given
      *                   value is globally unique for each individual user you intend to track.
      */
     public void identify(String distinctId) {
         synchronized (mPersistentIdentity) {
             mPersistentIdentity.setEventsDistinctId(distinctId);
-            String decideId = mPersistentIdentity.getPeopleDistinctId();
-            if (null == decideId) {
-                decideId = mPersistentIdentity.getEventsDistinctId();
-            }
-            mDecideMessages.setDistinctId(decideId);
+            distinctId = mPersistentIdentity.getEventsDistinctId();
+            mConfig.setDistinctId(distinctId);
         }
     }
 
@@ -464,8 +337,8 @@ public class SugoAPI {
     /**
      * Track an event.
      * <p>
-     * <p>Every call to track eventually results in a data point sent to Mixpanel. These data points
-     * are what are measured, counted, and broken down to create your Mixpanel reports. Events
+     * <p>Every call to track eventually results in a data point sent to Sugo. These data points
+     * are what are measured, counted, and broken down to create your Sugo reports. Events
      * have a string name, and an optional set of name/value pairs that describe the properties of
      * that event.
      *
@@ -494,8 +367,8 @@ public class SugoAPI {
     /**
      * Track an event.
      * <p>
-     * <p>Every call to track eventually results in a data point sent to Mixpanel. These data points
-     * are what are measured, counted, and broken down to create your Mixpanel reports. Events
+     * <p>Every call to track eventually results in a data point sent to Sugo. These data points
+     * are what are measured, counted, and broken down to create your Sugo reports. Events
      * have a string name, and an optional set of name/value pairs that describe the properties of
      * that event.
      *
@@ -633,7 +506,7 @@ public class SugoAPI {
 
     /**
      * Equivalent to {@link #track(String, JSONObject)} with a null argument for properties.
-     * Consider adding properties to your tracking to get the best insights and experience from Mixpanel.
+     * Consider adding properties to your tracking to get the best insights and experience from Sugo.
      *
      * @param eventName the name of the event to send
      */
@@ -642,12 +515,12 @@ public class SugoAPI {
     }
 
     /**
-     * Push all queued Mixpanel events and People Analytics changes to Mixpanel servers.
+     * Push all queued Sugo events and People Analytics changes to Sugo servers.
      * <p>
      * <p>Events and People messages are pushed gradually throughout
      * the lifetime of your application. This means that to ensure that all messages
-     * are sent to Mixpanel when your application is shut down, you will
-     * need to call flush() to let the Mixpanel library know it should
+     * are sent to Sugo when your application is shut down, you will
+     * need to call flush() to let the Sugo library know it should
      * send all remaining messages to the server. We strongly recommend
      * placing a call to flush() in the onDestroy() method of
      * your main application activity.
@@ -659,7 +532,7 @@ public class SugoAPI {
     /**
      * Returns a json object of the user's current super properties
      * <p>
-     * <p>SuperProperties are a collection of properties that will be sent with every event to Mixpanel,
+     * <p>SuperProperties are a collection of properties that will be sent with every event to Sugo,
      * and persist beyond the lifetime of your application.
      */
     public JSONObject getSuperProperties() {
@@ -683,7 +556,7 @@ public class SugoAPI {
     /**
      * Register properties that will be sent with every subsequent call to {@link #track(String, JSONObject)}.
      * <p>
-     * <p>SuperProperties are a collection of properties that will be sent with every event to Mixpanel,
+     * <p>SuperProperties are a collection of properties that will be sent with every event to Sugo,
      * and persist beyond the lifetime of your application.
      * <p>
      * <p>Setting a superProperty with registerSuperProperties will store a new superProperty,
@@ -713,7 +586,7 @@ public class SugoAPI {
     /**
      * Register properties that will be sent with every subsequent call to {@link #track(String, JSONObject)}.
      * <p>
-     * <p>SuperProperties are a collection of properties that will be sent with every event to Mixpanel,
+     * <p>SuperProperties are a collection of properties that will be sent with every event to Sugo,
      * and persist beyond the lifetime of your application.
      * <p>
      * <p>Setting a superProperty with registerSuperProperties will store a new superProperty,
@@ -821,7 +694,7 @@ public class SugoAPI {
     /**
      * Erase all currently registered superProperties.
      * <p>
-     * <p>Future tracking calls to Mixpanel will not contain the specific
+     * <p>Future tracking calls to Sugo will not contain the specific
      * superProperties registered before the clearSuperProperties method was called.
      * <p>
      * <p>To remove a single superProperty, use {@link #unregisterSuperProperty(String)}
@@ -861,36 +734,12 @@ public class SugoAPI {
 
     /**
      * Returns an unmodifiable map that contains the device description properties
-     * that will be sent to Mixpanel. These are not all of the default properties,
+     * that will be sent to Sugo. These are not all of the default properties,
      * but are a subset that are dependant on the user's device or installed version
      * of the host application, and are guaranteed not to change while the app is running.
      */
     public Map<String, String> getDeviceInfo() {
         return mDeviceInfo;
-    }
-
-
-    /**
-     * This method is a no-op, kept for compatibility purposes.
-     * <p>
-     * To enable verbose logging about communication with Mixpanel, add
-     * {@code
-     * <meta-data android:name="io.sugo.android.SGConfig.EnableDebugLogging" />
-     * }
-     * <p>
-     * To the {@code <application>} tag of your AndroidManifest.xml file.
-     *
-     * @deprecated in 4.1.0, use Manifest meta-data instead
-     */
-    @Deprecated
-    public void logPosts() {
-        Log.i(
-                LOGTAG,
-                "SugoAPI.logPosts() is deprecated.\n" +
-                        "    To get verbose debug level logging, add\n" +
-                        "    <meta-data android:name=\"io.sugo.android.SGConfig.EnableDebugLogging\" value=\"true\" />\n" +
-                        "    to the <application> section of your AndroidManifest.xml."
-        );
     }
 
     /**
@@ -899,36 +748,20 @@ public class SugoAPI {
      * when any Activity is opened.
      * <p>
      * This is only available if the android version is >= 16. You can disable livecycle callbacks by setting
-     * io.sugo.android.SGConfig.AutoShowMixpanelUpdates to false in your AndroidManifest.xml
+     * io.sugo.android.SGConfig.AutoShowSugoUpdates to false in your AndroidManifest.xml
      * <p>
      * This function is automatically called when the library is initialized unless you explicitly
-     * set io.sugo.android.SGConfig.AutoShowMixpanelUpdates to false in your AndroidManifest.xml
+     * set io.sugo.android.SGConfig.AutoShowSugoUpdates to false in your AndroidManifest.xml
      */
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-    /* package */ void registerSugoActivityLifecycleCallbacks() {
+    private void registerSugoActivityLifecycleCallbacks() {
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
             if (mContext.getApplicationContext() instanceof Application) {
                 final Application app = (Application) mContext.getApplicationContext();
                 mSugoActivityLifecycleCallbacks = new SugoActivityLifecycleCallbacks(this, mConfig);
                 app.registerActivityLifecycleCallbacks(mSugoActivityLifecycleCallbacks);
             } else {
-                Log.i(LOGTAG, "Context is not an Application, Mixpanel will not automatically show surveys, in-app notifications, or A/B test experiments. We won't be able to automatically flush on an app background.");
-            }
-        }
-    }
-
-    // Package-level access. Used (at least) by GCMReceiver
-    // when OS-level events occur.
-    /* package */ interface InstanceProcessor {
-        public void process(SugoAPI m);
-    }
-
-    /* package */
-    static void allInstances(InstanceProcessor processor) {
-        synchronized (sInstanceMap) {
-            for (final SugoAPI instance : sInstanceMap.values()) {
-                processor.process(instance);
-
+                Log.i(LOGTAG, "Context is not an Application, We won't be able to automatically flush on an app background.");
             }
         }
     }
@@ -937,60 +770,39 @@ public class SugoAPI {
     // Conveniences for testing. These methods should not be called by
     // non-test client code.
 
-    /* package */ AnalyticsMessages getAnalyticsMessages() {
-        return AnalyticsMessages.getInstance(mContext);
+    private AnalyticsMessages getAnalyticsMessages(UpdatesFromSugo updatesFromSugo) {
+        return AnalyticsMessages.getInstance(mContext, updatesFromSugo);
     }
 
-    /* package */ PersistentIdentity getPersistentIdentity(final Context context, final String token) {
-        final SharedPreferencesLoader.OnPrefsLoadedListener listener = new SharedPreferencesLoader.OnPrefsLoadedListener() {
-            @Override
-            public void onPrefsLoaded(SharedPreferences preferences) {
-                final JSONArray records = PersistentIdentity.waitingPeopleRecordsForSending(preferences);
-                if (null != records) {
-                    sendAllPeopleRecords(records);
-                }
-            }
-        };
+    private PersistentIdentity getPersistentIdentity(final Context context, final String token) {
 
         final Future<SharedPreferences> referrerPrefs = sPrefsLoader.loadPreferences(context, SGConfig.REFERRER_PREFS_NAME, null);
 
-        final String prefsName = "io.sugo.android.mpmetrics.MixpanelAPI_" + token;
-        final Future<SharedPreferences> storedPreferences = sPrefsLoader.loadPreferences(context, prefsName, listener);
+        final String prefsName = "io.sugo.android.mpmetrics.SugoAPI_" + token;
+        final Future<SharedPreferences> storedPreferences = sPrefsLoader.loadPreferences(context, prefsName, null);
 
         final String timeEventsPrefsName = "SugoAPI.TimeEvents_" + token;
         final Future<SharedPreferences> timeEventsPrefs = sPrefsLoader.loadPreferences(context, timeEventsPrefsName, null);
 
         final String sugoPrefsName = "io.sugo.android.mpmetrics.SugoAPI_" + token;
         final Future<SharedPreferences> sugoPrefs = sPrefsLoader.loadPreferences(context, sugoPrefsName, null);
+
         return new PersistentIdentity(referrerPrefs, storedPreferences, timeEventsPrefs, sugoPrefs);
     }
 
-    /* package */ DecideMessages constructDecideUpdates(final String token, final DecideMessages.OnNewResultsListener listener, UpdatesFromSugo updatesFromSugo) {
-        return new DecideMessages(token, listener, updatesFromSugo);
-    }
-
-    /* package */ UpdatesListener constructUpdatesListener() {
+    private UpdatesFromSugo constructUpdatesFromSugo(final Context context, final String token) {
         if (Build.VERSION.SDK_INT < SGConfig.UI_FEATURES_MIN_API) {
-            Log.i(LOGTAG, "Surveys and Notifications are not supported on this Android OS Version");
-            return new UnsupportedUpdatesListener();
-        } else {
-            return new SupportedUpdatesListener();
-        }
-    }
-
-    /* package */ UpdatesFromSugo constructUpdatesFromSugo(final Context context, final String token) {
-        if (Build.VERSION.SDK_INT < SGConfig.UI_FEATURES_MIN_API) {
-            Log.i(LOGTAG, "SDK version is lower than " + SGConfig.UI_FEATURES_MIN_API + ". Web Configuration, A/B Testing, and Dynamic Tweaks are disabled.");
-            return new NoOpUpdatesFromSugo(sSharedTweaks);
+            Log.i(LOGTAG, "SDK version is lower than " + SGConfig.UI_FEATURES_MIN_API + ". Web Configuration are disabled.");
+            return new NoOpUpdatesFromSugo();
         } else if (mConfig.getDisableViewCrawler() || Arrays.asList(mConfig.getDisableViewCrawlerForProjects()).contains(token)) {
-            Log.i(LOGTAG, "DisableViewCrawler is set to true. Web Configuration, A/B Testing, and Dynamic Tweaks are disabled.");
-            return new NoOpUpdatesFromSugo(sSharedTweaks);
+            Log.i(LOGTAG, "DisableViewCrawler is set to true. Web Configuration are disabled.");
+            return new NoOpUpdatesFromSugo();
         } else {
-            return new ViewCrawler(context, mToken, this, sSharedTweaks);
+            return new ViewCrawler(context, mToken, this);
         }
     }
 
-    /* package */ TrackingDebug constructTrackingDebug() {
+    private TrackingDebug constructTrackingDebug() {
         if (mUpdatesFromSugo instanceof ViewCrawler) {
             return (TrackingDebug) mUpdatesFromSugo;
         }
@@ -998,72 +810,8 @@ public class SugoAPI {
         return null;
     }
 
-    /* package */ boolean sendAppOpen() {
-        return !mConfig.getDisableAppOpenEvent();
-    }
-
-    ///////////////////////
-
-
-    private interface UpdatesListener extends DecideMessages.OnNewResultsListener {
-        public void addOnMixpanelUpdatesReceivedListener(OnMixpanelUpdatesReceivedListener listener);
-
-        public void removeOnMixpanelUpdatesReceivedListener(OnMixpanelUpdatesReceivedListener listener);
-    }
-
-    private class UnsupportedUpdatesListener implements UpdatesListener {
-        @Override
-        public void onNewResults() {
-            // Do nothing, these features aren't supported in older versions of the library
-        }
-
-        @Override
-        public void addOnMixpanelUpdatesReceivedListener(OnMixpanelUpdatesReceivedListener listener) {
-            // Do nothing, not supported
-        }
-
-        @Override
-        public void removeOnMixpanelUpdatesReceivedListener(OnMixpanelUpdatesReceivedListener listener) {
-            // Do nothing, not supported
-        }
-    }
-
-    private class SupportedUpdatesListener implements UpdatesListener, Runnable {
-        @Override
-        public void onNewResults() {
-            mExecutor.execute(this);
-        }
-
-        @Override
-        public synchronized void addOnMixpanelUpdatesReceivedListener(OnMixpanelUpdatesReceivedListener listener) {
-            if (mDecideMessages.hasUpdatesAvailable()) {
-                onNewResults();
-            }
-
-            mListeners.add(listener);
-        }
-
-        @Override
-        public synchronized void removeOnMixpanelUpdatesReceivedListener(OnMixpanelUpdatesReceivedListener listener) {
-            mListeners.remove(listener);
-        }
-
-        @Override
-        public synchronized void run() {
-            // It's possible that by the time this has run the updates we detected are no longer
-            // present, which is ok.
-            for (final OnMixpanelUpdatesReceivedListener listener : mListeners) {
-                listener.onMixpanelUpdatesReceived();
-            }
-        }
-
-        private final Set<OnMixpanelUpdatesReceivedListener> mListeners = new HashSet<OnMixpanelUpdatesReceivedListener>();
-        private final Executor mExecutor = Executors.newSingleThreadExecutor();
-    }
-
-    /* package */ class NoOpUpdatesFromSugo implements UpdatesFromSugo {
-        public NoOpUpdatesFromSugo(Tweaks tweaks) {
-            mTweaks = tweaks;
+    class NoOpUpdatesFromSugo implements UpdatesFromSugo {
+        public NoOpUpdatesFromSugo() {
         }
 
         @Override
@@ -1097,25 +845,6 @@ public class SugoAPI {
         }
 
         @Override
-        public void setVariants(JSONArray variants) {
-            // No op
-        }
-
-        @Override
-        public Tweaks getTweaks() {
-            return mTweaks;
-        }
-
-        @Override
-        public void addOnMixpanelTweaksUpdatedListener(OnMixpanelTweaksUpdatedListener listener) {
-            // No op
-        }
-
-        @Override
-        public void removeOnMixpanelTweaksUpdatedListener(OnMixpanelTweaksUpdatedListener listener) {
-            // No op
-        }
-
         public void setXWalkViewListener(XWalkViewListener XWalkViewListener) {
 
         }
@@ -1123,97 +852,6 @@ public class SugoAPI {
         @Override
         public boolean sendConnectEditor(Uri data) {
             return false;
-        }
-
-        private final Tweaks mTweaks;
-    }
-
-    ////////////////////////////////////////////////////
-
-    private void recordPeopleMessage(JSONObject message) {
-        if (message.has("$distinct_id")) {
-            mMessages.peopleMessage(message);
-        } else {
-            mPersistentIdentity.storeWaitingPeopleRecord(message);
-        }
-    }
-
-    private void pushWaitingPeopleRecord() {
-        final JSONArray records = mPersistentIdentity.waitingPeopleRecordsForSending();
-        if (null != records) {
-            sendAllPeopleRecords(records);
-        }
-    }
-
-    // MUST BE THREAD SAFE. Called from crazy places. mPersistentIdentity may not exist
-    // when this is called (from its crazy thread)
-    private void sendAllPeopleRecords(JSONArray records) {
-        for (int i = 0; i < records.length(); i++) {
-            try {
-                final JSONObject message = records.getJSONObject(i);
-                mMessages.peopleMessage(message);
-            } catch (final JSONException e) {
-                Log.e(LOGTAG, "Malformed people record stored pending identity, will not send it.", e);
-            }
-        }
-    }
-
-    private static void registerAppLinksListeners(Context context, final SugoAPI sugoAPI) {
-        // Register a BroadcastReceiver to receive com.parse.bolts.measurement_event and track a call to mixpanel
-        try {
-            final Class<?> clazz = Class.forName("android.support.v4.content.LocalBroadcastManager");
-            final Method methodGetInstance = clazz.getMethod("getInstance", Context.class);
-            final Method methodRegisterReceiver = clazz.getMethod("registerReceiver", BroadcastReceiver.class, IntentFilter.class);
-            final Object localBroadcastManager = methodGetInstance.invoke(null, context);
-            methodRegisterReceiver.invoke(localBroadcastManager, new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    final JSONObject properties = new JSONObject();
-                    final Bundle args = intent.getBundleExtra("event_args");
-                    if (args != null) {
-                        for (final String key : args.keySet()) {
-                            try {
-                                properties.put(key, args.get(key));
-                            } catch (final JSONException e) {
-                                Log.e(APP_LINKS_LOGTAG, "failed to add key \"" + key + "\" to properties for tracking bolts event", e);
-                            }
-                        }
-                    }
-                    sugoAPI.track(null, "$" + intent.getStringExtra("event_name"), properties);
-                }
-            }, new IntentFilter("com.parse.bolts.measurement_event"));
-        } catch (final InvocationTargetException e) {
-            Log.d(APP_LINKS_LOGTAG, "Failed to invoke LocalBroadcastManager.registerReceiver() -- App Links tracking will not be enabled due to this exception", e);
-        } catch (final ClassNotFoundException e) {
-            Log.d(APP_LINKS_LOGTAG, "To enable App Links tracking android.support.v4 must be installed: " + e.getMessage());
-        } catch (final NoSuchMethodException e) {
-            Log.d(APP_LINKS_LOGTAG, "To enable App Links tracking android.support.v4 must be installed: " + e.getMessage());
-        } catch (final IllegalAccessException e) {
-            Log.d(APP_LINKS_LOGTAG, "App Links tracking will not be enabled due to this exception: " + e.getMessage());
-        }
-    }
-
-    private static void checkIntentForInboundAppLink(Context context) {
-        // call the Bolts getTargetUrlFromInboundIntent method simply for a side effect
-        // if the intent is the result of an App Link, it'll trigger al_nav_in
-        // https://github.com/BoltsFramework/Bolts-Android/blob/1.1.2/Bolts/src/bolts/AppLinks.java#L86
-        if (context instanceof Activity) {
-            try {
-                final Class<?> clazz = Class.forName("bolts.AppLinks");
-                final Intent intent = ((Activity) context).getIntent();
-                final Method getTargetUrlFromInboundIntent = clazz.getMethod("getTargetUrlFromInboundIntent", Context.class, Intent.class);
-                getTargetUrlFromInboundIntent.invoke(null, context, intent);
-            } catch (final InvocationTargetException e) {
-                Log.d(APP_LINKS_LOGTAG, "Failed to invoke bolts.AppLinks.getTargetUrlFromInboundIntent() -- Unable to detect inbound App Links", e);
-            } catch (final ClassNotFoundException e) {
-                Log.d(APP_LINKS_LOGTAG, "Please install the Bolts library >= 1.1.2 to track App Links: " + e.getMessage());
-            } catch (final NoSuchMethodException e) {
-                Log.d(APP_LINKS_LOGTAG, "Please install the Bolts library >= 1.1.2 to track App Links: " + e.getMessage());
-            } catch (final IllegalAccessException e) {
-                Log.d(APP_LINKS_LOGTAG, "Unable to detect inbound App Links: " + e.getMessage());
-            }
-        } else {
-            Log.d(APP_LINKS_LOGTAG, "Context is not an instance of Activity. To detect inbound App Links, pass an instance of an Activity to getInstance.");
         }
     }
 
@@ -1398,35 +1036,5 @@ public class SugoAPI {
     private boolean isMainThread() {
         return Looper.getMainLooper() == Looper.myLooper();
     }
-
-    private final Context mContext;
-    private final AnalyticsMessages mMessages;
-    private final SGConfig mConfig;
-    private final String mToken;
-    private final String mSessionId;
-    private final UpdatesFromSugo mUpdatesFromSugo;
-    private final PersistentIdentity mPersistentIdentity;
-    private final UpdatesListener mUpdatesListener;
-    private final TrackingDebug mTrackingDebug;
-    private final DecideMessages mDecideMessages;
-    private final Map<String, String> mDeviceInfo;
-    private final Map<String, Long> mEventTimings;
-    private SugoActivityLifecycleCallbacks mSugoActivityLifecycleCallbacks;
-
-    // Maps each token to a singleton SugoAPI instance
-    private static final Map<Context, SugoAPI> sInstanceMap = new HashMap<Context, SugoAPI>();
-    private static final SharedPreferencesLoader sPrefsLoader = new SharedPreferencesLoader();
-    private static final Tweaks sSharedTweaks = new Tweaks();
-
-    private static final String LOGTAG = "SugoAPI.API";
-    private static final String APP_LINKS_LOGTAG = "SugoAPI.AL";
-    private static final String ENGAGE_DATE_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ss";
-
-    private static final String KEY_USER_ID_LOGIN_TIME = "SUGO_USER_ID_LOGIN_TIME";
-    private boolean mDisableDecideChecker;
-
-    // SugoAPI 实例化之前设置 superProperties 的临时变量
-    private static JSONObject sPreSuperProps = new JSONObject();
-    private static JSONObject sPreSuperPropsOnce = new JSONObject();
 
 }

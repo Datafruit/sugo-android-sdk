@@ -41,7 +41,7 @@ import java.util.HashSet;
 
     @Override
     public void onActivityStarted(Activity activity) {
-        if (android.os.Build.VERSION.SDK_INT >= SGConfig.UI_FEATURES_MIN_API && mConfig.getAutoShowMixpanelUpdates()) {
+        if (android.os.Build.VERSION.SDK_INT >= SGConfig.UI_FEATURES_MIN_API && mConfig.getAutoShowSugoUpdates()) {
             if (!activity.isTaskRoot()) {
                 return; // No checks, no nothing.
             }

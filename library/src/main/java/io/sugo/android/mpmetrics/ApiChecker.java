@@ -1,15 +1,10 @@
 package io.sugo.android.mpmetrics;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.Point;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.util.Log;
-import android.view.Display;
-import android.view.WindowManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -20,73 +15,73 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 
 import javax.net.ssl.SSLSocketFactory;
 
-import io.sugo.android.util.ImageStore;
 import io.sugo.android.util.RemoteService;
+import io.sugo.android.viewcrawler.UpdatesFromSugo;
 import io.sugo.android.viewcrawler.ViewCrawler;
 
-/* package */ class DecideChecker {
+class ApiChecker {
 
-    /* package */ static class Result {
+    private static final String LOGTAG = "SugoAPI.DChecker";
+
+    private final SGConfig mConfig;
+    private final Context mContext;
+    private final SystemInformation mSystemInformation;
+    private final UpdatesFromSugo mUpdatesFromSugo;
+
+    private static final JSONArray EMPTY_JSON_ARRAY = new JSONArray();
+
+
+    static class Result {
         public Result() {
-            surveys = new ArrayList<Survey>();
-            notifications = new ArrayList<InAppNotification>();
             eventBindings = EMPTY_JSON_ARRAY;
             h5EventBindings = EMPTY_JSON_ARRAY;
-            variants = EMPTY_JSON_ARRAY;
             pageInfo = EMPTY_JSON_ARRAY;
             dimensions = EMPTY_JSON_ARRAY;
         }
 
-        public final List<Survey> surveys;
-        public final List<InAppNotification> notifications;
         public JSONArray eventBindings;
         public JSONArray h5EventBindings;
-        public JSONArray variants;
         public JSONArray pageInfo;
         public JSONArray dimensions;
     }
 
-    public DecideChecker(final Context context, final SGConfig config, final SystemInformation systemInformation) {
+    public ApiChecker(final Context context, final SGConfig config,
+                      final SystemInformation systemInformation, final UpdatesFromSugo updatesFromSugo) {
         mContext = context;
         mConfig = config;
-        mChecks = new LinkedList<DecideMessages>();
-        mImageStore = createImageStore(context);
         mSystemInformation = systemInformation;
-    }
-
-    protected ImageStore createImageStore(final Context context) {
-        return new ImageStore(context, "DecideChecker");
-    }
-
-    public void addDecideCheck(final DecideMessages check) {
-        mChecks.add(check);
+        mUpdatesFromSugo = updatesFromSugo;
     }
 
     public void runDecideChecks(final RemoteService poster) throws RemoteService.ServiceUnavailableException {
-        final Iterator<DecideMessages> itr = mChecks.iterator();
-        while (itr.hasNext()) {
-            final DecideMessages updates = itr.next();
-            final String distinctId = updates.getDistinctId();
+            final String token = mConfig.getToken();
+            final String distinctId = mConfig.getDistinctId();
             try {
-                final Result result = runDecideCheck(updates.getToken(), distinctId, poster);
+                final Result result = runApiRequest(token, distinctId, poster);
                 if (result != null) {
-                    updates.reportResults(result.surveys, result.notifications, result.eventBindings,
-                            result.h5EventBindings, result.variants, result.pageInfo, result.dimensions);
+                    reportResults(result.eventBindings, result.h5EventBindings,
+                            result.pageInfo, result.dimensions);
                 }
             } catch (final UnintelligibleMessageException e) {
                 Log.e(LOGTAG, e.getMessage(), e);
             }
-        }
     }
 
-    /* package */ static class UnintelligibleMessageException extends Exception {
+    public synchronized void reportResults(JSONArray eventBindings,
+                                           JSONArray h5EventBindings,
+                                           JSONArray pageInfos,
+                                           JSONArray dimensions) {
+        mUpdatesFromSugo.setEventBindings(eventBindings);
+        mUpdatesFromSugo.setH5EventBindings(h5EventBindings);
+        mUpdatesFromSugo.setPageInfos(pageInfos);
+        mUpdatesFromSugo.setDimensions(dimensions);
+
+    }
+    
+    static class UnintelligibleMessageException extends Exception {
         private static final long serialVersionUID = -6501269367559104957L;
 
         public UnintelligibleMessageException(String message, JSONException cause) {
@@ -94,9 +89,9 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         }
     }
 
-    private Result runDecideCheck(final String token, final String distinctId, final RemoteService poster)
+    private Result runApiRequest(final String token, final String distinctId, final RemoteService poster)
             throws RemoteService.ServiceUnavailableException, UnintelligibleMessageException {
-        final String responseString = getDecideResponseFromServer(token, distinctId, poster);
+        final String responseString = getApiResponseFromServer(token, distinctId, poster);
         if (SGConfig.DEBUG) {
             Log.v(LOGTAG, "Sugo decide server response was:\n" + responseString);
         }
@@ -125,30 +120,16 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                 throw new UnintelligibleMessageException(message, e);
             }
 
-            parsed = parseDecideResponse(responseString);
+            parsed = parseApiResponse(responseString);
         } else {
             // 没有返回配置，不覆盖旧配置
             return null;
         }
 
-        final Iterator<InAppNotification> notificationIterator = parsed.notifications.iterator();
-        while (notificationIterator.hasNext()) {
-            final InAppNotification notification = notificationIterator.next();
-            final Bitmap image = getNotificationImage(notification, mContext, poster);
-            if (null == image) {
-                Log.i(LOGTAG, "Could not retrieve image for notification " + notification.getId() +
-                        ", will not show the notification.");
-                notificationIterator.remove();
-            } else {
-                notification.setImage(image);
-            }
-        }
-
         return parsed;
-    }// runDecideCheck
+    }// runApiRequest
 
-    /* package */
-    static Result parseDecideResponse(String responseString)
+    static Result parseApiResponse(String responseString)
             throws UnintelligibleMessageException {
         JSONObject response;
         final Result ret = new Result();
@@ -158,55 +139,6 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         } catch (final JSONException e) {
             final String message = "Sugo endpoint returned unparsable result:\n" + responseString;
             throw new UnintelligibleMessageException(message, e);
-        }
-
-        JSONArray surveys = null;
-        if (response.has("surveys")) {
-            try {
-                surveys = response.getJSONArray("surveys");
-            } catch (final JSONException e) {
-                Log.e(LOGTAG, "Sugo endpoint returned non-array JSON for surveys: " + response);
-            }
-        }
-
-        if (null != surveys) {
-            for (int i = 0; i < surveys.length(); i++) {
-                try {
-                    final JSONObject surveyJson = surveys.getJSONObject(i);
-                    final Survey survey = new Survey(surveyJson);
-                    ret.surveys.add(survey);
-                } catch (final JSONException e) {
-                    Log.e(LOGTAG, "Received a strange response from surveys service: " + surveys.toString());
-                } catch (final BadDecideObjectException e) {
-                    Log.e(LOGTAG, "Received a strange response from surveys service: " + surveys.toString());
-                }
-            }
-        }
-
-        JSONArray notifications = null;
-        if (response.has("notifications")) {
-            try {
-                notifications = response.getJSONArray("notifications");
-            } catch (final JSONException e) {
-                Log.e(LOGTAG, "Sugo endpoint returned non-array JSON for notifications: " + response);
-            }
-        }
-
-        if (null != notifications) {
-            final int notificationsToRead = Math.min(notifications.length(), SGConfig.MAX_NOTIFICATION_CACHE_COUNT);
-            for (int i = 0; i < notificationsToRead; i++) {
-                try {
-                    final JSONObject notificationJson = notifications.getJSONObject(i);
-                    final InAppNotification notification = new InAppNotification(notificationJson);
-                    ret.notifications.add(notification);
-                } catch (final JSONException e) {
-                    Log.e(LOGTAG, "Received a strange response from notifications service: " + notifications.toString(), e);
-                } catch (final BadDecideObjectException e) {
-                    Log.e(LOGTAG, "Received a strange response from notifications service: " + notifications.toString(), e);
-                } catch (final OutOfMemoryError e) {
-                    Log.e(LOGTAG, "Not enough memory to show load notification from package: " + notifications.toString(), e);
-                }
-            }
         }
 
         if (response.has("event_bindings")) {
@@ -222,14 +154,6 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                 ret.h5EventBindings = response.getJSONArray("h5_event_bindings");
             } catch (final JSONException e) {
                 Log.e(LOGTAG, "Sugo endpoint returned non-array JSON for event bindings: " + response);
-            }
-        }
-
-        if (response.has("variants")) {
-            try {
-                ret.variants = response.getJSONArray("variants");
-            } catch (final JSONException e) {
-                Log.e(LOGTAG, "Sugo endpoint returned non-array JSON for variants: " + response);
             }
         }
 
@@ -252,7 +176,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         return ret;
     }
 
-    private String getDecideResponseFromServer(@NonNull String unescapedToken, String unescapedDistinctId, RemoteService poster)
+    private String getApiResponseFromServer(@NonNull String unescapedToken, String unescapedDistinctId, RemoteService poster)
             throws RemoteService.ServiceUnavailableException {
         final String escapedToken;
         final String escapedId;
@@ -270,7 +194,8 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         final StringBuilder queryBuilder = new StringBuilder()
                 .append("?version=1&lib=android&token=")
                 .append(escapedToken)
-                .append("&projectId=").append(SGConfig.getInstance(mContext).getProjectId());
+                .append("&projectId=")
+                .append(SGConfig.getInstance(mContext).getProjectId());
 
         SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + unescapedToken, Context.MODE_PRIVATE);
         int oldEventBindingVersion = preferences.getInt(ViewCrawler.SP_EVENT_BINDING_VERSION, -1);
@@ -279,7 +204,6 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         if (null != escapedId) {
             queryBuilder.append("&distinct_id=").append(escapedId);
         }
-
 
         JSONObject properties = new JSONObject();
         try {
@@ -325,41 +249,6 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         }
     }
 
-    private Bitmap getNotificationImage(InAppNotification notification, Context context, RemoteService poster)
-            throws RemoteService.ServiceUnavailableException {
-        String[] urls = {notification.getImage2xUrl(), notification.getImageUrl()};
-
-        final WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        final Display display = wm.getDefaultDisplay();
-        final int displayWidth = getDisplayWidth(display);
-
-        if (notification.getType() == InAppNotification.Type.TAKEOVER && displayWidth >= 720) {
-            urls = new String[]{notification.getImage4xUrl(), notification.getImage2xUrl(), notification.getImageUrl()};
-        }
-
-        for (String url : urls) {
-            try {
-                return mImageStore.getImage(url);
-            } catch (ImageStore.CantGetImageException e) {
-                Log.v(LOGTAG, "Can't load image " + url + " for a notification", e);
-            }
-        }
-
-        return null;
-    }
-
-    @SuppressWarnings("deprecation")
-    @SuppressLint("NewApi")
-    private static int getDisplayWidth(final Display display) {
-        if (Build.VERSION.SDK_INT < 13) {
-            return display.getWidth();
-        } else {
-            final Point displaySize = new Point();
-            display.getSize(displaySize);
-            return displaySize.x;
-        }
-    }
-
     private static byte[] getUrls(RemoteService poster, Context context, String[] urls)
             throws RemoteService.ServiceUnavailableException {
         final SGConfig config = SGConfig.getInstance(context);
@@ -393,13 +282,4 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         return response;
     }
 
-    private final SGConfig mConfig;
-    private final Context mContext;
-    private final List<DecideMessages> mChecks;
-    private final ImageStore mImageStore;
-    private final SystemInformation mSystemInformation;
-
-    private static final JSONArray EMPTY_JSON_ARRAY = new JSONArray();
-
-    private static final String LOGTAG = "SugoAPI.DChecker";
 }

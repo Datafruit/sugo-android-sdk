@@ -6,8 +6,6 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
-import android.hardware.Sensor;
-import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -35,19 +33,14 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.net.ssl.SSLSocketFactory;
 
-import io.sugo.android.mpmetrics.OnMixpanelTweaksUpdatedListener;
 import io.sugo.android.mpmetrics.ResourceIds;
 import io.sugo.android.mpmetrics.ResourceReader;
 import io.sugo.android.mpmetrics.SGConfig;
@@ -55,29 +48,69 @@ import io.sugo.android.mpmetrics.SugoAPI;
 import io.sugo.android.mpmetrics.SugoDimensionManager;
 import io.sugo.android.mpmetrics.SugoPageManager;
 import io.sugo.android.mpmetrics.SugoWebEventListener;
-import io.sugo.android.mpmetrics.SuperPropertyUpdate;
 import io.sugo.android.mpmetrics.SystemInformation;
-import io.sugo.android.mpmetrics.Tweaks;
 import io.sugo.android.util.HttpService;
 import io.sugo.android.util.ImageStore;
 import io.sugo.android.util.JSONUtils;
 import io.sugo.android.util.RemoteService;
 
 /**
- * This class is for internal use by the Mixpanel API, and should
+ * This class is for internal use by the Sugo API, and should
  * not be called directly by your code.
  */
 @TargetApi(SGConfig.UI_FEATURES_MIN_API)
 public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.OnLayoutErrorListener {
 
+    private static final String LOGTAG = "SugoAPI.ViewCrawler";
 
-    public ViewCrawler(Context context, String token, SugoAPI mixpanel,
-                       Tweaks tweaks, XWalkViewListener XWalkViewListener) {
-        this(context, token, mixpanel, tweaks);
+    public static final String SHARED_PREF_EDITS_FILE = "sugo.viewcrawler.changes";
+
+    public static final String SHARED_PREF_CHANGES_KEY = "sugo.viewcrawler.changes";
+    public static final String SHARED_PREF_BINDINGS_KEY = "sugo.viewcrawler.bindings";
+    public static final String SHARED_PREF_H5_BINDINGS_KEY = "sugo.viewcrawler.h5_bindings";
+    public static final String SHARED_PREF_PAGE_INFO_KEY = "sugo.viewcrawler.page_info";
+    public static final String SHARED_PREF_DIMENSIONS_KEY = "sugo.viewcrawler.dimensions";
+    public static final String SP_EVENT_BINDING_VERSION = "sugo.event_bindings_version";
+
+    private static final int MESSAGE_INITIALIZE_CHANGES = 0;
+    private static final int MESSAGE_CONNECT_TO_EDITOR = 1;
+    private static final int MESSAGE_SEND_STATE_FOR_EDITING = 2;
+    private static final int MESSAGE_HANDLE_EDITOR_CHANGES_RECEIVED = 3;
+    private static final int MESSAGE_SEND_DEVICE_INFO = 4;
+    private static final int MESSAGE_EVENT_BINDINGS_RECEIVED = 5;
+    private static final int MESSAGE_HANDLE_EDITOR_BINDINGS_RECEIVED = 6;
+    private static final int MESSAGE_SEND_EVENT_TRACKED = 7;
+    private static final int MESSAGE_HANDLE_EDITOR_CLOSED = 8;
+    private static final int MESSAGE_VARIANTS_RECEIVED = 9;
+    private static final int MESSAGE_HANDLE_EDITOR_CHANGES_CLEARED = 10;
+    private static final int MESSAGE_HANDLE_EDITOR_TWEAKS_RECEIVED = 11;
+    private static final int MESSAGE_SEND_LAYOUT_ERROR = 12;
+    private static final int MESSAGE_H5_EVENT_BINDINGS_RECEIVED = 13;
+    private static final int MESSAGE_SEND_TEST_EVENT = 14;
+    private static final int MESSAGE_HANDLE_PAGE_INFO_EVENT = 15;
+    private static final int MESSAGE_HANDLE_DIMENSIONS_EVENT = 16;
+    private static final int MESSAGE_GET_HEAT_MAP_DATA = 17;
+    private static final int EMULATOR_CONNECT_ATTEMPT_INTERVAL_MILLIS = 1000 * 30;
+
+
+    private String secretKey = null;
+    private String scanUrlType = null;
+    private final SGConfig mConfig;
+    private final Context mContext;
+    private final SugoAPI mSugoApi;
+    private final DynamicEventTracker mDynamicEventTracker;
+    private final EditState mEditState;
+    private final Map<String, String> mDeviceInfo;
+    private final ViewCrawlerHandler mMessageThreadHandler;
+    private final float mScaledDensity;
+    private XWalkViewListener mXWalkViewListener;
+
+    public ViewCrawler(Context context, String token, SugoAPI sugo, XWalkViewListener XWalkViewListener) {
+        this(context, token, sugo);
         this.mXWalkViewListener = XWalkViewListener;
     }
 
-    public ViewCrawler(Context context, String token, SugoAPI mixpanel, Tweaks tweaks) {
+    public ViewCrawler(Context context, String token, SugoAPI sugo) {
         mConfig = SGConfig.getInstance(context);
 
         Context appContext = context.getApplicationContext();
@@ -86,10 +119,8 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
         restoreDimensions();
 
         mEditState = new EditState();
-        mTweaks = tweaks;
-        mDeviceInfo = mixpanel.getDeviceInfo();
+        mDeviceInfo = sugo.getDeviceInfo();
         mScaledDensity = Resources.getSystem().getDisplayMetrics().scaledDensity;
-        mTweaksUpdatedListeners = new ArrayList<>();
 
         final Application app = (Application) context.getApplicationContext();
         app.registerActivityLifecycleCallbacks(new LifecycleCallbacks());
@@ -99,16 +130,13 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
         thread.start();
         mMessageThreadHandler = new ViewCrawlerHandler(appContext, token, thread.getLooper(), this);
 
-        mDynamicEventTracker = new DynamicEventTracker(mixpanel, mMessageThreadHandler);
-        mMixpanel = mixpanel;
-        mTweaks.addOnTweakDeclaredListener(new Tweaks.OnTweakDeclaredListener() {
-            @Override
-            public void onTweakDeclared() {
-                final Message msg = mMessageThreadHandler.obtainMessage(ViewCrawler.MESSAGE_SEND_DEVICE_INFO);
-                mMessageThreadHandler.sendMessage(msg);
-            }
-        });
+        mDynamicEventTracker = new DynamicEventTracker(sugo, mMessageThreadHandler);
+        mSugoApi = sugo;
+    }
 
+    private SharedPreferences getSharedPreferences() {
+        final String sharedPrefsName = SHARED_PREF_EDITS_FILE + mConfig.getToken();
+        return mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
     }
 
     private void restorePageInfo() {
@@ -149,11 +177,6 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
     }
 
     @Override
-    public Tweaks getTweaks() {
-        return mTweaks;
-    }
-
-    @Override
     public void setEventBindings(JSONArray bindings) {
         final Message msg = mMessageThreadHandler.obtainMessage(ViewCrawler.MESSAGE_EVENT_BINDINGS_RECEIVED);
         msg.obj = bindings;
@@ -179,27 +202,6 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
         final Message msg = mMessageThreadHandler.obtainMessage(ViewCrawler.MESSAGE_HANDLE_DIMENSIONS_EVENT);
         msg.obj = dimensions;
         mMessageThreadHandler.sendMessage(msg);
-    }
-
-    @Override
-    public void setVariants(JSONArray variants) {
-        final Message msg = mMessageThreadHandler.obtainMessage(ViewCrawler.MESSAGE_VARIANTS_RECEIVED);
-        msg.obj = variants;
-        mMessageThreadHandler.sendMessage(msg);
-    }
-
-    @Override
-    public void addOnMixpanelTweaksUpdatedListener(OnMixpanelTweaksUpdatedListener listener) {
-        if (null == listener) {
-            throw new NullPointerException("Listener cannot be null");
-        }
-
-        mTweaksUpdatedListeners.add(listener);
-    }
-
-    @Override
-    public void removeOnMixpanelTweaksUpdatedListener(OnMixpanelTweaksUpdatedListener listener) {
-        mTweaksUpdatedListeners.remove(listener);
     }
 
     @Override
@@ -268,47 +270,9 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
         return false;
     }
 
-    private class EmulatorConnector implements Runnable {
-        public EmulatorConnector() {
-            mStopped = true;
-        }
-
-        @Override
-        public void run() {
-            if (!mStopped) {
-                final Message message = mMessageThreadHandler.obtainMessage(MESSAGE_CONNECT_TO_EDITOR);
-                mMessageThreadHandler.sendMessage(message);
-            }
-
-            mMessageThreadHandler.postDelayed(this, EMULATOR_CONNECT_ATTEMPT_INTERVAL_MILLIS);
-        }
-
-        public void start() {
-            mStopped = false;
-            mMessageThreadHandler.post(this);
-        }
-
-        public void stop() {
-            mStopped = true;
-            mMessageThreadHandler.removeCallbacks(this);
-        }
-
-        private volatile boolean mStopped;
-    }
-
-    private class LifecycleCallbacks implements Application.ActivityLifecycleCallbacks, FlipGesture.OnFlipGestureListener {
+    private class LifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
 
         public LifecycleCallbacks() {
-            mFlipGesture = new FlipGesture(this);
-            mEmulatorConnector = new EmulatorConnector();
-        }
-
-        @Override
-        public void onFlipGesture() {
-            //mMixpanel.track("$ab_gesture3");
-            secretKey = "onFlipGesture";
-            final Message message = mMessageThreadHandler.obtainMessage(MESSAGE_CONNECT_TO_EDITOR);
-            mMessageThreadHandler.sendMessage(message);
         }
 
         @Override
@@ -321,12 +285,12 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
 
         @Override
         public void onActivityResumed(Activity activity) {
-            installConnectionSensor(activity);
             mEditState.add(activity);
             Uri data = activity.getIntent().getData();
             if (data != null) {
                 if (sendConnectEditor(data)) {
-                    activity.getIntent().setData(null);     // 防止未再次扫码却自动连接的情况
+                    // 防止未再次扫码却自动连接的情况
+                    activity.getIntent().setData(null);
                 }
             }
         }
@@ -334,7 +298,6 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
         @Override
         public void onActivityPaused(Activity activity) {
             mEditState.remove(activity);
-            uninstallConnectionSensor(activity);
         }
 
         @Override
@@ -353,55 +316,20 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
             }
         }
 
-
-        private void installConnectionSensor(final Activity activity) {
-            if (isInEmulator() && !mConfig.getDisableEmulatorBindingUI()) {
-                mEmulatorConnector.start();
-            } else if (!mConfig.getDisableGestureBindingUI()) {
-                final SensorManager sensorManager = (SensorManager) activity.getSystemService(Context.SENSOR_SERVICE);
-                final Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-                sensorManager.registerListener(mFlipGesture, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-            }
-        }
-
-        private void uninstallConnectionSensor(final Activity activity) {
-            if (isInEmulator() && !mConfig.getDisableEmulatorBindingUI()) {
-                mEmulatorConnector.stop();
-            } else if (!mConfig.getDisableGestureBindingUI()) {
-                final SensorManager sensorManager = (SensorManager) activity.getSystemService(Context.SENSOR_SERVICE);
-                sensorManager.unregisterListener(mFlipGesture);
-            }
-        }
-
-        private boolean isInEmulator() {
-            if (!Build.HARDWARE.equals("goldfish") && !Build.HARDWARE.equals("ranchu")) {
-                return false;
-            }
-
-            if (!Build.BRAND.startsWith("generic") && !Build.BRAND.equals("Android")) {
-                return false;
-            }
-
-            if (!Build.DEVICE.startsWith("generic")) {
-                return false;
-            }
-
-            if (!Build.PRODUCT.contains("sdk")) {
-                return false;
-            }
-
-            if (!Build.MODEL.toLowerCase(Locale.US).contains("sdk")) {
-                return false;
-            }
-
-            return true;
-        }
-
-        private final FlipGesture mFlipGesture;
-        private final EmulatorConnector mEmulatorConnector;
     }
 
     private class ViewCrawlerHandler extends Handler {
+
+        private EditorConnection mEditorConnection;
+        private ViewSnapshot mSnapshot;
+        private final String mToken;
+        private final Lock mStartLock;
+        private final EditProtocol mProtocol;
+        private final ImageStore mImageStore;
+
+        private final List<String> mEditorAssetUrls;
+        private final List<Pair<String, JSONObject>> mEditorEventBindings;
+        private final List<Pair<String, JSONObject>> mPersistentEventBindings;
 
         public ViewCrawlerHandler(Context context, String token, Looper looper, ViewVisitor.OnLayoutErrorListener layoutErrorListener) {
             super(looper);
@@ -417,14 +345,9 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
 
             mImageStore = new ImageStore(context, "ViewCrawler");
             mProtocol = new EditProtocol(resourceIds, mImageStore, layoutErrorListener);
-            mEditorChanges = new HashMap<String, Pair<String, JSONObject>>();
-            mEditorTweaks = new ArrayList<JSONObject>();
-            mEditorAssetUrls = new ArrayList<String>();
-            mEditorEventBindings = new ArrayList<Pair<String, JSONObject>>();
-            mPersistentChanges = new ArrayList<VariantChange>();
-            mPersistentTweaks = new ArrayList<VariantTweak>();
-            mPersistentEventBindings = new ArrayList<Pair<String, JSONObject>>();
-            mSeenExperiments = new HashSet<Pair<Integer, Integer>>();
+            mEditorAssetUrls = new ArrayList<>();
+            mEditorEventBindings = new ArrayList<>();
+            mPersistentEventBindings = new ArrayList<>();
             mStartLock = new ReentrantLock();
             mStartLock.lock();
         }
@@ -437,12 +360,10 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
         public void handleMessage(Message msg) {
             mStartLock.lock();
             try {
-
                 final int what = msg.what;
                 switch (what) {
                     case MESSAGE_INITIALIZE_CHANGES:
-                        loadKnownChanges();
-                        initializeChanges();
+                        initializeBindings();
                         break;
                     case MESSAGE_GET_HEAT_MAP_DATA:
                         // 热图模式下，无需再次热图
@@ -470,12 +391,6 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                     case MESSAGE_SEND_LAYOUT_ERROR:
                         sendLayoutError((ViewVisitor.LayoutErrorMessage) msg.obj);
                         break;
-                    case MESSAGE_VARIANTS_RECEIVED:
-                        handleVariantsReceived((JSONArray) msg.obj);
-                        break;
-                    case MESSAGE_HANDLE_EDITOR_CHANGES_RECEIVED:
-                        handleEditorChangeReceived((JSONObject) msg.obj);
-                        break;
                     case MESSAGE_EVENT_BINDINGS_RECEIVED:
                         handleEventBindingsReceived((JSONArray) msg.obj);
                         break;
@@ -494,12 +409,6 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                     case MESSAGE_HANDLE_EDITOR_BINDINGS_RECEIVED:
                         handleEditorBindingsReceived((JSONObject) msg.obj);
                         break;
-                    case MESSAGE_HANDLE_EDITOR_CHANGES_CLEARED:
-                        handleEditorBindingsCleared((JSONObject) msg.obj);
-                        break;
-                    case MESSAGE_HANDLE_EDITOR_TWEAKS_RECEIVED:
-                        handleEditorTweaksReceived((JSONObject) msg.obj);
-                        break;
                     case MESSAGE_HANDLE_EDITOR_CLOSED:
                         handleEditorClosed();
                         break;
@@ -512,86 +421,15 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
         }
 
         /**
-         * Load the experiment ids and variants already in persistent storage into
-         * into our set of seen experiments, so we don't double track them.
-         */
-        private void loadKnownChanges() {
-            final SharedPreferences preferences = getSharedPreferences();
-            final String storedChanges = preferences.getString(SHARED_PREF_CHANGES_KEY, null);
-
-            if (null != storedChanges) {
-                try {
-                    final JSONArray variants = new JSONArray(storedChanges);
-                    final int variantsLength = variants.length();
-                    for (int i = 0; i < variantsLength; i++) {
-                        final JSONObject variant = variants.getJSONObject(i);
-                        final int variantId = variant.getInt("id");
-                        final int experimentId = variant.getInt("experiment_id");
-                        final Pair<Integer, Integer> sight = new Pair<Integer, Integer>(experimentId, variantId);
-                        mSeenExperiments.add(sight);
-                    }
-                } catch (JSONException e) {
-                    Log.e(LOGTAG, "Malformed variants found in persistent storage, clearing all variants", e);
-                    final SharedPreferences.Editor editor = preferences.edit();
-                    editor.remove(SHARED_PREF_CHANGES_KEY);
-                    editor.remove(SHARED_PREF_BINDINGS_KEY);
-                    editor.remove(SHARED_PREF_H5_BINDINGS_KEY);
-                    editor.remove(SP_EVENT_BINDING_VERSION);
-                    editor.apply();
-                }
-            }
-
-        }
-
-        /**
          * Load stored changes from persistent storage and apply them to the application.
          */
-        private void initializeChanges() {
+        private void initializeBindings() {
             final SharedPreferences preferences = getSharedPreferences();
-            final String storedChanges = preferences.getString(SHARED_PREF_CHANGES_KEY, null);
             final String storedBindings = preferences.getString(SHARED_PREF_BINDINGS_KEY, null);
-            List<Pair<Integer, Integer>> emptyVariantIds = new ArrayList<>();
 
             try {
-                mPersistentChanges.clear();
-                mPersistentTweaks.clear();
-
-                if (null != storedChanges) {
-                    final JSONArray variants = new JSONArray(storedChanges);
-                    final int variantsLength = variants.length();
-                    for (int variantIx = 0; variantIx < variantsLength; variantIx++) {
-                        final JSONObject nextVariant = variants.getJSONObject(variantIx);
-                        final int variantIdPart = nextVariant.getInt("id");
-                        final int experimentIdPart = nextVariant.getInt("experiment_id");
-                        final Pair<Integer, Integer> variantId = new Pair<Integer, Integer>(experimentIdPart, variantIdPart);
-
-                        final JSONArray actions = nextVariant.getJSONArray("actions");
-                        final int actionsLength = actions.length();
-                        for (int i = 0; i < actionsLength; i++) {
-                            final JSONObject change = actions.getJSONObject(i);
-                            final String targetActivity = JSONUtils.optionalStringKey(change, "target_activity");
-                            final VariantChange variantChange = new VariantChange(targetActivity, change, variantId);
-                            mPersistentChanges.add(variantChange);
-                        }
-
-                        final JSONArray tweaks = nextVariant.getJSONArray("tweaks");
-                        final int tweaksLength = tweaks.length();
-                        for (int i = 0; i < tweaksLength; i++) {
-                            final JSONObject tweakDesc = tweaks.getJSONObject(i);
-                            final VariantTweak variantTweak = new VariantTweak(tweakDesc, variantId);
-                            mPersistentTweaks.add(variantTweak);
-                        }
-
-                        if (actionsLength == 0 && tweaksLength == 0) {
-                            final Pair<Integer, Integer> emptyVariantId = new Pair<Integer, Integer>(experimentIdPart, variantIdPart);
-                            emptyVariantIds.add(emptyVariantId);
-                        }
-                    }
-                }
-
                 if (null != storedBindings) {
                     final JSONArray bindings = new JSONArray(storedBindings);
-
                     mPersistentEventBindings.clear();
                     for (int i = 0; i < bindings.length(); i++) {
                         final JSONObject event = bindings.getJSONObject(i);
@@ -600,16 +438,15 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                     }
                 }
             } catch (final JSONException e) {
-                Log.i(LOGTAG, "JSON error when initializing saved changes, clearing persistent memory", e);
+                Log.i(LOGTAG, "JSON error when initializing saved bindings, clearing persistent memory", e);
                 final SharedPreferences.Editor editor = preferences.edit();
-                editor.remove(SHARED_PREF_CHANGES_KEY);
                 editor.remove(SHARED_PREF_BINDINGS_KEY);
                 editor.remove(SHARED_PREF_H5_BINDINGS_KEY);
                 editor.remove(SP_EVENT_BINDING_VERSION);
                 editor.apply();
             }
 
-            applyVariantsAndEventBindings(emptyVariantIds);
+            applyEventBindings();
         }
 
 
@@ -745,10 +582,11 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
             final String url = SGConfig.getInstance(mContext).getEditorUrl() + mToken;
             try {
                 Socket socket;
-                if (url.startsWith("wss://"))
+                if (url.startsWith("wss://")) {
                     socket = socketFactory.createSocket();
-                else
+                } else {
                     socket = new Socket();
+                }
                 mEditorConnection = new EditorConnection(new URI(url), new Editor(), socket);
             } catch (final URISyntaxException e) {
                 Log.e(LOGTAG, "Error parsing URI " + url + " for editor websocket", e);
@@ -815,41 +653,6 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                 for (final Map.Entry<String, String> entry : mDeviceInfo.entrySet()) {
                     j.name(entry.getKey()).value(entry.getValue());
                 }
-
-                final Map<String, Tweaks.TweakValue> tweakDescs = mTweaks.getAllValues();
-                j.name("tweaks").beginArray();
-                for (Map.Entry<String, Tweaks.TweakValue> tweak : tweakDescs.entrySet()) {
-                    final Tweaks.TweakValue desc = tweak.getValue();
-                    final String tweakName = tweak.getKey();
-                    j.beginObject();
-                    j.name("name").value(tweakName);
-                    j.name("minimum").value((Number) null);
-                    j.name("maximum").value((Number) null);
-                    switch (desc.type) {
-                        case Tweaks.BOOLEAN_TYPE:
-                            j.name("type").value("boolean");
-                            j.name("value").value(desc.getBooleanValue());
-                            break;
-                        case Tweaks.DOUBLE_TYPE:
-                            j.name("type").value("number");
-                            j.name("encoding").value("d");
-                            j.name("value").value(desc.getNumberValue().doubleValue());
-                            break;
-                        case Tweaks.LONG_TYPE:
-                            j.name("type").value("number");
-                            j.name("encoding").value("l");
-                            j.name("value").value(desc.getNumberValue().longValue());
-                            break;
-                        case Tweaks.STRING_TYPE:
-                            j.name("type").value("string");
-                            j.name("value").value(desc.getStringValue());
-                            break;
-                        default:
-                            Log.wtf(LOGTAG, "Unrecognized Tweak Type " + desc.type + " encountered.");
-                    }
-                    j.endObject();
-                }
-                j.endArray();
                 j.endObject(); // payload
                 j.endObject();
             } catch (final IOException e) {
@@ -858,7 +661,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                 try {
                     j.close();
                 } catch (final IOException e) {
-                    Log.e(LOGTAG, "Can't close websocket writer", e);
+                    Log.e(LOGTAG, "Can't close WebSocket writer", e);
                 }
             }
         }
@@ -897,7 +700,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
 
             if (null == mSnapshot) {
                 sendError("No snapshot configuration (or a malformed snapshot configuration) was sent.");
-                Log.w(LOGTAG, "Mixpanel editor is misconfigured, sent a snapshot request without a valid configuration.");
+                Log.w(LOGTAG, "Sugo editor is misconfigured, sent a snapshot request without a valid configuration.");
                 return;
             }
             // ELSE config is valid:
@@ -993,83 +796,9 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
             }
         }
 
-        /**
-         * Accept and apply a change from the connected UI.
-         */
-        private void handleEditorChangeReceived(JSONObject changeMessage) {
-            try {
-                final JSONObject payload = changeMessage.getJSONObject("payload");
-                final JSONArray actions = payload.getJSONArray("actions");
-
-                for (int i = 0; i < actions.length(); i++) {
-                    final JSONObject change = actions.getJSONObject(i);
-                    final String targetActivity = JSONUtils.optionalStringKey(change, "target_activity");
-                    final String name = change.getString("name");
-                    mEditorChanges.put(name, new Pair<String, JSONObject>(targetActivity, change));
-                }
-
-                applyVariantsAndEventBindings(Collections.<Pair<Integer, Integer>>emptyList());
-            } catch (final JSONException e) {
-                Log.e(LOGTAG, "Bad change request received", e);
-            }
-        }
-
-        /**
-         * Remove a change from the connected UI.
-         */
-        private void handleEditorBindingsCleared(JSONObject clearMessage) {
-            try {
-                final JSONObject payload = clearMessage.getJSONObject("payload");
-                final JSONArray actions = payload.getJSONArray("actions");
-
-                // Don't throw any JSONExceptions after this, or you'll leak the item
-                for (int i = 0; i < actions.length(); i++) {
-                    final String changeId = actions.getString(i);
-                    mEditorChanges.remove(changeId);
-                }
-            } catch (final JSONException e) {
-                Log.e(LOGTAG, "Bad clear request received", e);
-            }
-
-            applyVariantsAndEventBindings(Collections.<Pair<Integer, Integer>>emptyList());
-        }
-
-        private void handleEditorTweaksReceived(JSONObject tweaksMessage) {
-            try {
-                mEditorTweaks.clear();
-                final JSONObject payload = tweaksMessage.getJSONObject("payload");
-                final JSONArray tweaks = payload.getJSONArray("tweaks");
-                final int length = tweaks.length();
-                for (int i = 0; i < length; i++) {
-                    final JSONObject tweakDesc = tweaks.getJSONObject(i);
-                    mEditorTweaks.add(tweakDesc);
-                }
-            } catch (final JSONException e) {
-                Log.e(LOGTAG, "Bad tweaks received", e);
-            }
-
-            applyVariantsAndEventBindings(Collections.<Pair<Integer, Integer>>emptyList());
-        }
-
-        /**
-         * Accept and apply variant changes from a non-interactive source.
-         */
-        private void handleVariantsReceived(JSONArray variants) {
-            final SharedPreferences preferences = getSharedPreferences();
-            final SharedPreferences.Editor editor = preferences.edit();
-            if (variants.length() > 0) {
-                editor.putString(SHARED_PREF_CHANGES_KEY, variants.toString());
-            } else {
-                editor.remove(SHARED_PREF_CHANGES_KEY);
-            }
-            editor.apply();
-
-            initializeChanges();
-        }
-
         private void handleHeatMapData(String heatmapData) {
             SugoHeatMap.setHeatMapData(mContext, heatmapData);
-            initializeChanges();
+            initializeBindings();
             SugoWebEventListener.updateWebViewInject();
         }
 
@@ -1082,7 +811,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
             final SharedPreferences.Editor editor = preferences.edit();
             editor.putString(SHARED_PREF_BINDINGS_KEY, eventBindings.toString());
             editor.apply();
-            initializeChanges();
+            initializeBindings();
         }
 
         /**
@@ -1118,9 +847,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                 return;
             }
 
-
             final OutputStream out = mEditorConnection.getBufferedOutputStream();
-
 
             try {
                 JSONObject eventpkg = new JSONObject();
@@ -1184,14 +911,13 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                 }
             }
 
-            applyVariantsAndEventBindings(Collections.<Pair<Integer, Integer>>emptyList());
+            applyEventBindings();
         }
 
         /**
          * Clear state associated with the editor now that the editor is gone.
          */
         private void handleEditorClosed() {
-            mEditorChanges.clear();
             mEditorEventBindings.clear();
 
             // Free (or make available) snapshot memory
@@ -1201,7 +927,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                 Log.v(LOGTAG, "Editor closed- freeing snapshot");
             }
 
-            applyVariantsAndEventBindings(Collections.<Pair<Integer, Integer>>emptyList());
+            applyEventBindings();
             for (final String assetUrl : mEditorAssetUrls) {
                 mImageStore.deleteStorage(assetUrl);
             }
@@ -1213,102 +939,14 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
          * Reads our JSON-stored edits from memory and submits them to our EditState. Overwrites
          * any existing edits at the time that it is run.
          * <p>
-         * applyVariantsAndEventBindings should be called any time we load new edits, event bindings,
+         * applyEventBindings should be called any time we load new edits, event bindings,
          * or tweaks from disk or when we receive new edits from the interactive UI editor.
          * Changes and event bindings from our persistent storage and temporary changes
          * received from interactive editing will all be submitted to our EditState, tweaks
          * will be updated, and experiment statuses will be tracked.
          */
-        private void applyVariantsAndEventBindings(List<Pair<Integer, Integer>> emptyVariantIds) {
+        private void applyEventBindings() {
             final List<Pair<String, ViewVisitor>> newVisitors = new ArrayList<Pair<String, ViewVisitor>>();
-            final Set<Pair<Integer, Integer>> toTrack = new HashSet<Pair<Integer, Integer>>();
-
-            {
-                final int size = mPersistentChanges.size();
-                for (int i = 0; i < size; i++) {
-                    final VariantChange changeInfo = mPersistentChanges.get(i);
-                    try {
-                        final EditProtocol.Edit edit = mProtocol.readEdit(changeInfo.change);
-                        newVisitors.add(new Pair<String, ViewVisitor>(changeInfo.activityName, edit.visitor));
-                        if (!mSeenExperiments.contains(changeInfo.variantId)) {
-                            toTrack.add(changeInfo.variantId);
-                        }
-                    } catch (final EditProtocol.CantGetEditAssetsException e) {
-                        Log.v(LOGTAG, "Can't load assets for an edit, won't apply the change now", e);
-                    } catch (final EditProtocol.InapplicableInstructionsException e) {
-                        Log.i(LOGTAG, e.getMessage());
-                    } catch (final EditProtocol.BadInstructionsException e) {
-                        Log.e(LOGTAG, "Bad persistent change request cannot be applied.", e);
-                    }
-                }
-            }
-
-            {
-                boolean isTweaksUpdated = false;
-                final int size = mPersistentTweaks.size();
-                for (int i = 0; i < size; i++) {
-                    final VariantTweak tweakInfo = mPersistentTweaks.get(i);
-                    try {
-                        final Pair<String, Object> tweakValue = mProtocol.readTweak(tweakInfo.tweak);
-
-                        if (!mSeenExperiments.contains(tweakInfo.variantId)) {
-                            toTrack.add(tweakInfo.variantId);
-                            isTweaksUpdated = true;
-                        } else if (mTweaks.isNewValue(tweakValue.first, tweakValue.second)) {
-                            isTweaksUpdated = true;
-                        }
-
-                        mTweaks.set(tweakValue.first, tweakValue.second);
-                    } catch (EditProtocol.BadInstructionsException e) {
-                        Log.e(LOGTAG, "Bad editor tweak cannot be applied.", e);
-                    }
-                }
-
-                if (isTweaksUpdated) {
-                    for (OnMixpanelTweaksUpdatedListener listener : mTweaksUpdatedListeners) {
-                        listener.onMixpanelTweakUpdated();
-                    }
-                }
-
-                if (size == 0) { // there are no new tweaks, so reset to default values
-                    final Map<String, Tweaks.TweakValue> tweakDefaults = mTweaks.getDefaultValues();
-                    for (Map.Entry<String, Tweaks.TweakValue> tweak : tweakDefaults.entrySet()) {
-                        final Tweaks.TweakValue tweakValue = tweak.getValue();
-                        final String tweakName = tweak.getKey();
-                        mTweaks.set(tweakName, tweakValue);
-                    }
-                }
-            }
-
-            {
-                for (Pair<String, JSONObject> changeInfo : mEditorChanges.values()) {
-                    try {
-                        final EditProtocol.Edit edit = mProtocol.readEdit(changeInfo.second);
-                        newVisitors.add(new Pair<String, ViewVisitor>(changeInfo.first, edit.visitor));
-                        mEditorAssetUrls.addAll(edit.imageUrls);
-                    } catch (final EditProtocol.CantGetEditAssetsException e) {
-                        Log.v(LOGTAG, "Can't load assets for an edit, won't apply the change now", e);
-                    } catch (final EditProtocol.InapplicableInstructionsException e) {
-                        Log.i(LOGTAG, e.getMessage());
-                    } catch (final EditProtocol.BadInstructionsException e) {
-                        Log.e(LOGTAG, "Bad editor change request cannot be applied.", e);
-                    }
-                }
-            }
-
-            {
-                final int size = mEditorTweaks.size();
-                for (int i = 0; i < size; i++) {
-                    final JSONObject tweakDesc = mEditorTweaks.get(i);
-
-                    try {
-                        final Pair<String, Object> tweakValue = mProtocol.readTweak(tweakDesc);
-                        mTweaks.set(tweakValue.first, tweakValue.second);
-                    } catch (final EditProtocol.BadInstructionsException e) {
-                        Log.e(LOGTAG, "Strange tweaks received", e);
-                    }
-                }
-            }
 
             {
                 final int size = mEditorEventBindings.size();
@@ -1316,7 +954,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                     final Pair<String, JSONObject> changeInfo = mEditorEventBindings.get(i);
                     try {
                         final ViewVisitor visitor = mProtocol.readEventBinding(changeInfo.second, mDynamicEventTracker);
-                        newVisitors.add(new Pair<String, ViewVisitor>(changeInfo.first, visitor));
+                        newVisitors.add(new Pair<>(changeInfo.first, visitor));
                     } catch (final EditProtocol.InapplicableInstructionsException e) {
                         Log.i(LOGTAG, e.getMessage());
                     } catch (final EditProtocol.BadInstructionsException e) {
@@ -1332,7 +970,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                         final Pair<String, JSONObject> changeInfo = mPersistentEventBindings.get(i);
                         try {
                             final ViewVisitor visitor = mProtocol.readEventBinding(changeInfo.second, mDynamicEventTracker);
-                            newVisitors.add(new Pair<String, ViewVisitor>(changeInfo.first, visitor));
+                            newVisitors.add(new Pair<>(changeInfo.first, visitor));
                         } catch (final EditProtocol.InapplicableInstructionsException e) {
                             Log.i(LOGTAG, e.getMessage());
                         } catch (final EditProtocol.BadInstructionsException e) {
@@ -1361,63 +999,8 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
 
             mEditState.setEdits(editMap);
 
-            for (Pair<Integer, Integer> id : emptyVariantIds) {
-                if (!mSeenExperiments.contains(id)) {
-                    toTrack.add(id);
-                }
-            }
-
-            mSeenExperiments.addAll(toTrack);
-
-            if (toTrack.size() > 0) {
-                final JSONObject variantObject = new JSONObject();
-
-                try {
-                    for (Pair<Integer, Integer> variant : toTrack) {
-                        final int experimentId = variant.first;
-                        final int variantId = variant.second;
-
-                        final JSONObject trackProps = new JSONObject();
-                        trackProps.put("experiment_id", experimentId);
-                        trackProps.put("variant_id", variantId);
-
-                        variantObject.put(Integer.toString(experimentId), variantId);
-
-                        mMixpanel.updateSuperProperties(new SuperPropertyUpdate() {
-                            @Override
-                            public JSONObject update(JSONObject in) {
-                                try {
-                                    in.put("$experiments", variantObject);
-                                } catch (JSONException e) {
-                                    Log.wtf(LOGTAG, "Can't write $experiments super property", e);
-                                }
-                                return in;
-                            }
-                        });
-
-                        mMixpanel.track(null, "experiment_started", trackProps);
-                    }
-                } catch (JSONException e) {
-                    Log.wtf(LOGTAG, "Could not build JSON for reporting experiment start", e);
-                }
-            }
         }
 
-        private EditorConnection mEditorConnection;
-        private ViewSnapshot mSnapshot;
-        private final String mToken;
-        private final Lock mStartLock;
-        private final EditProtocol mProtocol;
-        private final ImageStore mImageStore;
-
-        private final Map<String, Pair<String, JSONObject>> mEditorChanges;
-        private final List<JSONObject> mEditorTweaks;
-        private final List<String> mEditorAssetUrls;
-        private final List<Pair<String, JSONObject>> mEditorEventBindings;
-        private final List<VariantChange> mPersistentChanges;
-        private final List<VariantTweak> mPersistentTweaks;
-        private final List<Pair<String, JSONObject>> mPersistentEventBindings;
-        private final Set<Pair<Integer, Integer>> mSeenExperiments;
     }
 
 
@@ -1471,77 +1054,4 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
         }
     }
 
-    private static class VariantChange {
-        public VariantChange(String anActivityName, JSONObject someChange, Pair<Integer, Integer> aVariantId) {
-            activityName = anActivityName;
-            change = someChange;
-            variantId = aVariantId;
-        }
-
-        public final String activityName;
-        public final JSONObject change;
-        public final Pair<Integer, Integer> variantId;
-    }
-
-    private static class VariantTweak {
-        public VariantTweak(JSONObject aTweak, Pair<Integer, Integer> aVariantId) {
-            tweak = aTweak;
-            variantId = aVariantId;
-        }
-
-        public final JSONObject tweak;
-        public final Pair<Integer, Integer> variantId;
-    }
-
-    private String secretKey = null;
-    private String scanUrlType = null;
-    private final SGConfig mConfig;
-    private final Context mContext;
-    private final SugoAPI mMixpanel;
-    private final DynamicEventTracker mDynamicEventTracker;
-    private final EditState mEditState;
-    private final Tweaks mTweaks;
-    private final Map<String, String> mDeviceInfo;
-    private final ViewCrawlerHandler mMessageThreadHandler;
-    private final float mScaledDensity;
-    private XWalkViewListener mXWalkViewListener;
-
-    private final List<OnMixpanelTweaksUpdatedListener> mTweaksUpdatedListeners;
-
-    private SharedPreferences getSharedPreferences() {
-        final String sharedPrefsName = SHARED_PREF_EDITS_FILE + mConfig.getToken();
-        return mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
-    }
-
-    public static final String SHARED_PREF_EDITS_FILE = "mixpanel.viewcrawler.changes";
-
-    public static final String SHARED_PREF_CHANGES_KEY = "mixpanel.viewcrawler.changes";
-    public static final String SHARED_PREF_BINDINGS_KEY = "mixpanel.viewcrawler.bindings";
-    public static final String SHARED_PREF_H5_BINDINGS_KEY = "mixpanel.viewcrawler.h5_bindings";
-    public static final String SHARED_PREF_PAGE_INFO_KEY = "mixpanel.viewcrawler.page_info";
-    public static final String SHARED_PREF_DIMENSIONS_KEY = "mixpanel.viewcrawler.dimensions";
-    public static final String SP_EVENT_BINDING_VERSION = "sugo.event_bindings_version";
-
-    private static final int MESSAGE_INITIALIZE_CHANGES = 0;
-    private static final int MESSAGE_CONNECT_TO_EDITOR = 1;
-    private static final int MESSAGE_SEND_STATE_FOR_EDITING = 2;
-    private static final int MESSAGE_HANDLE_EDITOR_CHANGES_RECEIVED = 3;
-    private static final int MESSAGE_SEND_DEVICE_INFO = 4;
-    private static final int MESSAGE_EVENT_BINDINGS_RECEIVED = 5;
-    private static final int MESSAGE_HANDLE_EDITOR_BINDINGS_RECEIVED = 6;
-    private static final int MESSAGE_SEND_EVENT_TRACKED = 7;
-    private static final int MESSAGE_HANDLE_EDITOR_CLOSED = 8;
-    private static final int MESSAGE_VARIANTS_RECEIVED = 9;
-    private static final int MESSAGE_HANDLE_EDITOR_CHANGES_CLEARED = 10;
-    private static final int MESSAGE_HANDLE_EDITOR_TWEAKS_RECEIVED = 11;
-    private static final int MESSAGE_SEND_LAYOUT_ERROR = 12;
-    private static final int MESSAGE_H5_EVENT_BINDINGS_RECEIVED = 13;
-    private static final int MESSAGE_SEND_TEST_EVENT = 14;
-    private static final int MESSAGE_HANDLE_PAGE_INFO_EVENT = 15;
-    private static final int MESSAGE_HANDLE_DIMENSIONS_EVENT = 16;
-    private static final int MESSAGE_GET_HEAT_MAP_DATA = 17;
-    private static final int EMULATOR_CONNECT_ATTEMPT_INTERVAL_MILLIS = 1000 * 30;
-
-    @SuppressWarnings("unused")
-    private static final String LOGTAG = "SugoAPI.ViewCrawler";
 }

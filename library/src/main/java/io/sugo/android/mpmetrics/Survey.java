@@ -12,7 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Represents a Survey, configured in Mixpanel.
+ * Represents a Survey, configured in Sugo.
  *
  * You only need to work with this class if you call getSurveyIfAvailable() and want to
  * display a custom interface for the survey yourself.

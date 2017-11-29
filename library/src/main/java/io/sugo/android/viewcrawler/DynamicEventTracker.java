@@ -19,7 +19,7 @@ import io.sugo.android.mpmetrics.SGConfig;
 import io.sugo.android.mpmetrics.SugoAPI;
 
 /**
- * Handles translating events detected by ViewVisitors into events sent to Mixpanel
+ * Handles translating events detected by ViewVisitors into events sent to Sugo
  * <p>
  * - Builds properties by interrogating view subtrees
  * <p>

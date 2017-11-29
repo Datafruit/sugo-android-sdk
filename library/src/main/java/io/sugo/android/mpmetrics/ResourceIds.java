@@ -1,7 +1,7 @@
 package io.sugo.android.mpmetrics;
 
 /**
- * This interface is for internal use in the Mixpanel library, and should not be included in
+ * This interface is for internal use in the Sugo library, and should not be included in
  * client code.
  */
 public interface ResourceIds {

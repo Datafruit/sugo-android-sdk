@@ -138,6 +138,7 @@ public class SGConfig {
 
     static final String TIME_EVENT_TAG = "sugo_time_event_tag";
 
+    private String distinctId;
     private final String mToken;
     private final String mProjectId;
     private final String mEventsEndpoint;
@@ -163,7 +164,7 @@ public class SGConfig {
     private final boolean mDisableAppOpenEvent;
     private final boolean mDisableViewCrawler;
     private final String[] mDisableViewCrawlerForProjects;
-    private final boolean mAutoShowMixpanelUpdates;
+    private final boolean mAutoShowSugoUpdates;
     private final boolean mDisableDecideChecker;
     private final int mImageCacheMaxMemoryFactor;
     private String webRoot;
@@ -183,11 +184,11 @@ public class SGConfig {
     public static final int UI_FEATURES_MIN_API = 16;
 
     // Name for persistent storage of app referral SharedPreferences
-    /* package */ static final String REFERRER_PREFS_NAME = "io.sugo.android.mpmetrics.ReferralInfo";
+    static final String REFERRER_PREFS_NAME = "io.sugo.android.mpmetrics.ReferralInfo";
 
     // Max size of the number of notifications we will hold in memory. Since they may contain images,
     // we don't want to suck up all of the memory on the device.
-    /* package */ static final int MAX_NOTIFICATION_CACHE_COUNT = 2;
+    static final int MAX_NOTIFICATION_CACHE_COUNT = 2;
 
     // Instances are safe to store, since they're immutable and always the same.
     public static SGConfig getInstance(Context context) {
@@ -269,8 +270,8 @@ public class SGConfig {
         webRoot = metaData.getString("io.sugo.android.SGConfig.webRoot");
         // Disable if EITHER of these is present and false, otherwise enable
         final boolean surveysAutoCheck = metaData.getBoolean("io.sugo.android.SGConfig.AutoCheckForSurveys", true);
-        final boolean mixpanelUpdatesAutoShow = metaData.getBoolean("io.sugo.android.SGConfig.AutoShowMixpanelUpdates", true);
-        mAutoShowMixpanelUpdates = surveysAutoCheck && mixpanelUpdatesAutoShow;
+        final boolean sugoUpdatesAutoShow = metaData.getBoolean("io.sugo.android.SGConfig.AutoShowSugoUpdates", true);
+        mAutoShowSugoUpdates = surveysAutoCheck && sugoUpdatesAutoShow;
 
         String eventsFallbackEndpoint = metaData.getString("io.sugo.android.SGConfig.EventsFallbackEndpoint");
         if (null == eventsFallbackEndpoint) {
@@ -312,7 +313,7 @@ public class SGConfig {
     /**
      * The SugoAPI will use the system default SSL socket settings under ordinary circumstances.
      * That means it will ignore settings you associated with the default SSLSocketFactory in the
-     * schema registry or in underlying HTTP libraries. If you'd prefer for Mixpanel to use your
+     * schema registry or in underlying HTTP libraries. If you'd prefer for Sugo to use your
      * own SSL settings, you'll need to call setSSLSocketFactory early in your code, like this
      * <p>
      * {@code
@@ -321,14 +322,14 @@ public class SGConfig {
      * </pre>
      * }
      * <p>
-     * Your settings will be globally available to all Mixpanel instances, and will be used for
+     * Your settings will be globally available to all Sugo instances, and will be used for
      * all SSL connections in the library. The call is thread safe, but should be done before
      * your first call to SugoAPI.getInstance to insure that the library never uses it's
      * default.
      * <p>
      * The given socket factory may be used from multiple threads, which is safe for the system
      * SSLSocketFactory class, but if you pass a subclass you should ensure that it is thread-safe
-     * before passing it to Mixpanel.
+     * before passing it to Sugo.
      *
      * @param factory an SSLSocketFactory that
      */
@@ -337,8 +338,8 @@ public class SGConfig {
     }
 
     /**
-     * {@link OfflineMode} allows Mixpanel to be in-sync with client offline internal logic.
-     * If you want to integrate your own logic with Mixpanel you'll need to call
+     * {@link OfflineMode} allows Sugo to be in-sync with client offline internal logic.
+     * If you want to integrate your own logic with Sugo you'll need to call
      * {@link #setOfflineMode(OfflineMode)} early in your code, like this
      * <p>
      * {@code
@@ -347,15 +348,15 @@ public class SGConfig {
      * </pre>
      * }
      * <p>
-     * Your settings will be globally available to all Mixpanel instances, and will be used across
+     * Your settings will be globally available to all Sugo instances, and will be used across
      * all the library. The call is thread safe, but should be done before
      * your first call to SugoAPI.getInstance to insure that the library never uses it's
      * default.
      * <p>
      * The given {@link OfflineMode} may be used from multiple threads, you should ensure that
-     * your implementation is thread-safe before passing it to Mixpanel.
+     * your implementation is thread-safe before passing it to Sugo.
      *
-     * @param offlineMode client offline implementation to use on Mixpanel
+     * @param offlineMode client offline implementation to use on Sugo
      */
     public synchronized void setOfflineMode(OfflineMode offlineMode) {
         mOfflineMode = offlineMode;
@@ -400,6 +401,14 @@ public class SGConfig {
 
     public long getUpdateDecideInterval() {
         return mUpdateDecideInterval;
+    }
+
+    void setDistinctId(String distinctId) {
+        this.distinctId = distinctId;
+    }
+
+    String getDistinctId() {
+        return distinctId;
     }
 
     class myX509TrustManager implements X509TrustManager {
@@ -527,8 +536,8 @@ public class SGConfig {
     }
 
     // Check for and show eligible surveys and in app notifications on Activity changes
-    public boolean getAutoShowMixpanelUpdates() {
-        return mAutoShowMixpanelUpdates;
+    public boolean getAutoShowSugoUpdates() {
+        return mAutoShowSugoUpdates;
     }
 
     // Preferred URL for connecting to the editor websocket

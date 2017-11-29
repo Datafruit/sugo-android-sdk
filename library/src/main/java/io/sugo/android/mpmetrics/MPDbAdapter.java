@@ -49,7 +49,7 @@ import java.util.Set;
     public static final int DB_OUT_OF_MEMORY_ERROR = -2;
     public static final int DB_UNDEFINED_CODE = -3;
 
-    private static final String DATABASE_NAME = "mixpanel";
+    private static final String DATABASE_NAME = "sugo";
     private static final int DATABASE_VERSION = 4;
 
     private static final String CREATE_EVENTS_TABLE =
@@ -87,7 +87,7 @@ import java.util.Set;
         @Override
         public void onCreate(SQLiteDatabase db) {
             if (SGConfig.DEBUG) {
-                Log.v(LOGTAG, "Creating a new Mixpanel events DB");
+                Log.v(LOGTAG, "Creating a new Sugo events DB");
             }
 
             db.execSQL(CREATE_EVENTS_TABLE);
@@ -99,7 +99,7 @@ import java.util.Set;
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             if (SGConfig.DEBUG) {
-                Log.v(LOGTAG, "Upgrading app, replacing Mixpanel events DB");
+                Log.v(LOGTAG, "Upgrading app, replacing Sugo events DB");
             }
 
             db.execSQL("DROP TABLE IF EXISTS " + Table.EVENTS.getName());
@@ -141,7 +141,7 @@ import java.util.Set;
     public int addJSON(JSONObject j, Table table) {
         // we are aware of the race condition here, but what can we do..?
         if (!this.belowMemThreshold()) {
-            Log.e(LOGTAG, "There is not enough space left on the device to store Mixpanel data, so data was discarded");
+            Log.e(LOGTAG, "There is not enough space left on the device to store Sugo data, so data was discarded");
             return DB_OUT_OF_MEMORY_ERROR;
         }
 
@@ -162,7 +162,7 @@ import java.util.Set;
             c.moveToFirst();
             count = c.getInt(0);
         } catch (final SQLiteException e) {
-            Log.e(LOGTAG, "Could not add Mixpanel data to table " + tableName + ". Re-initializing database.", e);
+            Log.e(LOGTAG, "Could not add Sugo data to table " + tableName + ". Re-initializing database.", e);
 
             // We assume that in general, the results of a SQL exception are
             // unrecoverable, and could be associated with an oversized or
@@ -195,7 +195,7 @@ import java.util.Set;
             final SQLiteDatabase db = mDb.getWritableDatabase();
             db.delete(tableName, "_id <= " + last_id, null);
         } catch (final SQLiteException e) {
-            Log.e(LOGTAG, "Could not clean sent Mixpanel records from " + tableName + ". Re-initializing database.", e);
+            Log.e(LOGTAG, "Could not clean sent Sugo records from " + tableName + ". Re-initializing database.", e);
 
             // We assume that in general, the results of a SQL exception are
             // unrecoverable, and could be associated with an oversized or
@@ -220,7 +220,7 @@ import java.util.Set;
             final SQLiteDatabase db = mDb.getWritableDatabase();
             db.delete(tableName, KEY_CREATED_AT + " <= " + time, null);
         } catch (final SQLiteException e) {
-            Log.e(LOGTAG, "Could not clean timed-out Mixpanel records from " + tableName + ". Re-initializing database.", e);
+            Log.e(LOGTAG, "Could not clean timed-out Sugo records from " + tableName + ". Re-initializing database.", e);
 
             // We assume that in general, the results of a SQL exception are
             // unrecoverable, and could be associated with an oversized or
@@ -238,7 +238,7 @@ import java.util.Set;
 
 
     /**
-     * Returns the data string to send to Mixpanel and the maximum ID of the row that
+     * Returns the data string to send to Sugo and the maximum ID of the row that
      * we're sending, so we know what rows to delete when a track request was successful.
      *
      * @param table the table to read the JSON from, either "events" or "people"
@@ -387,7 +387,7 @@ import java.util.Set;
                 data = buf.toString();
             }
         } catch (final SQLiteException e) {
-            Log.e(LOGTAG, "Could not pull records for Mixpanel out of database " + tableName + ". Waiting to send.", e);
+            Log.e(LOGTAG, "Could not pull records for Sugo out of database " + tableName + ". Waiting to send.", e);
 
             // We'll dump the DB on write failures, but with reads we can
             // let things ride in hopes the issue clears up.
