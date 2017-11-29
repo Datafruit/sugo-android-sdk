@@ -9,9 +9,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 
-/* package */ class SharedPreferencesLoader {
+class SharedPreferencesLoader {
 
-    /* package */ interface OnPrefsLoadedListener {
+    interface OnPrefsLoadedListener {
         public void onPrefsLoaded(SharedPreferences prefs);
     }
 

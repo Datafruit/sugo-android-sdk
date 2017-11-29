@@ -24,7 +24,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
 
 class ApiChecker {
 
-    private static final String LOGTAG = "SugoAPI.DChecker";
+    private static final String LOGTAG = "SugoAPI.ApiChecker";
 
     private final SGConfig mConfig;
     private final Context mContext;

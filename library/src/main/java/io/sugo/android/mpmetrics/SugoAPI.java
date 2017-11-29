@@ -130,12 +130,6 @@ public class SugoAPI {
     private static final Map<Context, SugoAPI> sInstanceMap = new HashMap<Context, SugoAPI>();
     private static final SharedPreferencesLoader sPrefsLoader = new SharedPreferencesLoader();
 
-    private static final String APP_LINKS_LOGTAG = "SugoAPI.AL";
-    private static final String ENGAGE_DATE_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ss";
-
-    private static final String KEY_USER_ID_LOGIN_TIME = "SUGO_USER_ID_LOGIN_TIME";
-    private boolean mDisableDecideChecker;
-
     // SugoAPI 实例化之前设置 superProperties 的临时变量
     private static JSONObject sPreSuperProps = new JSONObject();
     private static JSONObject sPreSuperPropsOnce = new JSONObject();

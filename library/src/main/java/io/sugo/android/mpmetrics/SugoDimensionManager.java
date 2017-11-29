@@ -7,7 +7,9 @@ import org.json.JSONObject;
 import java.util.HashMap;
 
 /**
- * Created by Administrator on 2017/2/16.
+ *
+ * @author Administrator
+ * @date 2017/2/16
  */
 
 public class SugoDimensionManager {

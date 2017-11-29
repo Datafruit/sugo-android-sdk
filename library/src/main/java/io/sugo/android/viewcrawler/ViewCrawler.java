@@ -42,7 +42,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.net.ssl.SSLSocketFactory;
 
 import io.sugo.android.mpmetrics.ResourceIds;
-import io.sugo.android.mpmetrics.ResourceReader;
+import io.sugo.android.mpmetrics.AbsResourceReader;
 import io.sugo.android.mpmetrics.SGConfig;
 import io.sugo.android.mpmetrics.SugoAPI;
 import io.sugo.android.mpmetrics.SugoDimensionManager;
@@ -341,7 +341,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                 resourcePackage = context.getPackageName();
             }
 
-            final ResourceIds resourceIds = new ResourceReader.Ids(resourcePackage, context);
+            final ResourceIds resourceIds = new AbsResourceReader.Ids(resourcePackage, context);
 
             mImageStore = new ImageStore(context, "ViewCrawler");
             mProtocol = new EditProtocol(resourceIds, mImageStore, layoutErrorListener);

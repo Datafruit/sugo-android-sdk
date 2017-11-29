@@ -3,7 +3,9 @@ package io.sugo.android.mpmetrics;
 import android.webkit.JavascriptInterface;
 
 /**
- * Created by fengxj on 11/7/16.
+ *
+ * @author fengxj
+ * @date 11/7/16
  */
 
 public class SugoWebNodeReporter {

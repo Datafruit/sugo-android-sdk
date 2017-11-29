@@ -20,7 +20,9 @@ import java.util.Map;
 import io.sugo.android.viewcrawler.SugoHeatMap;
 
 /**
- * Created by fengxj on 11/7/16.
+ *
+ * @author fengxj
+ * @date 11/7/16
  */
 
 public class SugoWebEventListener {

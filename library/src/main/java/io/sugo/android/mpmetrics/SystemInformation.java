@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 /**
  * Abstracts away possibly non-present system information classes,
  * and handles permission-dependent queries for default system information.
+ * @author ouwenjie
  */
 public class SystemInformation {
 

@@ -10,12 +10,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This class is for internal use in the Sugo library, and should not be imported into
- * client code.
+ * This class is for internal use in the Sugo library, and should not be imported into client code.
+ * @author ouwenjie
  */
-public abstract class ResourceReader implements ResourceIds {
+public abstract class AbsResourceReader implements ResourceIds {
 
-    public static class Ids extends ResourceReader {
+    @SuppressWarnings("unused")
+    private static final String LOGTAG = "SugoAPI.RsrcReader";
+
+    private final Context mContext;
+    private final Map<String, Integer> mIdNameToId;
+    private final SparseArray<String> mIdToIdName;
+
+    public static class Ids extends AbsResourceReader {
         public Ids(String resourcePackageName, Context context) {
             super(context);
             mResourcePackageName = resourcePackageName;
@@ -35,7 +42,7 @@ public abstract class ResourceReader implements ResourceIds {
         private final String mResourcePackageName;
     }
 
-    public static class Drawables extends ResourceReader {
+    public static class Drawables extends AbsResourceReader {
         protected Drawables(String resourcePackageName, Context context) {
             super(context);
             mResourcePackageName = resourcePackageName;
@@ -55,7 +62,7 @@ public abstract class ResourceReader implements ResourceIds {
         private final String mResourcePackageName;
     }
 
-    protected ResourceReader(Context context) {
+    protected AbsResourceReader(Context context) {
         mContext = context;
         mIdNameToId = new HashMap<String, Integer>();
         mIdToIdName = new SparseArray<String>();
@@ -104,6 +111,7 @@ public abstract class ResourceReader implements ResourceIds {
     }
 
     protected abstract Class<?> getSystemClass();
+
     protected abstract String getLocalClassName(Context context);
 
     protected void initialize() {
@@ -139,10 +147,4 @@ public abstract class ResourceReader implements ResourceIds {
         }
     }
 
-    private final Context mContext;
-    private final Map<String, Integer> mIdNameToId;
-    private final SparseArray<String> mIdToIdName;
-
-    @SuppressWarnings("unused")
-    private static final String LOGTAG = "SugoAPI.RsrcReader";
 }

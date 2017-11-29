@@ -24,12 +24,19 @@ import java.util.Set;
  * <p>Not thread-safe. Instances of this class should only be used
  * by a single thread.
  */
-/* package */ class MPDbAdapter {
+class SugoDbAdapter {
     private static final String LOGTAG = "SugoAPI.Database";
 
+    public SugoDbAdapter(Context context) {
+        this(context, DATABASE_NAME);
+    }
+
+    public SugoDbAdapter(Context context, String dbName) {
+        mDb = new SugoDatabaseHelper(context, dbName);
+    }
+
     public enum Table {
-        EVENTS("events"),
-        PEOPLE("people");
+        EVENTS("events");
 
         Table(String name) {
             mTableName = name;
@@ -56,21 +63,19 @@ import java.util.Set;
             "CREATE TABLE " + Table.EVENTS.getName() + " (_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     KEY_DATA + " STRING NOT NULL, " +
                     KEY_CREATED_AT + " INTEGER NOT NULL);";
-    private static final String CREATE_PEOPLE_TABLE =
-            "CREATE TABLE " + Table.PEOPLE.getName() + " (_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    KEY_DATA + " STRING NOT NULL, " +
-                    KEY_CREATED_AT + " INTEGER NOT NULL);";
+
     private static final String EVENTS_TIME_INDEX =
             "CREATE INDEX IF NOT EXISTS time_idx ON " + Table.EVENTS.getName() +
                     " (" + KEY_CREATED_AT + ");";
-    private static final String PEOPLE_TIME_INDEX =
-            "CREATE INDEX IF NOT EXISTS time_idx ON " + Table.PEOPLE.getName() +
-                    " (" + KEY_CREATED_AT + ");";
 
-    private final MPDatabaseHelper mDb;
+    private final SugoDatabaseHelper mDb;
 
-    private static class MPDatabaseHelper extends SQLiteOpenHelper {
-        MPDatabaseHelper(Context context, String dbName) {
+    private static class SugoDatabaseHelper extends SQLiteOpenHelper {
+
+        private final File mDatabaseFile;
+        private final SGConfig mConfig;
+
+        SugoDatabaseHelper(Context context, String dbName) {
             super(context, dbName, null, DATABASE_VERSION);
             mDatabaseFile = context.getDatabasePath(dbName);
             mConfig = SGConfig.getInstance(context);
@@ -89,11 +94,8 @@ import java.util.Set;
             if (SGConfig.DEBUG) {
                 Log.v(LOGTAG, "Creating a new Sugo events DB");
             }
-
             db.execSQL(CREATE_EVENTS_TABLE);
-            db.execSQL(CREATE_PEOPLE_TABLE);
             db.execSQL(EVENTS_TIME_INDEX);
-            db.execSQL(PEOPLE_TIME_INDEX);
         }
 
         @Override
@@ -101,13 +103,9 @@ import java.util.Set;
             if (SGConfig.DEBUG) {
                 Log.v(LOGTAG, "Upgrading app, replacing Sugo events DB");
             }
-
             db.execSQL("DROP TABLE IF EXISTS " + Table.EVENTS.getName());
-            db.execSQL("DROP TABLE IF EXISTS " + Table.PEOPLE.getName());
             db.execSQL(CREATE_EVENTS_TABLE);
-            db.execSQL(CREATE_PEOPLE_TABLE);
             db.execSQL(EVENTS_TIME_INDEX);
-            db.execSQL(PEOPLE_TIME_INDEX);
         }
 
         public boolean belowMemThreshold() {
@@ -117,16 +115,6 @@ import java.util.Set;
             return true;
         }
 
-        private final File mDatabaseFile;
-        private final SGConfig mConfig;
-    }
-
-    public MPDbAdapter(Context context) {
-        this(context, DATABASE_NAME);
-    }
-
-    public MPDbAdapter(Context context, String dbName) {
-        mDb = new MPDatabaseHelper(context, dbName);
     }
 
     /**

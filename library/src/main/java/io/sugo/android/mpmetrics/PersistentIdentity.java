@@ -18,7 +18,25 @@ import java.util.concurrent.Future;
 
 // In order to use writeEdits, we have to suppress the linter's check for commit()/apply()
 @SuppressLint("CommitPrefEdits")
-/* package */ class PersistentIdentity {
+class PersistentIdentity {
+
+    private static final String LOGTAG = "SugoAPI.PIdentity";
+
+    private final Future<SharedPreferences> mLoadStoredPreferences;
+    private final Future<SharedPreferences> mLoadReferrerPreferences;
+    private final Future<SharedPreferences> mTimeEventsPreferences;
+    private final Future<SharedPreferences> mSugoPreferences;
+    private final SharedPreferences.OnSharedPreferenceChangeListener mReferrerChangeListener;
+    private JSONObject mSuperPropertiesCache;
+    private Map<String, String> mReferrerPropertiesCache;
+    private boolean mIdentitiesLoaded;
+    private String mEventsDistinctId;
+    private String mPeopleDistinctId;
+    private boolean mTrackedIntegration;
+    private JSONArray mWaitingPeopleRecords;
+
+    private static boolean sReferrerPrefsDirty = true;
+    private static final Object sReferrerPrefsLock = new Object();
 
     // Should ONLY be called from an OnPrefsLoadedListener (since it should NEVER be called concurrently)
     public static JSONArray waitingPeopleRecordsForSending(SharedPreferences storedPreferences) {
@@ -513,20 +531,4 @@ import java.util.concurrent.Future;
         editor.apply();
     }
 
-    private final Future<SharedPreferences> mLoadStoredPreferences;
-    private final Future<SharedPreferences> mLoadReferrerPreferences;
-    private final Future<SharedPreferences> mTimeEventsPreferences;
-    private final Future<SharedPreferences> mSugoPreferences;
-    private final SharedPreferences.OnSharedPreferenceChangeListener mReferrerChangeListener;
-    private JSONObject mSuperPropertiesCache;
-    private Map<String, String> mReferrerPropertiesCache;
-    private boolean mIdentitiesLoaded;
-    private String mEventsDistinctId;
-    private String mPeopleDistinctId;
-    private boolean mTrackedIntegration;
-    private JSONArray mWaitingPeopleRecords;
-
-    private static boolean sReferrerPrefsDirty = true;
-    private static final Object sReferrerPrefsLock = new Object();
-    private static final String LOGTAG = "SugoAPI.PIdentity";
 }
