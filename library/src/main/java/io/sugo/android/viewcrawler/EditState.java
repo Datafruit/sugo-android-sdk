@@ -20,7 +20,14 @@ import java.util.Set;
  * Some client is responsible for informing the EditState about the presence or absence
  * of Activities, by calling {@link EditState#add(android.app.Activity)} and {@link EditState#remove(android.app.Activity)}
  */
-/* package */ class EditState extends UIThreadSet<Activity> {
+class EditState extends UIThreadSet<Activity> {
+
+    @SuppressWarnings("unused")
+    private static final String LOGTAG = "SugoAPI.EditState";
+
+    private final Handler mUiThreadHandler;
+    private final Map<String, List<ViewVisitor>> mIntendedEdits;
+    private final Set<EditBinding> mCurrentEdits;
 
     public EditState() {
         mUiThreadHandler = new Handler(Looper.getMainLooper());
@@ -128,6 +135,13 @@ import java.util.Set;
 
     /* The binding between a bunch of edits and a view. Should be instantiated and live on the UI thread */
     private static class EditBinding implements ViewTreeObserver.OnGlobalLayoutListener, Runnable {
+
+        private volatile boolean mDying;
+        private boolean mAlive;
+        private final WeakReference<View> mViewRoot;
+        private final ViewVisitor mEdit;
+        private final Handler mHandler;
+
         public EditBinding(View viewRoot, ViewVisitor edit, Handler uiThreadHandler) {
             mEdit = edit;
             mViewRoot = new WeakReference<View>(viewRoot);
@@ -187,17 +201,6 @@ import java.util.Set;
             mAlive = false;
         }
 
-        private volatile boolean mDying;
-        private boolean mAlive;
-        private final WeakReference<View> mViewRoot;
-        private final ViewVisitor mEdit;
-        private final Handler mHandler;
     }
 
-    private final Handler mUiThreadHandler;
-    private final Map<String, List<ViewVisitor>> mIntendedEdits;
-    private final Set<EditBinding> mCurrentEdits;
-
-    @SuppressWarnings("unused")
-    private static final String LOGTAG = "SugoAPI.EditState";
 }

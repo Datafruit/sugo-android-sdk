@@ -27,7 +27,7 @@ import io.sugo.android.mpmetrics.SugoAPI;
  * <p>
  * - Calls SugoAPI.track
  */
-/* package */ class DynamicEventTracker implements ViewVisitor.OnEventListener {
+class DynamicEventTracker implements ViewVisitor.OnEventListener {
 
     public DynamicEventTracker(SugoAPI sugoAPI, Handler homeHandler) {
         mSugo = sugoAPI;

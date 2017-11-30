@@ -6,7 +6,17 @@ import android.view.View;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-/* package */ class Caller {
+class Caller {
+
+    @SuppressWarnings("unused")
+    private static final String LOGTAG = "SugoABTest.Caller";
+
+    private final String mMethodName;
+    private final Object[] mMethodArgs;
+    private final Class<?> mMethodResultType;
+    private final Class<?> mTargetClass;
+    private final Method mTargetMethod;
+
     public Caller(Class<?> targetClass, String methodName, Object[] methodArgs, Class<?> resultType)
         throws NoSuchMethodException {
         mMethodName = methodName;
@@ -149,12 +159,4 @@ import java.lang.reflect.Method;
         return null;
     }
 
-    private final String mMethodName;
-    private final Object[] mMethodArgs;
-    private final Class<?> mMethodResultType;
-    private final Class<?> mTargetClass;
-    private final Method mTargetMethod;
-
-    @SuppressWarnings("unused")
-    private static final String LOGTAG = "SugoABTest.Caller";
 }

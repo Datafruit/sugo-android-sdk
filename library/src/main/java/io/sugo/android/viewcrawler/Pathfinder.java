@@ -16,6 +16,15 @@ import java.util.List;
  */
 class Pathfinder {
 
+    @SuppressWarnings("unused")
+    private static final String LOGTAG = "SugoAPI.PathFinder";
+
+    private final IntStack mIndexStack;
+
+    public Pathfinder() {
+        mIndexStack = new IntStack();
+    }
+
     /**
      * a path element E matches a view V if each non "prefix" or "index"
      * attribute of E is equal to (or characteristic of) V.
@@ -102,10 +111,6 @@ class Pathfinder {
 
     public interface Accumulator {
         public void accumulate(View v);
-    }
-
-    public Pathfinder() {
-        mIndexStack = new IntStack();
     }
 
     public void findTargetsInRoot(View givenRootView, List<PathElement> path, Accumulator accumulator) {
@@ -315,8 +320,4 @@ class Pathfinder {
         private static final int MAX_INDEX_STACK_SIZE = 256;
     }
 
-    private final IntStack mIndexStack;
-
-    @SuppressWarnings("unused")
-    private static final String LOGTAG = "SugoAPI.PathFinder";
 }

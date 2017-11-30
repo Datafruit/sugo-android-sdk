@@ -1,7 +1,9 @@
 package io.sugo.android.mpmetrics;
 
 /**
- * Created by fengxj on 1/4/17.
+ *
+ * @author fengxj
+ * @date 1/4/17
  */
 
 public interface WebViewDelegate {

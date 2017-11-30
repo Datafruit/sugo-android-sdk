@@ -27,6 +27,17 @@ import java.lang.reflect.Method;
  */
 public class SystemInformation {
 
+    private static final String LOGTAG = "SugoAPI.SysInfo";
+
+    private final Context mContext;
+
+    // Unchanging facts
+    private final Boolean mHasNFC;
+    private final Boolean mHasTelephony;
+    private final DisplayMetrics mDisplayMetrics;
+    private final String mAppVersionName;
+    private final Integer mAppVersionCode;
+
     public SystemInformation(Context context) {
         mContext = context;
 
@@ -267,14 +278,4 @@ public class SystemInformation {
         return bluetoothVersion;
     }
 
-    private final Context mContext;
-
-    // Unchanging facts
-    private final Boolean mHasNFC;
-    private final Boolean mHasTelephony;
-    private final DisplayMetrics mDisplayMetrics;
-    private final String mAppVersionName;
-    private final Integer mAppVersionCode;
-
-    private static final String LOGTAG = "SugoAPI.SysInfo";
 }

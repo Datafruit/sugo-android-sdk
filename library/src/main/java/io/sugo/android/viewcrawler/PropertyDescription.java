@@ -1,6 +1,13 @@
 package io.sugo.android.viewcrawler;
 
-/* package */ class PropertyDescription {
+class PropertyDescription {
+
+    public final String name;
+    public final Class<?> targetClass;
+    public final Caller accessor;
+
+    private final String mMutatorName;
+
     public PropertyDescription(String name, Class<?> targetClass, Caller accessor, String mutatorName) {
         this.name = name;
         this.targetClass = targetClass;
@@ -23,9 +30,4 @@ package io.sugo.android.viewcrawler;
         return "[PropertyDescription " + name + "," + targetClass + ", " + accessor + "/" + mMutatorName + "]";
     }
 
-    public final String name;
-    public final Class<?> targetClass;
-    public final Caller accessor;
-
-    private final String mMutatorName;
 }

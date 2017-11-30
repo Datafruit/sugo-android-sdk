@@ -20,7 +20,9 @@ import io.sugo.android.util.StringEscapeUtils;
 import io.sugo.android.viewcrawler.ViewCrawler;
 
 /**
- * Created by fengxj on 10/31/16.
+ *
+ * @author fengxj
+ * @date 10/31/16
  */
 
 public class SugoWebViewClient extends WebViewClient {

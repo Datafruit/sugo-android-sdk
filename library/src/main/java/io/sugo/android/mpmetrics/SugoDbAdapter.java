@@ -25,6 +25,7 @@ import java.util.Set;
  * by a single thread.
  */
 class SugoDbAdapter {
+
     private static final String LOGTAG = "SugoAPI.Database";
 
     public SugoDbAdapter(Context context) {

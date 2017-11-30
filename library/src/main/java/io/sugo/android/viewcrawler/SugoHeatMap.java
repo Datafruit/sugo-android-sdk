@@ -15,7 +15,9 @@ import io.sugo.android.mpmetrics.SugoAPI;
 import static io.sugo.android.viewcrawler.ViewCrawler.SHARED_PREF_EDITS_FILE;
 
 /**
- * Created by Ouwenjie on 2017/5/11.
+ *
+ * @author Ouwenjie
+ * @date 2017/5/11
  */
 
 public class SugoHeatMap {

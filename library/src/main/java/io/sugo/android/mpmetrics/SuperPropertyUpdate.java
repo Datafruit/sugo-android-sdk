@@ -6,6 +6,8 @@ import org.json.JSONObject;
  * Use SuperPropertyUpdate objects to make changes to super properties
  * in place, in a thread-safe way. See {@link SugoAPI#updateSuperProperties(SuperPropertyUpdate)}
  * for details.
+ *
+ * @author Administrator
  */
 public interface SuperPropertyUpdate {
     /**
@@ -16,5 +18,5 @@ public interface SuperPropertyUpdate {
      * @param oldValues the existing super properties
      * @return a new set of super properties that will be sent with every event.
      */
-    public JSONObject update(JSONObject oldValues);
+    JSONObject update(JSONObject oldValues);
 }

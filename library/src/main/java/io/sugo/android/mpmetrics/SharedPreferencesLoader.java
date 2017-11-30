@@ -12,7 +12,7 @@ import java.util.concurrent.FutureTask;
 class SharedPreferencesLoader {
 
     interface OnPrefsLoadedListener {
-        public void onPrefsLoaded(SharedPreferences prefs);
+        void onPrefsLoaded(SharedPreferences prefs);
     }
 
     public SharedPreferencesLoader() {

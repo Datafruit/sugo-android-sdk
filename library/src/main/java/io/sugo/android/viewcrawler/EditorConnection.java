@@ -24,28 +24,18 @@ import io.sugo.android.mpmetrics.SGConfig;
  * EditorClient should handle all communication to and from the socket. It should be fairly naive and
  * only know how to delegate messages to the ABHandler class.
  */
-/* package */ class EditorConnection {
+class EditorConnection {
 
-    public class EditorConnectionException extends IOException {
-        private static final long serialVersionUID = -1884953175346045636L;
+    private static final String LOGTAG = "SugoAPI.EditorCnctn";
 
-        public EditorConnectionException(Throwable cause) {
-            super(cause.getMessage()); // IOException(cause) is only available in API level 9!
-        }
-    }
+    private final Editor mService;
+    private final EditorClient mClient;
+    private final URI mURI;
 
-    public interface Editor {
-        public void sendSnapshot(JSONObject message);
-        public void performEdit(JSONObject message);
-        public void clearEdits(JSONObject message);
-        public void bindEvents(JSONObject message);
-        public void setTweaks(JSONObject message);
-        public void sendDeviceInfo();
-        public void cleanup();
-    }
+    private static final int CONNECT_TIMEOUT = 5000;
+    private static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocate(0);
 
-    public EditorConnection(URI uri, Editor service, Socket sslSocket)
-            throws EditorConnectionException {
+    public EditorConnection(URI uri, Editor service, Socket sslSocket) throws EditorConnectionException {
         mService = service;
         mURI = uri;
         try {
@@ -62,6 +52,30 @@ import io.sugo.android.mpmetrics.SGConfig;
 
     public BufferedOutputStream getBufferedOutputStream() {
         return new BufferedOutputStream(new WebSocketOutputStream());
+    }
+
+    public class EditorConnectionException extends IOException {
+        private static final long serialVersionUID = -1884953175346045636L;
+
+        public EditorConnectionException(Throwable cause) {
+            super(cause.getMessage()); // IOException(cause) is only available in API level 9!
+        }
+    }
+
+    public interface Editor {
+        void sendSnapshot(JSONObject message);
+
+        void performEdit(JSONObject message);
+
+        void clearEdits(JSONObject message);
+
+        void bindEvents(JSONObject message);
+
+        void setTweaks(JSONObject message);
+
+        void sendDeviceInfo();
+
+        void cleanup();
     }
 
     private class EditorClient extends WebSocketClient {
@@ -124,7 +138,7 @@ import io.sugo.android.mpmetrics.SGConfig;
     private class WebSocketOutputStream extends OutputStream {
         @Override
         public void write(int b)
-            throws EditorConnectionException {
+                throws EditorConnectionException {
             // This should never be called.
             final byte[] oneByte = new byte[1];
             oneByte[0] = (byte) b;
@@ -133,13 +147,13 @@ import io.sugo.android.mpmetrics.SGConfig;
 
         @Override
         public void write(byte[] b)
-            throws EditorConnectionException {
+                throws EditorConnectionException {
             write(b, 0, b.length);
         }
 
         @Override
         public void write(byte[] b, int off, int len)
-            throws EditorConnectionException {
+                throws EditorConnectionException {
             final ByteBuffer message = ByteBuffer.wrap(b, off, len);
             try {
                 mClient.sendFragmentedFrame(Framedata.Opcode.TEXT, message, false);
@@ -152,7 +166,7 @@ import io.sugo.android.mpmetrics.SGConfig;
 
         @Override
         public void close()
-            throws EditorConnectionException {
+                throws EditorConnectionException {
             try {
                 mClient.sendFragmentedFrame(Framedata.Opcode.TEXT, EMPTY_BYTE_BUFFER, true);
             } catch (final WebsocketNotConnectedException e) {
@@ -163,12 +177,4 @@ import io.sugo.android.mpmetrics.SGConfig;
         }
     }
 
-    private final Editor mService;
-    private final EditorClient mClient;
-    private final URI mURI;
-
-    private static final int CONNECT_TIMEOUT = 5000;
-    private static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocate(0);
-
-    private static final String LOGTAG = "SugoAPI.EditorCnctn";
 }

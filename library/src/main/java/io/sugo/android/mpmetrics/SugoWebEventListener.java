@@ -81,7 +81,8 @@ public class SugoWebEventListener {
 
     public static void bindEvents(String token, JSONArray eventBindings) {
         eventBindingsMap.put(token, eventBindings);
-        if (SugoAPI.developmentMode) {      // 只在连接编辑器模式下操作
+        // 只在连接编辑器模式下操作
+        if (SugoAPI.developmentMode) {
             updateWebViewInject();
         } else {
             sCurrentWebView.clear();

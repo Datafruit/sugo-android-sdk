@@ -402,13 +402,6 @@ public class SugoAPI {
             messageProps.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance().getCurrentPageName(mContext));
             messageProps.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance().getCurrentPageCategory(mContext));
 
-            final Map<String, String> referrerProperties = mPersistentIdentity.getReferrerProperties();
-            for (final Map.Entry<String, String> entry : referrerProperties.entrySet()) {
-                final String key = entry.getKey();
-                final String value = entry.getValue();
-                messageProps.put(key, value);
-            }
-
             mPersistentIdentity.addSuperPropertiesToObject(messageProps);
 
             // Don't allow super properties or referral properties to override these fields,
@@ -770,8 +763,6 @@ public class SugoAPI {
 
     private PersistentIdentity getPersistentIdentity(final Context context, final String token) {
 
-        final Future<SharedPreferences> referrerPrefs = sPrefsLoader.loadPreferences(context, SGConfig.REFERRER_PREFS_NAME, null);
-
         final String prefsName = "io.sugo.android.mpmetrics.SugoAPI_" + token;
         final Future<SharedPreferences> storedPreferences = sPrefsLoader.loadPreferences(context, prefsName, null);
 
@@ -781,7 +772,7 @@ public class SugoAPI {
         final String sugoPrefsName = "io.sugo.android.mpmetrics.SugoAPI_" + token;
         final Future<SharedPreferences> sugoPrefs = sPrefsLoader.loadPreferences(context, sugoPrefsName, null);
 
-        return new PersistentIdentity(referrerPrefs, storedPreferences, timeEventsPrefs, sugoPrefs);
+        return new PersistentIdentity(storedPreferences, timeEventsPrefs, sugoPrefs);
     }
 
     private UpdatesFromSugo constructUpdatesFromSugo(final Context context, final String token) {

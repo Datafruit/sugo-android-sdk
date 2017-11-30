@@ -1,8 +1,6 @@
 package io.sugo.android.viewcrawler;
 
 import android.annotation.TargetApi;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -33,7 +31,46 @@ import java.util.WeakHashMap;
 import io.sugo.android.mpmetrics.SGConfig;
 
 @TargetApi(SGConfig.UI_FEATURES_MIN_API)
-/* package */ abstract class ViewVisitor implements Pathfinder.Accumulator {
+abstract class ViewVisitor implements Pathfinder.Accumulator {
+
+    private static final String LOGTAG = "SugoAPI.ViewVisitor";
+
+    private final List<Pathfinder.PathElement> mPath;
+    private final Pathfinder mPathfinder;
+    private View mRootView;
+
+    protected ViewVisitor(List<Pathfinder.PathElement> path) {
+        mPath = path;
+        mPathfinder = new Pathfinder();
+    }
+
+    /**
+     * Removes listeners and frees resources associated with the visitor. Once cleanup is called,
+     * the ViewVisitor should not be used again.
+     */
+    public abstract void cleanup();
+
+    protected abstract String name();
+
+    /**
+     * Scans the View hierarchy below rootView, applying it's operation to each matching child view.
+     */
+    public void visit(View rootView) {
+        mRootView = rootView;
+        mPathfinder.findTargetsInRoot(rootView, mPath, this);
+    }
+
+    protected List<Pathfinder.PathElement> getPath() {
+        return mPath;
+    }
+
+    protected Pathfinder getPathfinder() {
+        return mPathfinder;
+    }
+
+    protected View getRootView() {
+        return mRootView;
+    }
 
     /**
      * OnEvent will be fired when whatever the ViewVisitor installed fires
@@ -64,90 +101,6 @@ import io.sugo.android.mpmetrics.SGConfig;
 
         private final String mErrorType;
         private final String mName;
-    }
-
-    /**
-     * Attempts to apply mutator to every matching view. Use this to update properties
-     * in the view hierarchy. If accessor is non-null, it will be used to attempt to
-     * prevent calls to the mutator if the property already has the intended value.
-     */
-    public static class PropertySetVisitor extends ViewVisitor {
-        public PropertySetVisitor(List<Pathfinder.PathElement> path, Caller mutator, Caller accessor) {
-            super(path);
-            mMutator = mutator;
-            mAccessor = accessor;
-            mOriginalValueHolder = new Object[1];
-            mOriginalValues = new WeakHashMap<View, Object>();
-        }
-
-        @Override
-        public void cleanup() {
-            for (Map.Entry<View, Object> original : mOriginalValues.entrySet()) {
-                final View changedView = original.getKey();
-                final Object originalValue = original.getValue();
-                if (null != originalValue) {
-                    mOriginalValueHolder[0] = originalValue;
-                    mMutator.applyMethodWithArguments(changedView, mOriginalValueHolder);
-                }
-            }
-        }
-
-        @Override
-        public void accumulate(View found) {
-            if (null != mAccessor) {
-                final Object[] setArgs = mMutator.getArgs();
-                if (1 == setArgs.length) {
-                    final Object desiredValue = setArgs[0];
-                    final Object currentValue = mAccessor.applyMethod(found);
-
-                    if (desiredValue == currentValue) {
-                        return;
-                    }
-
-                    if (null != desiredValue) {
-                        if (desiredValue instanceof Bitmap && currentValue instanceof Bitmap) {
-                            final Bitmap desiredBitmap = (Bitmap) desiredValue;
-                            final Bitmap currentBitmap = (Bitmap) currentValue;
-                            if (desiredBitmap.sameAs(currentBitmap)) {
-                                return;
-                            }
-                        } else if (desiredValue instanceof BitmapDrawable && currentValue instanceof BitmapDrawable) {
-                            final Bitmap desiredBitmap = ((BitmapDrawable) desiredValue).getBitmap();
-                            final Bitmap currentBitmap = ((BitmapDrawable) currentValue).getBitmap();
-                            if (desiredBitmap != null && desiredBitmap.sameAs(currentBitmap)) {
-                                return;
-                            }
-                        } else if (desiredValue.equals(currentValue)) {
-                            return;
-                        }
-                    }
-
-                    if (currentValue instanceof Bitmap ||
-                            currentValue instanceof BitmapDrawable ||
-                            mOriginalValues.containsKey(found)) {
-                        ; // Cache exactly one non-image original value
-                    } else {
-                        mOriginalValueHolder[0] = currentValue;
-                        if (mMutator.argsAreApplicable(mOriginalValueHolder)) {
-                            mOriginalValues.put(found, currentValue);
-                        } else {
-                            mOriginalValues.put(found, null);
-                        }
-                    }
-                }
-            }
-
-            mMutator.applyMethod(found);
-        }
-
-        protected String name() {
-            return "Property Mutator";
-        }
-
-        private final Caller mMutator;
-        private final Caller mAccessor;
-        private final WeakHashMap<View, Object> mOriginalValues;
-        private final Object[] mOriginalValueHolder;
     }
 
     private static class CycleDetector {
@@ -325,6 +278,7 @@ import io.sugo.android.mpmetrics.SGConfig;
             return mCycleDetector.hasCycle(dependencyGraph);
         }
 
+        @Override
         protected String name() {
             return "Layout Update";
         }
@@ -651,41 +605,4 @@ import io.sugo.android.mpmetrics.SGConfig;
         private String mEventTypeString;
     }
 
-    /**
-     * Scans the View hierarchy below rootView, applying it's operation to each matching child view.
-     */
-    public void visit(View rootView) {
-        mRootView = rootView;
-        mPathfinder.findTargetsInRoot(rootView, mPath, this);
-    }
-
-    /**
-     * Removes listeners and frees resources associated with the visitor. Once cleanup is called,
-     * the ViewVisitor should not be used again.
-     */
-    public abstract void cleanup();
-
-    protected ViewVisitor(List<Pathfinder.PathElement> path) {
-        mPath = path;
-        mPathfinder = new Pathfinder();
-    }
-
-    protected List<Pathfinder.PathElement> getPath() {
-        return mPath;
-    }
-
-    protected Pathfinder getPathfinder() {
-        return mPathfinder;
-    }
-
-    protected View getRootView() {
-        return mRootView;
-    }
-
-    protected abstract String name();
-
-    private final List<Pathfinder.PathElement> mPath;
-    private final Pathfinder mPathfinder;
-    private View mRootView;
-    private static final String LOGTAG = "SugoAPI.ViewVisitor";
 }

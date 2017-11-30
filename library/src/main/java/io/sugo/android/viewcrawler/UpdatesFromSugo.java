@@ -8,12 +8,19 @@ import org.json.JSONArray;
    implemented in client code. */
 public interface UpdatesFromSugo {
     void startUpdates();
+
     void sendTestEvent(JSONArray events);
+
     void setEventBindings(JSONArray bindings);
+
     void setH5EventBindings(JSONArray bindings);
+
     void setPageInfos(JSONArray pageInfos);
+
     void setDimensions(JSONArray dimensions);
+
     void setXWalkViewListener(XWalkViewListener XWalkViewListener);
+
     boolean sendConnectEditor(Uri data);
 
 }

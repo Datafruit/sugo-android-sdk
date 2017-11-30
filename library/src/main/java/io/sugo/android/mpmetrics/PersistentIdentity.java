@@ -1,11 +1,9 @@
 package io.sugo.android.mpmetrics;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -23,86 +21,22 @@ class PersistentIdentity {
     private static final String LOGTAG = "SugoAPI.PIdentity";
 
     private final Future<SharedPreferences> mLoadStoredPreferences;
-    private final Future<SharedPreferences> mLoadReferrerPreferences;
     private final Future<SharedPreferences> mTimeEventsPreferences;
     private final Future<SharedPreferences> mSugoPreferences;
-    private final SharedPreferences.OnSharedPreferenceChangeListener mReferrerChangeListener;
     private JSONObject mSuperPropertiesCache;
-    private Map<String, String> mReferrerPropertiesCache;
     private boolean mIdentitiesLoaded;
     private String mEventsDistinctId;
-    private String mPeopleDistinctId;
     private boolean mTrackedIntegration;
-    private JSONArray mWaitingPeopleRecords;
 
-    private static boolean sReferrerPrefsDirty = true;
-    private static final Object sReferrerPrefsLock = new Object();
-
-    // Should ONLY be called from an OnPrefsLoadedListener (since it should NEVER be called concurrently)
-    public static JSONArray waitingPeopleRecordsForSending(SharedPreferences storedPreferences) {
-        JSONArray ret = null;
-        final String peopleDistinctId = storedPreferences.getString("people_distinct_id", null);
-        final String waitingPeopleRecords = storedPreferences.getString("waiting_array", null);
-        if ((null != waitingPeopleRecords) && (null != peopleDistinctId)) {
-            JSONArray waitingObjects = null;
-            try {
-                waitingObjects = new JSONArray(waitingPeopleRecords);
-            } catch (final JSONException e) {
-                Log.e(LOGTAG, "Waiting people records were unreadable.");
-                return null;
-            }
-
-            ret = new JSONArray();
-            for (int i = 0; i < waitingObjects.length(); i++) {
-                try {
-                    final JSONObject ob = waitingObjects.getJSONObject(i);
-                    ob.put("$distinct_id", peopleDistinctId);
-                    ret.put(ob);
-                } catch (final JSONException e) {
-                    Log.e(LOGTAG, "Unparsable object found in waiting people records", e);
-                }
-            }
-
-            final SharedPreferences.Editor editor = storedPreferences.edit();
-            editor.remove("waiting_array");
-            writeEdits(editor);
-        }
-        return ret;
-    }
-
-    public static void writeReferrerPrefs(Context context, String preferencesName, Map<String, String> properties) {
-        synchronized (sReferrerPrefsLock) {
-            final SharedPreferences referralInfo = context.getSharedPreferences(preferencesName, Context.MODE_PRIVATE);
-            final SharedPreferences.Editor editor = referralInfo.edit();
-            editor.clear();
-            for (final Map.Entry<String, String> entry : properties.entrySet()) {
-                editor.putString(entry.getKey(), entry.getValue());
-            }
-            writeEdits(editor);
-            sReferrerPrefsDirty = true;
-        }
-    }
-
-    public PersistentIdentity(Future<SharedPreferences> referrerPreferences,
-                              Future<SharedPreferences> storedPreferences,
-                              Future<SharedPreferences> timeEventsPreferences,
-                              Future<SharedPreferences> sugoPreferences) {
-        mLoadReferrerPreferences = referrerPreferences;
+    PersistentIdentity(
+            Future<SharedPreferences> storedPreferences,
+            Future<SharedPreferences> timeEventsPreferences,
+            Future<SharedPreferences> sugoPreferences) {
         mLoadStoredPreferences = storedPreferences;
         mTimeEventsPreferences = timeEventsPreferences;
         mSugoPreferences = sugoPreferences;
         mSuperPropertiesCache = null;
-        mReferrerPropertiesCache = null;
         mIdentitiesLoaded = false;
-        mReferrerChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-            @Override
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                synchronized (sReferrerPrefsLock) {
-                    readReferrerProperties();
-                    sReferrerPrefsDirty = false;
-                }
-            }
-        };
     }
 
     void writeUserLoginTime(String userId, long time) {
@@ -200,16 +134,6 @@ class PersistentIdentity {
         storeSuperProperties();
     }
 
-    public Map<String, String> getReferrerProperties() {
-        synchronized (sReferrerPrefsLock) {
-            if (sReferrerPrefsDirty || null == mReferrerPropertiesCache) {
-                readReferrerProperties();
-                sReferrerPrefsDirty = false;
-            }
-        }
-        return mReferrerPropertiesCache;
-    }
-
     public synchronized String getEventsDistinctId() {
         if (!mIdentitiesLoaded) {
             readIdentities();
@@ -272,45 +196,6 @@ class PersistentIdentity {
         }
 
         storeSuperProperties();
-    }
-
-    public synchronized void storePushId(String registrationId) {
-        try {
-            final SharedPreferences prefs = mLoadStoredPreferences.get();
-            final SharedPreferences.Editor editor = prefs.edit();
-            editor.putString("push_id", registrationId);
-            writeEdits(editor);
-        } catch (final ExecutionException e) {
-            Log.e(LOGTAG, "Can't write push id to shared preferences", e.getCause());
-        } catch (final InterruptedException e) {
-            Log.e(LOGTAG, "Can't write push id to shared preferences", e);
-        }
-    }
-
-    public synchronized void clearPushId() {
-        try {
-            final SharedPreferences prefs = mLoadStoredPreferences.get();
-            final SharedPreferences.Editor editor = prefs.edit();
-            editor.remove("push_id");
-            writeEdits(editor);
-        } catch (final ExecutionException e) {
-            Log.e(LOGTAG, "Can't write push id to shared preferences", e.getCause());
-        } catch (final InterruptedException e) {
-            Log.e(LOGTAG, "Can't write push id to shared preferences", e);
-        }
-    }
-
-    public synchronized String getPushId() {
-        String ret = null;
-        try {
-            final SharedPreferences prefs = mLoadStoredPreferences.get();
-            ret = prefs.getString("push_id", null);
-        } catch (final ExecutionException e) {
-            Log.e(LOGTAG, "Can't write push id to shared preferences", e.getCause());
-        } catch (final InterruptedException e) {
-            Log.e(LOGTAG, "Can't write push id to shared preferences", e);
-        }
-        return ret;
     }
 
     public synchronized void unregisterSuperProperty(String superPropertyName) {
@@ -423,28 +308,6 @@ class PersistentIdentity {
     }
 
     // All access should be synchronized on this
-    private void readReferrerProperties() {
-        mReferrerPropertiesCache = new HashMap<String, String>();
-
-        try {
-            final SharedPreferences referrerPrefs = mLoadReferrerPreferences.get();
-            referrerPrefs.unregisterOnSharedPreferenceChangeListener(mReferrerChangeListener);
-            referrerPrefs.registerOnSharedPreferenceChangeListener(mReferrerChangeListener);
-
-            final Map<String, ?> prefsMap = referrerPrefs.getAll();
-            for (final Map.Entry<String, ?> entry : prefsMap.entrySet()) {
-                final String prefsName = entry.getKey();
-                final Object prefsVal = entry.getValue();
-                mReferrerPropertiesCache.put(prefsName, prefsVal.toString());
-            }
-        } catch (final ExecutionException e) {
-            Log.e(LOGTAG, "Cannot load referrer properties from shared preferences.", e.getCause());
-        } catch (final InterruptedException e) {
-            Log.e(LOGTAG, "Cannot load referrer properties from shared preferences.", e);
-        }
-    }
-
-    // All access should be synchronized on this
     private void storeSuperProperties() {
         if (null == mSuperPropertiesCache) {
             Log.e(LOGTAG, "storeSuperProperties should not be called with uninitialized superPropertiesCache.");
@@ -484,18 +347,7 @@ class PersistentIdentity {
         }
 
         mEventsDistinctId = prefs.getString("events_distinct_id", null);
-        mPeopleDistinctId = prefs.getString("people_distinct_id", null);
         mTrackedIntegration = prefs.getBoolean("tracked_integration", false);
-        mWaitingPeopleRecords = null;
-
-        final String storedWaitingRecord = prefs.getString("waiting_array", null);
-        if (storedWaitingRecord != null) {
-            try {
-                mWaitingPeopleRecords = new JSONArray(storedWaitingRecord);
-            } catch (final JSONException e) {
-                Log.e(LOGTAG, "Could not interpret waiting people JSON record " + storedWaitingRecord);
-            }
-        }
 
         if (null == mEventsDistinctId) {
             mEventsDistinctId = UUID.randomUUID().toString();
@@ -512,12 +364,6 @@ class PersistentIdentity {
             final SharedPreferences.Editor prefsEditor = prefs.edit();
 
             prefsEditor.putString("events_distinct_id", mEventsDistinctId);
-            prefsEditor.putString("people_distinct_id", mPeopleDistinctId);
-            if (mWaitingPeopleRecords == null) {
-                prefsEditor.remove("waiting_array");
-            } else {
-                prefsEditor.putString("waiting_array", mWaitingPeopleRecords.toString());
-            }
             prefsEditor.putBoolean("tracked_integration", mTrackedIntegration);
             writeEdits(prefsEditor);
         } catch (final ExecutionException e) {

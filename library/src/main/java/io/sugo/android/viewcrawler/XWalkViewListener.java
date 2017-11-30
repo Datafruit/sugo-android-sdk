@@ -7,7 +7,9 @@ import android.view.View;
 import org.json.JSONArray;
 
 /**
- * Created by Administrator on 2017/2/8.
+ *
+ * @author Administrator
+ * @date 2017/2/8
  */
 
 public interface XWalkViewListener {

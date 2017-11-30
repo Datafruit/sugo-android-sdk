@@ -52,9 +52,20 @@ import io.sugo.android.mpmetrics.SugoAPI;
 import io.sugo.android.mpmetrics.SugoWebNodeReporter;
 
 @TargetApi(SGConfig.UI_FEATURES_MIN_API)
-/* package */ class ViewSnapshot {
+class ViewSnapshot {
 
-    public ViewSnapshot(List<PropertyDescription> properties, ResourceIds resourceIds) {
+    @SuppressWarnings("unused")
+    private static final String LOGTAG = "SugoAPI.Snapshot";
+
+    private final RootViewFinder mRootViewFinder;
+    private final List<PropertyDescription> mProperties;
+    private final ClassNameCache mClassnameCache;
+    private final Handler mMainThreadHandler;
+    private final ResourceIds mResourceIds;
+    private XWalkViewListener mXWalkViewListener;
+    private static final int MAX_CLASS_NAME_CACHE_SIZE = 255;
+
+    ViewSnapshot(List<PropertyDescription> properties, ResourceIds resourceIds) {
         mProperties = properties;
         mResourceIds = resourceIds;
         mMainThreadHandler = new Handler(Looper.getMainLooper());
@@ -67,7 +78,7 @@ import io.sugo.android.mpmetrics.SugoWebNodeReporter;
      * on the main UI thread, and should contain a set with elements for every activity to be
      * snapshotted. Given stream out will be written on the calling thread.
      */
-    public void snapshots(UIThreadSet<Activity> liveActivities, OutputStream out, String bitmapHash) throws IOException {
+    void snapshots(UIThreadSet<Activity> liveActivities, OutputStream out, String bitmapHash) throws IOException {
         mRootViewFinder.findInActivities(liveActivities);
         final FutureTask<List<RootViewInfo>> infoFuture = new FutureTask<List<RootViewInfo>>(mRootViewFinder);
         mMainThreadHandler.post(infoFuture);
@@ -139,19 +150,17 @@ import io.sugo.android.mpmetrics.SugoWebNodeReporter;
     }
 
     // For testing only
-    /* package */ List<PropertyDescription> getProperties() {
+    List<PropertyDescription> getProperties() {
         return mProperties;
     }
 
-    /* package */ void snapshotViewHierarchy(JsonWriter j, View rootView)
-            throws IOException {
+    private void snapshotViewHierarchy(JsonWriter j, View rootView) throws IOException {
         j.beginArray();
         snapshotView(j, rootView);
         j.endArray();
     }
 
-    private void snapshotView(JsonWriter j, View view)
-            throws IOException {
+    private void snapshotView(JsonWriter j, View view) throws IOException {
         if (view.getVisibility() != View.VISIBLE) {
             return;
         }
@@ -290,8 +299,7 @@ import io.sugo.android.mpmetrics.SugoWebNodeReporter;
         }
     }
 
-    private void addProperties(JsonWriter j, View v)
-            throws IOException {
+    private void addProperties(JsonWriter j, View v) throws IOException {
         final Class<?> viewClass = v.getClass();
         for (final PropertyDescription desc : mProperties) {
             if (desc.targetClass.isAssignableFrom(viewClass) && null != desc.accessor) {
@@ -352,6 +360,13 @@ import io.sugo.android.mpmetrics.SugoWebNodeReporter;
     }
 
     private static class RootViewFinder implements Callable<List<RootViewInfo>> {
+
+        private UIThreadSet<Activity> mLiveActivities;
+        private final List<RootViewInfo> mRootViews;
+        private final DisplayMetrics mDisplayMetrics;
+        private final CachedBitmap mCachedBitmap;
+        private final int mClientDensity = DisplayMetrics.DENSITY_DEFAULT;
+
         public RootViewFinder() {
             mDisplayMetrics = new DisplayMetrics();
             mRootViews = new ArrayList<RootViewInfo>();
@@ -446,11 +461,6 @@ import io.sugo.android.mpmetrics.SugoWebNodeReporter;
             info.screenshot = mCachedBitmap;
         }
 
-        private UIThreadSet<Activity> mLiveActivities;
-        private final List<RootViewInfo> mRootViews;
-        private final DisplayMetrics mDisplayMetrics;
-        private final CachedBitmap mCachedBitmap;
-        private final int mClientDensity = DisplayMetrics.DENSITY_DEFAULT;
     }
 
     private static class CachedBitmap {
@@ -553,14 +563,4 @@ import io.sugo.android.mpmetrics.SugoWebNodeReporter;
         public float scale;
     }
 
-    private final RootViewFinder mRootViewFinder;
-    private final List<PropertyDescription> mProperties;
-    private final ClassNameCache mClassnameCache;
-    private final Handler mMainThreadHandler;
-    private final ResourceIds mResourceIds;
-    private XWalkViewListener mXWalkViewListener;
-    private static final int MAX_CLASS_NAME_CACHE_SIZE = 255;
-
-    @SuppressWarnings("unused")
-    private static final String LOGTAG = "SugoAPI.Snapshot";
 }
