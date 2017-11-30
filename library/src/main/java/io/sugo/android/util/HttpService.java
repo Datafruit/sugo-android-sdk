@@ -24,8 +24,12 @@ import io.sugo.android.mpmetrics.SGConfig;
 
 /**
  * An HTTP utility class for internal use in the Sugo library. Not thread-safe.
+ *
+ * @author ouwenjie
  */
 public class HttpService implements RemoteService {
+
+    private static final String LOGTAG = "SugoAPI.HttpService";
 
     private static boolean sIsSugoBlocked;
     private static final int MIN_UNAVAILABLE_HTTP_RESPONSE_CODE = HttpURLConnection.HTTP_INTERNAL_ERROR;
@@ -294,5 +298,5 @@ public class HttpService implements RemoteService {
         return buffer.toByteArray();
     }
 
-    private static final String LOGTAG = "SugoAPI.Message";
+
 }

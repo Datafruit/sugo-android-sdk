@@ -376,7 +376,7 @@ public class SGConfig {
                             "    EnablePageEvent " + isEnablePageEvent() + "\n" +
                             "    FlushInterval " + getFlushInterval() + "\n" +
                             "    BulkUploadLimit " + getBulkUploadLimit() + "\n" +
-                            "    mUpdateDecideInterval " + getUpdateDecideInterval() + "\n" +
+                            "    UpdateDecideInterval " + getUpdateDecideInterval() + "\n" +
                             "    DataExpiration " + getDataExpiration() + "\n" +
                             "    ResourcePackageName " + getResourcePackageName() + "\n" +
                             "    MinimumDatabaseLimit " + getMinimumDatabaseLimit() + "\n" +

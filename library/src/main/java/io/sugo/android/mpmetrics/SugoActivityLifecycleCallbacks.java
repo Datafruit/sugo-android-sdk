@@ -67,7 +67,7 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
                 props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                 props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
                         .getCurrentPageName(activity.getClass().getCanonicalName()));
-                props.put(SGConfig.FIELD_PAGE_CATEGORY,SugoPageManager.getInstance()
+                props.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance()
                         .getCurrentPageCategory(activity.getClass().getCanonicalName()));
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -82,7 +82,7 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
                 props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                 props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
                         .getCurrentPageName(activity.getClass().getCanonicalName()));
-                props.put(SGConfig.FIELD_PAGE_CATEGORY,SugoPageManager.getInstance()
+                props.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance()
                         .getCurrentPageCategory(activity.getClass().getCanonicalName()));
                 mSugoAPI.track("浏览", props);
                 mSugoAPI.timeEvent("窗口停留");
@@ -91,8 +91,9 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
             }
         }
 
+        // 第一个界面已经显示完毕
         if (mIsLaunching) {
-            mIsLaunching = false;    // 第一个界面已经显示完毕
+            mIsLaunching = false;
         }
     }
 
@@ -113,7 +114,7 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
                         props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                         props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
                                 .getCurrentPageName(activity.getClass().getCanonicalName()));
-                        props.put(SGConfig.FIELD_PAGE_CATEGORY,SugoPageManager.getInstance()
+                        props.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance()
                                 .getCurrentPageCategory(activity.getClass().getCanonicalName()));
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -130,7 +131,7 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
                 props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                 props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
                         .getCurrentPageName(activity.getClass().getCanonicalName()));
-                props.put(SGConfig.FIELD_PAGE_CATEGORY,SugoPageManager.getInstance()
+                props.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance()
                         .getCurrentPageCategory(activity.getClass().getCanonicalName()));
                 mSugoAPI.track("窗口停留", props);
             } catch (JSONException e) {
@@ -146,7 +147,8 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
     @Override
     public void onActivityDestroyed(Activity activity) {
         // TODO: 2017/3/15 此处有 BUG （比如启动的 Activity 调用第二个 Activity 后 finish 自己 ）
-        if (activity.isTaskRoot()) {     // 最后一个被摧毁的 Activity，是应用被退出
+        // 最后一个被摧毁的 Activity，是应用被退出
+        if (activity.isTaskRoot()) {
             if (mCheckInBackground != null) {
                 mHandler.removeCallbacks(mCheckInBackground);
                 mCheckInBackground = null;
@@ -157,7 +159,7 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
                 props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
                 props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
                         .getCurrentPageName(activity.getClass().getCanonicalName()));
-                props.put(SGConfig.FIELD_PAGE_CATEGORY,SugoPageManager.getInstance()
+                props.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance()
                         .getCurrentPageCategory(activity.getClass().getCanonicalName()));
             } catch (JSONException e) {
                 e.printStackTrace();

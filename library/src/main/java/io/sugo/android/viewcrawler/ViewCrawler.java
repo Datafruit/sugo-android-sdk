@@ -14,6 +14,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Process;
+import android.text.TextUtils;
 import android.util.JsonWriter;
 import android.util.Log;
 import android.util.Pair;
@@ -142,7 +143,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
     private void restorePageInfo() {
         final SharedPreferences preferences = getSharedPreferences();
         final String storeInfo = preferences.getString(ViewCrawler.SHARED_PREF_PAGE_INFO_KEY, null);
-        if (storeInfo != null && !storeInfo.equals("")) {
+        if (!TextUtils.isEmpty(storeInfo)) {
             try {
                 SugoPageManager.getInstance().setPageInfos(new JSONArray(storeInfo));
             } catch (JSONException e) {
@@ -154,7 +155,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
     private void restoreDimensions() {
         final SharedPreferences preferences = getSharedPreferences();
         String storeInfo = preferences.getString(ViewCrawler.SHARED_PREF_DIMENSIONS_KEY, null);
-        if (storeInfo != null && !storeInfo.equals("")) {
+        if (!TextUtils.isEmpty(storeInfo)) {
             try {
                 SugoDimensionManager.getInstance().setDimensions(new JSONArray(storeInfo));
             } catch (JSONException e) {
@@ -892,7 +893,9 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                 if (mXWalkViewListener != null) {
                     mXWalkViewListener.bindEvents(mToken, eventBindings);
                 }
-                SugoDimensionManager.getInstance().setDimensions(dimensionsBindings);
+                if (dimensionsBindings != null) {
+                    SugoDimensionManager.getInstance().setDimensions(dimensionsBindings);
+                }
             } catch (final JSONException e) {
                 Log.e(LOGTAG, "Bad event bindings received", e);
                 return;

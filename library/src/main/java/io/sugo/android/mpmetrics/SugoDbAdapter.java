@@ -282,7 +282,14 @@ class SugoDbAdapter {
                     }
                 }
 
-                Set<String> dimSet = dimMap.keySet();   // 所有事件的维度 key
+                // 所有事件的维度 key
+                Set<String> dimSet = dimMap.keySet();
+                if (dimSet.isEmpty()) {
+                    if (SGConfig.DEBUG) {
+                        Log.w(LOGTAG, "dimensions is empty, the data will not send!");
+                    }
+                    return null;
+                }
                 StringBuffer buf = new StringBuffer();
                 int setSize = dimSet.size();
                 int count = 0;

@@ -48,7 +48,7 @@
 
         <meta-data
             android:name="io.sugo.android.SGConfig.UpdateDecideInterval"
-            android:value="10000" />
+            android:value="600000" />
         <meta-data
             android:name="io.sugo.android.SGConfig.ResourcePackageName"
             android:value="io.sugo.sdkdemo" />

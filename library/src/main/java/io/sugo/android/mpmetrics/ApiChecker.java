@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -57,17 +58,17 @@ class ApiChecker {
     }
 
     public void runDecideChecks(final RemoteService poster) throws RemoteService.ServiceUnavailableException {
-            final String token = mConfig.getToken();
-            final String distinctId = mConfig.getDistinctId();
-            try {
-                final Result result = runApiRequest(token, distinctId, poster);
-                if (result != null) {
-                    reportResults(result.eventBindings, result.h5EventBindings,
-                            result.pageInfo, result.dimensions);
-                }
-            } catch (final UnintelligibleMessageException e) {
-                Log.e(LOGTAG, e.getMessage(), e);
+        final String token = mConfig.getToken();
+        final String distinctId = mConfig.getDistinctId();
+        try {
+            final Result result = runApiRequest(token, distinctId, poster);
+            if (result != null) {
+                reportResults(result.eventBindings, result.h5EventBindings,
+                        result.pageInfo, result.dimensions);
             }
+        } catch (final UnintelligibleMessageException e) {
+            Log.e(LOGTAG, e.getMessage(), e);
+        }
     }
 
     public synchronized void reportResults(JSONArray eventBindings,
@@ -80,7 +81,7 @@ class ApiChecker {
         mUpdatesFromSugo.setDimensions(dimensions);
 
     }
-    
+
     static class UnintelligibleMessageException extends Exception {
         private static final long serialVersionUID = -6501269367559104957L;
 
@@ -96,8 +97,8 @@ class ApiChecker {
             Log.v(LOGTAG, "Sugo decide server response was:\n" + responseString);
         }
 
-        Result parsed = new Result();
-        if (null != responseString) {
+        Result parsed = null;
+        if (!TextUtils.isEmpty(responseString)) {
             JSONObject response;
             int newEventBindingVersion;
             try {
@@ -115,22 +116,19 @@ class ApiChecker {
                         editor.apply();
                     }
                 }
+                parsed = parseApiResponse(responseString);
+                return parsed;
             } catch (final JSONException e) {
                 final String message = "Sugo endpoint returned unparsable result:\n" + responseString;
                 throw new UnintelligibleMessageException(message, e);
             }
-
-            parsed = parseApiResponse(responseString);
         } else {
             // 没有返回配置，不覆盖旧配置
             return null;
         }
-
-        return parsed;
     }// runApiRequest
 
-    static Result parseApiResponse(String responseString)
-            throws UnintelligibleMessageException {
+    static Result parseApiResponse(String responseString) throws UnintelligibleMessageException {
         JSONObject response;
         final Result ret = new Result();
 
