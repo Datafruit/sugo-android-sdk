@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
+import com.mixpanel.android.mpmetrics.MixpanelAPI;
+
 import io.sugo.android.mpmetrics.SGConfig;
 import io.sugo.android.mpmetrics.SugoAPI;
 import io.sugo.sdkdemo.R;
@@ -19,6 +21,10 @@ public class LoadingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_loading);
 
         SugoAPI.startSugo(this, SGConfig.getInstance(this).logConfig());
+
+        String projectToken = "eed69d99b8c58fff0ec6eb9f8d7872a4";
+        MixpanelAPI mixpanel = MixpanelAPI.getInstance(this, projectToken);
+        mixpanel.track("sugo");
 
     }
 

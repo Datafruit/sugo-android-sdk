@@ -1,5 +1,6 @@
 package io.sugo.sdkdemo.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatSeekBar;
@@ -78,7 +79,7 @@ public class NativeActivity extends AppCompatActivity {
 
     }
 
-    @OnClick({R.id.back_img, R.id.a_btn, R.id.b_btn})
+    @OnClick({R.id.back_img, R.id.a_btn, R.id.b_btn, R.id.to_fragments_btn})
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.back_img:
@@ -93,6 +94,9 @@ public class NativeActivity extends AppCompatActivity {
                 break;
             case R.id.b_btn:
                 SugoAPI.getInstance(getApplicationContext()).logout();
+                break;
+            case R.id.to_fragments_btn:
+                startActivity(new Intent(NativeActivity.this, FragmentTestActivity.class));
                 break;
             default:
                 break;

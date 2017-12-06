@@ -7,7 +7,6 @@ import org.json.JSONObject;
 import java.util.HashMap;
 
 /**
- *
  * @author Administrator
  * @date 2017/2/16
  */
@@ -43,11 +42,14 @@ public class SugoDimensionManager {
                     continue;
                 }
                 String typeStr = "s";
-                switch (dataType) {      /** 维度类型：0=long,1=float,2=string;3=dateString;4=date; 5=int */
+                /** 维度类型：0=long,1=float,2=string;3=dateString;4=date; 5=int */
+                switch (dataType) {
                     case 0:
+                    case 8:
                         typeStr = "l";
                         break;
                     case 1:
+                    case 7:
                         typeStr = "f";
                         break;
                     case 2:
@@ -58,6 +60,7 @@ public class SugoDimensionManager {
                         break;
                     case 5:
                         typeStr = "i";
+                        break;
                     default:
                         break;
                 }

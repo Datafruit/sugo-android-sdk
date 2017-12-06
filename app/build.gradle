@@ -4,7 +4,7 @@ android {
     compileSdkVersion 25
     buildToolsVersion '26.0.2'
     defaultConfig {
-        applicationId "io.sugo.sdkdemo.dev220kf"
+        applicationId "io.sugo.sdkdemo.dev134kf"
         minSdkVersion 14
         targetSdkVersion 22
         versionCode 4
@@ -72,7 +72,7 @@ repositories {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile (project(':library'))
+    compile(project(':library'))
     compile 'com.android.support:support-annotations:25.4.0'
     compile 'com.android.support:appcompat-v7:25.4.0'
     compile 'com.android.support:recyclerview-v7:25.4.0'
@@ -82,4 +82,7 @@ dependencies {
     compile 'com.jakewharton:butterknife:8.5.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.5.1'
+
+    compile "com.mixpanel.android:mixpanel-android:5.+"
+    compile "com.google.android.gms:play-services-gcm:7.5.0+"
 }
