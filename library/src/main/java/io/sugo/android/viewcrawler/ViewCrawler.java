@@ -66,7 +66,6 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
 
     public static final String SHARED_PREF_EDITS_FILE = "sugo.viewcrawler.changes";
 
-    public static final String SHARED_PREF_CHANGES_KEY = "sugo.viewcrawler.changes";
     public static final String SHARED_PREF_BINDINGS_KEY = "sugo.viewcrawler.bindings";
     public static final String SHARED_PREF_H5_BINDINGS_KEY = "sugo.viewcrawler.h5_bindings";
     public static final String SHARED_PREF_PAGE_INFO_KEY = "sugo.viewcrawler.page_info";
@@ -82,7 +81,6 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
     private static final int MESSAGE_HANDLE_EDITOR_BINDINGS_RECEIVED = 6;
     private static final int MESSAGE_SEND_EVENT_TRACKED = 7;
     private static final int MESSAGE_HANDLE_EDITOR_CLOSED = 8;
-    private static final int MESSAGE_VARIANTS_RECEIVED = 9;
     private static final int MESSAGE_HANDLE_EDITOR_CHANGES_CLEARED = 10;
     private static final int MESSAGE_HANDLE_EDITOR_TWEAKS_RECEIVED = 11;
     private static final int MESSAGE_SEND_LAYOUT_ERROR = 12;
@@ -91,14 +89,12 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
     private static final int MESSAGE_HANDLE_PAGE_INFO_EVENT = 15;
     private static final int MESSAGE_HANDLE_DIMENSIONS_EVENT = 16;
     private static final int MESSAGE_GET_HEAT_MAP_DATA = 17;
-    private static final int EMULATOR_CONNECT_ATTEMPT_INTERVAL_MILLIS = 1000 * 30;
 
 
     private String secretKey = null;
     private String scanUrlType = null;
     private final SGConfig mConfig;
     private final Context mContext;
-    private final SugoAPI mSugoApi;
     private final DynamicEventTracker mDynamicEventTracker;
     private final EditState mEditState;
     private final Map<String, String> mDeviceInfo;
@@ -132,7 +128,6 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
         mMessageThreadHandler = new ViewCrawlerHandler(appContext, token, thread.getLooper(), this);
 
         mDynamicEventTracker = new DynamicEventTracker(sugo, mMessageThreadHandler);
-        mSugoApi = sugo;
     }
 
     private SharedPreferences getSharedPreferences() {

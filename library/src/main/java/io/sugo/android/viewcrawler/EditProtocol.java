@@ -64,16 +64,6 @@ class EditProtocol {
         }
     }
 
-    public static class Edit {
-        private Edit(ViewVisitor aVisitor, List<String> someUrls) {
-            visitor = aVisitor;
-            imageUrls = someUrls;
-        }
-
-        public final ViewVisitor visitor;
-        public final List<String> imageUrls;
-    }
-
     public EditProtocol(ResourceIds resourceIds, ImageStore imageStore, ViewVisitor.OnLayoutErrorListener layoutErrorListener) {
         mResourceIds = resourceIds;
         mImageStore = imageStore;
