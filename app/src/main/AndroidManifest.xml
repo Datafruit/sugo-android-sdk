@@ -68,20 +68,20 @@
             android:value="com_SJLnjowGe_project_SyHwyk1kf" />
         <meta-data
             android:name="io.sugo.android.SGConfig.APIHost"
-            android:value="http://192.168.0.134:8080" />
+            android:value="http://dev220.sugo.net:8000" />
         <meta-data
             android:name="io.sugo.android.SGConfig.EventsHost"
             android:value="http://dev220.sugo.net" />
         <meta-data
             android:name="io.sugo.android.SGConfig.EditorHost"
-            android:value="ws://192.168.0.134:8887" />
+            android:value="ws://dev220.sugo.net:8887" />
 
         <activity android:name=".activity.PrivateFuncActivity" />
         <activity android:name=".activity.DebugViewPagerActivity" />
         <activity android:name=".activity.DebugFragmentsActivity" />
         <activity android:name=".activity.TestViewActivity" />
         <activity android:name=".activity.SendTestDataActivity" />
-        <activity android:name=".activity.FragmentTestActivity"></activity>
+        <activity android:name=".activity.FragmentTestActivity" />
     </application>
 
 </manifest>
