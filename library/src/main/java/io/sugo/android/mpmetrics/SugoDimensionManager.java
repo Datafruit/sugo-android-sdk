@@ -45,11 +45,11 @@ public class SugoDimensionManager {
                 /** 维度类型：0=long,1=float,2=string;3=dateString;4=date; 5=int */
                 switch (dataType) {
                     case 0:
-                    case 8:
                         typeStr = "l";
                         break;
                     case 1:
                     case 7:
+                    case 8:
                         typeStr = "f";
                         break;
                     case 2:
