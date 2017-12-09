@@ -13,9 +13,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
-import io.sugo.android.mpmetrics.SGConfig;
-import io.sugo.android.mpmetrics.SugoAPI;
-import io.sugo.android.mpmetrics.SugoWebEventListener;
+import io.sugo.android.metrics.SGConfig;
+import io.sugo.android.metrics.SugoAPI;
+import io.sugo.android.metrics.SugoWebEventListener;
 
 /**
  * Created by Administrator on 2017/2/8.

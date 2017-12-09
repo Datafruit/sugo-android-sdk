@@ -18,8 +18,8 @@ import io.sugo.android.java_websocket.exceptions.NotSendableException;
 import io.sugo.android.java_websocket.exceptions.WebsocketNotConnectedException;
 import io.sugo.android.java_websocket.framing.Framedata;
 import io.sugo.android.java_websocket.handshake.ServerHandshake;
-import io.sugo.android.mpmetrics.SGConfig;
-import io.sugo.android.mpmetrics.SugoAPI;
+import io.sugo.android.metrics.SGConfig;
+import io.sugo.android.metrics.SugoAPI;
 
 /**
  * EditorClient should handle all communication to and from the socket. It should be fairly naive and

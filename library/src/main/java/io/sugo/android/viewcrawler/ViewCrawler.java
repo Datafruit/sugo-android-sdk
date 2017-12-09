@@ -42,14 +42,14 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.net.ssl.SSLSocketFactory;
 
-import io.sugo.android.mpmetrics.ResourceIds;
-import io.sugo.android.mpmetrics.AbsResourceReader;
-import io.sugo.android.mpmetrics.SGConfig;
-import io.sugo.android.mpmetrics.SugoAPI;
-import io.sugo.android.mpmetrics.SugoDimensionManager;
-import io.sugo.android.mpmetrics.SugoPageManager;
-import io.sugo.android.mpmetrics.SugoWebEventListener;
-import io.sugo.android.mpmetrics.SystemInformation;
+import io.sugo.android.metrics.ResourceIds;
+import io.sugo.android.metrics.AbsResourceReader;
+import io.sugo.android.metrics.SGConfig;
+import io.sugo.android.metrics.SugoAPI;
+import io.sugo.android.metrics.SugoDimensionManager;
+import io.sugo.android.metrics.SugoPageManager;
+import io.sugo.android.metrics.SugoWebEventListener;
+import io.sugo.android.metrics.SystemInformation;
 import io.sugo.android.util.HttpService;
 import io.sugo.android.util.ImageStore;
 import io.sugo.android.util.JSONUtils;

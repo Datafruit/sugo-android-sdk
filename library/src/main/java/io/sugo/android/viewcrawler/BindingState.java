@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.sugo.android.mpmetrics.SGConfig;
+import io.sugo.android.metrics.SGConfig;
 
 /**
  * 执行绑定以及管理绑定事件的生命周期

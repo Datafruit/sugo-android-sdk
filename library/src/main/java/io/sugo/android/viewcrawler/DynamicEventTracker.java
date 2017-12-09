@@ -15,8 +15,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import io.sugo.android.mpmetrics.SGConfig;
-import io.sugo.android.mpmetrics.SugoAPI;
+import io.sugo.android.metrics.SGConfig;
+import io.sugo.android.metrics.SugoAPI;
 
 /**
  * Handles translating events detected by ViewVisitors into events sent to Sugo

@@ -1,4 +1,4 @@
-package io.sugo.android.mpmetrics;
+package io.sugo.android.metrics;
 
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
@@ -22,7 +22,6 @@ class PersistentIdentity {
 
     private final Future<SharedPreferences> mLoadStoredPreferences;
     private final Future<SharedPreferences> mTimeEventsPreferences;
-    private final Future<SharedPreferences> mSugoPreferences;
     private JSONObject mSuperPropertiesCache;
     private boolean mIdentitiesLoaded;
     private String mEventsDistinctId;
@@ -30,11 +29,9 @@ class PersistentIdentity {
 
     PersistentIdentity(
             Future<SharedPreferences> storedPreferences,
-            Future<SharedPreferences> timeEventsPreferences,
-            Future<SharedPreferences> sugoPreferences) {
+            Future<SharedPreferences> timeEventsPreferences) {
         mLoadStoredPreferences = storedPreferences;
         mTimeEventsPreferences = timeEventsPreferences;
-        mSugoPreferences = sugoPreferences;
         mSuperPropertiesCache = null;
         mIdentitiesLoaded = false;
     }
@@ -42,7 +39,7 @@ class PersistentIdentity {
     void writeUserLoginTime(String userId, long time) {
         SharedPreferences preferences = null;
         try {
-            preferences = mSugoPreferences.get();
+            preferences = mLoadStoredPreferences.get();
             final SharedPreferences.Editor editor = preferences.edit();
             editor.putLong("first_login_time_" + userId, time);
             editor.commit();
@@ -56,7 +53,7 @@ class PersistentIdentity {
     long readUserLoginTime(String userId) {
         SharedPreferences preferences = null;
         try {
-            preferences = mSugoPreferences.get();
+            preferences = mLoadStoredPreferences.get();
             return preferences.getLong("first_login_time_" + userId, 0);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -70,7 +67,7 @@ class PersistentIdentity {
     void writeUserIdKey(String userIdKey) {
         SharedPreferences preferences = null;
         try {
-            preferences = mSugoPreferences.get();
+            preferences = mLoadStoredPreferences.get();
             final SharedPreferences.Editor editor = preferences.edit();
             editor.putString("sugo_user_id_key", userIdKey);
             editor.commit();
@@ -84,7 +81,7 @@ class PersistentIdentity {
     String readUserIdKey() {
         SharedPreferences preferences = null;
         try {
-            preferences = mSugoPreferences.get();
+            preferences = mLoadStoredPreferences.get();
             return preferences.getString("sugo_user_id_key", null);
         } catch (InterruptedException e) {
             e.printStackTrace();

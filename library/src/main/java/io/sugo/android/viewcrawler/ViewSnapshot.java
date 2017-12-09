@@ -46,10 +46,10 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import io.sugo.android.mpmetrics.ResourceIds;
-import io.sugo.android.mpmetrics.SGConfig;
-import io.sugo.android.mpmetrics.SugoAPI;
-import io.sugo.android.mpmetrics.SugoWebNodeReporter;
+import io.sugo.android.metrics.ResourceIds;
+import io.sugo.android.metrics.SGConfig;
+import io.sugo.android.metrics.SugoAPI;
+import io.sugo.android.metrics.SugoWebNodeReporter;
 
 @TargetApi(SGConfig.UI_FEATURES_MIN_API)
 class ViewSnapshot {

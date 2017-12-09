@@ -6,8 +6,8 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 
-import io.sugo.android.mpmetrics.SGConfig;
-import io.sugo.android.mpmetrics.SugoAPI;
+import io.sugo.android.metrics.SGConfig;
+import io.sugo.android.metrics.SugoAPI;
 import io.sugo.sdkdemo.R;
 
 /**

@@ -1,4 +1,4 @@
-package io.sugo.android.mpmetrics;
+package io.sugo.android.metrics;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -766,16 +766,13 @@ public class SugoAPI {
 
     private PersistentIdentity getPersistentIdentity(final Context context, final String token) {
 
-        final String prefsName = "io.sugo.android.mpmetrics.SugoAPI_" + token;
+        final String prefsName = "io.sugo.android.metrics.SugoAPI_" + token;
         final Future<SharedPreferences> storedPreferences = sPrefsLoader.loadPreferences(context, prefsName, null);
 
         final String timeEventsPrefsName = "SugoAPI.TimeEvents_" + token;
         final Future<SharedPreferences> timeEventsPrefs = sPrefsLoader.loadPreferences(context, timeEventsPrefsName, null);
 
-        final String sugoPrefsName = "io.sugo.android.mpmetrics.SugoAPI_" + token;
-        final Future<SharedPreferences> sugoPrefs = sPrefsLoader.loadPreferences(context, sugoPrefsName, null);
-
-        return new PersistentIdentity(storedPreferences, timeEventsPrefs, sugoPrefs);
+        return new PersistentIdentity(storedPreferences, timeEventsPrefs);
     }
 
     private UpdatesFromSugo constructUpdatesFromSugo(final Context context, final String token) {

@@ -19,7 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import io.sugo.android.mpmetrics.ResourceIds;
+import io.sugo.android.metrics.ResourceIds;
 import io.sugo.android.util.ImageStore;
 import io.sugo.android.util.JSONUtils;
 

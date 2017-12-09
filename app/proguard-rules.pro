@@ -29,6 +29,6 @@
 -keepattributes *JavascriptInterface*
 
 -keep class io.sugo.* { *; }
--keep class io.sugo.android.mpmetrics.SugoAPI { *; }
--keep class io.sugo.android.mpmetrics.SugoWebEventListener { *; }
--keep class io.sugo.android.mpmetrics.SugoWebNodeReporter { *; }
+-keep class io.sugo.android.metrics.SugoAPI { *; }
+-keep class io.sugo.android.metrics.SugoWebEventListener { *; }
+-keep class io.sugo.android.metrics.SugoWebNodeReporter { *; }

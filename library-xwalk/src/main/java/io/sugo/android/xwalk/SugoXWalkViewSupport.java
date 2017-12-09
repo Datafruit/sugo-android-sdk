@@ -16,8 +16,8 @@ import org.xwalk.core.XWalkView;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import io.sugo.android.mpmetrics.SugoAPI;
-import io.sugo.android.mpmetrics.SugoWebNodeReporter;
+import io.sugo.android.metrics.SugoAPI;
+import io.sugo.android.metrics.SugoWebNodeReporter;
 import io.sugo.android.viewcrawler.XWalkViewListener;
 
 /**

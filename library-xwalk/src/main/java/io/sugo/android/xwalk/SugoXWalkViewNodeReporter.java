@@ -2,7 +2,7 @@ package io.sugo.android.xwalk;
 
 import android.webkit.JavascriptInterface;
 
-import io.sugo.android.mpmetrics.SugoWebNodeReporter;
+import io.sugo.android.metrics.SugoWebNodeReporter;
 
 /**
  * Created by Administrator on 2017/2/8.

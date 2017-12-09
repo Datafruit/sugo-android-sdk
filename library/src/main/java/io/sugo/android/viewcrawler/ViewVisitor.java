@@ -28,7 +28,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
 
-import io.sugo.android.mpmetrics.SGConfig;
+import io.sugo.android.metrics.SGConfig;
 
 @TargetApi(SGConfig.UI_FEATURES_MIN_API)
 abstract class ViewVisitor implements Pathfinder.Accumulator {

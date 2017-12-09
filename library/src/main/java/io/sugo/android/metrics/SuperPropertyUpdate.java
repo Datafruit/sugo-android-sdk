@@ -1,4 +1,4 @@
-package io.sugo.android.mpmetrics;
+package io.sugo.android.metrics;
 
 import org.json.JSONObject;
 

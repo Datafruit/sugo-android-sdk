@@ -17,7 +17,7 @@ import java.security.NoSuchAlgorithmException;
 
 import javax.net.ssl.SSLSocketFactory;
 
-import io.sugo.android.mpmetrics.SGConfig;
+import io.sugo.android.metrics.SGConfig;
 
 /**
  * ABSOLUTELY NOT thread, or even process safe.

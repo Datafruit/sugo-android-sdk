@@ -3,7 +3,7 @@
  * Android apps. You can use Sugo to send events, update people analytics properties,
  * display push notifications and other Sugo-driven content to your users.
  *
- * The primary interface to Sugo services is in {@link io.sugo.android.mpmetrics.SugoAPI}.
+ * The primary interface to Sugo services is in {@link io.sugo.android.metrics.SugoAPI}.
  * At it's simplest, you can send events with
  * <pre>
  * {@code
@@ -20,4 +20,4 @@
  *    >https://sugo.com/help/reference/android</a>
  *
  */
-package io.sugo.android.mpmetrics;
+package io.sugo.android.metrics;

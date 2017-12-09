@@ -9,7 +9,7 @@ import org.json.JSONObject;
 
 import java.util.List;
 
-import io.sugo.android.mpmetrics.SGConfig;
+import io.sugo.android.metrics.SGConfig;
 
 /**
  * Paths in the view hierarchy, and the machinery for finding views using them.

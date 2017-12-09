@@ -1,4 +1,4 @@
-package io.sugo.android.mpmetrics;
+package io.sugo.android.metrics;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
@@ -182,13 +182,6 @@ public class SGConfig {
      * Devices running OS versions below this level will still support tracking and push notification features.
      */
     public static final int UI_FEATURES_MIN_API = 16;
-
-    // Name for persistent storage of app referral SharedPreferences
-    static final String REFERRER_PREFS_NAME = "io.sugo.android.mpmetrics.ReferralInfo";
-
-    // Max size of the number of notifications we will hold in memory. Since they may contain images,
-    // we don't want to suck up all of the memory on the device.
-    static final int MAX_NOTIFICATION_CACHE_COUNT = 2;
 
     // Instances are safe to store, since they're immutable and always the same.
     public static SGConfig getInstance(Context context) {

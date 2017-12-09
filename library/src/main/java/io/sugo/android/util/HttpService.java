@@ -20,7 +20,7 @@ import java.util.Map;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
 
-import io.sugo.android.mpmetrics.SGConfig;
+import io.sugo.android.metrics.SGConfig;
 
 /**
  * An HTTP utility class for internal use in the Sugo library. Not thread-safe.
