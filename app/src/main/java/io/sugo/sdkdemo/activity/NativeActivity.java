@@ -45,6 +45,7 @@ public class NativeActivity extends AppCompatActivity {
     @BindView(R.id.b_swt)
     SwitchCompat mBSwt;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,7 +80,7 @@ public class NativeActivity extends AppCompatActivity {
 
     }
 
-    @OnClick({R.id.back_img, R.id.a_btn, R.id.b_btn, R.id.to_fragments_btn})
+    @OnClick({R.id.back_img, R.id.a_btn, R.id.b_btn, R.id.to_fragments_btn, R.id.to_list_btn})
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.back_img:
@@ -98,8 +99,12 @@ public class NativeActivity extends AppCompatActivity {
             case R.id.to_fragments_btn:
                 startActivity(new Intent(NativeActivity.this, FragmentTestActivity.class));
                 break;
+            case R.id.to_list_btn:
+                startActivity(new Intent(NativeActivity.this, RecyclerViewActivity.class));
+                break;
             default:
                 break;
         }
     }
+
 }

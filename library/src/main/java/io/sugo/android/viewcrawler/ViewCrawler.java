@@ -96,7 +96,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
     private final SGConfig mConfig;
     private final Context mContext;
     private final DynamicEventTracker mDynamicEventTracker;
-    private final EditState mEditState;
+    private final BindingState mBindingState;
     private final Map<String, String> mDeviceInfo;
     private final ViewCrawlerHandler mMessageThreadHandler;
     private final float mScaledDensity;
@@ -115,7 +115,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
         restorePageInfo();
         restoreDimensions();
 
-        mEditState = new EditState();
+        mBindingState = new BindingState();
         mDeviceInfo = sugo.getDeviceInfo();
         mScaledDensity = Resources.getSystem().getDisplayMetrics().scaledDensity;
 
@@ -281,7 +281,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
 
         @Override
         public void onActivityResumed(Activity activity) {
-            mEditState.add(activity);
+            mBindingState.add(activity);
             Uri data = activity.getIntent().getData();
             if (data != null) {
                 if (sendConnectEditor(data)) {
@@ -293,11 +293,12 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
 
         @Override
         public void onActivityPaused(Activity activity) {
-            mEditState.remove(activity);
+            mBindingState.remove(activity);
         }
 
         @Override
         public void onActivityStopped(Activity activity) {
+
         }
 
         @Override
@@ -306,6 +307,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
 
         @Override
         public void onActivityDestroyed(Activity activity) {
+            mBindingState.destroyBindings(activity);
             SugoWebEventListener.cleanUnuseWebView(activity);
             if (mXWalkViewListener != null) {
                 mXWalkViewListener.recyclerXWalkView(activity);
@@ -320,11 +322,15 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
         private ViewSnapshot mSnapshot;
         private final String mToken;
         private final Lock mStartLock;
-        private final EditProtocol mProtocol;
+        private final BindingProtocol mProtocol;
         private final ImageStore mImageStore;
 
         private final List<String> mEditorAssetUrls;
         private final List<Pair<String, JSONObject>> mEditorEventBindings;
+
+        /**
+         * key:target_activity, value:event_binding
+         */
         private final List<Pair<String, JSONObject>> mPersistentEventBindings;
 
         public ViewCrawlerHandler(Context context, String token, Looper looper, ViewVisitor.OnLayoutErrorListener layoutErrorListener) {
@@ -340,7 +346,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
             final ResourceIds resourceIds = new AbsResourceReader.Ids(resourcePackage, context);
 
             mImageStore = new ImageStore(context, "ViewCrawler");
-            mProtocol = new EditProtocol(resourceIds, mImageStore, layoutErrorListener);
+            mProtocol = new BindingProtocol(resourceIds, mImageStore, layoutErrorListener);
             mEditorAssetUrls = new ArrayList<>();
             mEditorEventBindings = new ArrayList<>();
             mPersistentEventBindings = new ArrayList<>();
@@ -364,7 +370,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                     case MESSAGE_GET_HEAT_MAP_DATA:
                         // 热图模式下，无需再次热图
                         // 可视化埋点模式下，无法进入热图
-                        if (!SugoHeatMap.isShowHeatMap() && (!SugoAPI.developmentMode)) {
+                        if (!SugoHeatMap.isShowHeatMap() && (!SugoAPI.editorConnected)) {
                             String heatmapData = getHeatMapData();
                             handleHeatMapData(heatmapData);
                         }
@@ -688,7 +694,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                 Log.e(LOGTAG, "Payload with snapshot config required with snapshot request", e);
                 sendError("Payload with snapshot config required with snapshot request");
                 return;
-            } catch (final EditProtocol.BadInstructionsException e) {
+            } catch (final BindingProtocol.BadInstructionsException e) {
                 Log.e(LOGTAG, "Editor sent malformed message with snapshot request", e);
                 sendError(e.getMessage());
                 return;
@@ -711,7 +717,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                 {
                     writer.write("\"activities\":");
                     writer.flush();
-                    mSnapshot.snapshots(mEditState, out, bitmapHash);
+                    mSnapshot.snapshots(mBindingState, out, bitmapHash);
                 }
 
                 final long snapshotTime = System.currentTimeMillis() - startSnapshot;
@@ -729,7 +735,6 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                     Log.e(LOGTAG, "Can't close writer.", e);
                 }
             }
-            SugoAPI.developmentMode = true;
         }
 
         /**
@@ -864,7 +869,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                 }
             }
 
-//            if(!SugoAPI.developmentMode) {
+//            if(!SugoAPI.editorConnected) {
 //                SugoWebEventListener.bindEvents(mToken, eventBindings);
 //            }
         }
@@ -929,73 +934,68 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
             for (final String assetUrl : mEditorAssetUrls) {
                 mImageStore.deleteStorage(assetUrl);
             }
-
-            SugoAPI.developmentMode = false;
         }
 
         /**
-         * Reads our JSON-stored edits from memory and submits them to our EditState. Overwrites
+         * Reads our JSON-stored edits from memory and submits them to our BindingState. Overwrites
          * any existing edits at the time that it is run.
          * <p>
          * applyEventBindings should be called any time we load new edits, event bindings,
          * or tweaks from disk or when we receive new edits from the interactive UI editor.
          * Changes and event bindings from our persistent storage and temporary changes
-         * received from interactive editing will all be submitted to our EditState, tweaks
+         * received from interactive editing will all be submitted to our BindingState, tweaks
          * will be updated, and experiment statuses will be tracked.
          */
         private void applyEventBindings() {
+            // key:target_activity, value:visitor(根据 event_binding 生成)
             final List<Pair<String, ViewVisitor>> newVisitors = new ArrayList<Pair<String, ViewVisitor>>();
 
-            {
+            if (SugoAPI.editorConnected) {
                 final int size = mEditorEventBindings.size();
                 for (int i = 0; i < size; i++) {
                     final Pair<String, JSONObject> changeInfo = mEditorEventBindings.get(i);
                     try {
                         final ViewVisitor visitor = mProtocol.readEventBinding(changeInfo.second, mDynamicEventTracker);
                         newVisitors.add(new Pair<>(changeInfo.first, visitor));
-                    } catch (final EditProtocol.InapplicableInstructionsException e) {
+                    } catch (final BindingProtocol.InapplicableInstructionsException e) {
                         Log.i(LOGTAG, e.getMessage());
-                    } catch (final EditProtocol.BadInstructionsException e) {
+                    } catch (final BindingProtocol.BadInstructionsException e) {
                         Log.e(LOGTAG, "Bad editor event binding cannot be applied.", e);
                     }
                 }
-            }
-
-            {
-                if (mEditorEventBindings.size() == 0) {
-                    final int size = mPersistentEventBindings.size();
-                    for (int i = 0; i < size; i++) {
-                        final Pair<String, JSONObject> changeInfo = mPersistentEventBindings.get(i);
-                        try {
-                            final ViewVisitor visitor = mProtocol.readEventBinding(changeInfo.second, mDynamicEventTracker);
-                            newVisitors.add(new Pair<>(changeInfo.first, visitor));
-                        } catch (final EditProtocol.InapplicableInstructionsException e) {
-                            Log.i(LOGTAG, e.getMessage());
-                        } catch (final EditProtocol.BadInstructionsException e) {
-                            Log.e(LOGTAG, "Bad persistent event binding cannot be applied.", e);
-                        }
+            } else {
+                // 没有可视化埋点下发的临时测试事件，则使用持久的绑定事件
+                final int size = mPersistentEventBindings.size();
+                for (int i = 0; i < size; i++) {
+                    final Pair<String, JSONObject> changeInfo = mPersistentEventBindings.get(i);
+                    try {
+                        final ViewVisitor visitor = mProtocol.readEventBinding(changeInfo.second, mDynamicEventTracker);
+                        newVisitors.add(new Pair<>(changeInfo.first, visitor));
+                    } catch (final BindingProtocol.InapplicableInstructionsException e) {
+                        Log.i(LOGTAG, e.getMessage());
+                    } catch (final BindingProtocol.BadInstructionsException e) {
+                        Log.e(LOGTAG, "Bad persistent event binding cannot be applied.", e);
                     }
-                } else {
-                    SugoAPI.developmentMode = true;
                 }
             }
 
 
-            final Map<String, List<ViewVisitor>> editMap = new HashMap<String, List<ViewVisitor>>();
-            final int totalEdits = newVisitors.size();
-            for (int i = 0; i < totalEdits; i++) {
+            // 根据 target_activity ，List 转 Map
+            final Map<String, List<ViewVisitor>> bindingMap = new HashMap<String, List<ViewVisitor>>();
+            final int totalBindings = newVisitors.size();
+            for (int i = 0; i < totalBindings; i++) {
                 final Pair<String, ViewVisitor> next = newVisitors.get(i);
                 final List<ViewVisitor> mapElement;
-                if (editMap.containsKey(next.first)) {
-                    mapElement = editMap.get(next.first);
+                if (bindingMap.containsKey(next.first)) {
+                    mapElement = bindingMap.get(next.first);
                 } else {
                     mapElement = new ArrayList<ViewVisitor>();
-                    editMap.put(next.first, mapElement);
+                    bindingMap.put(next.first, mapElement);
                 }
                 mapElement.add(next.second);
             }
 
-            mEditState.setEdits(editMap);
+            mBindingState.setBindings(bindingMap);
 
         }
 

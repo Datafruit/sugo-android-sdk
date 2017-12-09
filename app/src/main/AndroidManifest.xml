@@ -82,6 +82,7 @@
         <activity android:name=".activity.TestViewActivity" />
         <activity android:name=".activity.SendTestDataActivity" />
         <activity android:name=".activity.FragmentTestActivity" />
+        <activity android:name=".activity.RecyclerViewActivity"></activity>
     </application>
 
 </manifest>

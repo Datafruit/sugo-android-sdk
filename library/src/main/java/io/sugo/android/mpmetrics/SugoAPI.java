@@ -112,7 +112,10 @@ public class SugoAPI {
 
     private static final String LOGTAG = "SugoAPI.API";
 
-    public static boolean developmentMode = false;
+    /**
+     * 是否正在连接可视化埋点编辑器
+     */
+    public static boolean editorConnected = false;
 
     private final Context mContext;
     private final AnalyticsMessages mMessages;
@@ -379,7 +382,7 @@ public class SugoAPI {
             Log.e("SugoAPI.track", "track failure. eventName can't be empty");
             return;
         }
-        if (SugoAPI.developmentMode && isMainThread()) {
+        if (SugoAPI.editorConnected && isMainThread()) {
             Toast.makeText(this.mContext, eventName, Toast.LENGTH_SHORT).show();
         }
         final Long eventBegin;
@@ -451,7 +454,7 @@ public class SugoAPI {
             }
 
 
-            if (SugoAPI.developmentMode) {
+            if (SugoAPI.editorConnected) {
                 JSONArray events = new JSONArray();
                 JSONObject event = new JSONObject();
                 event.put(SGConfig.FIELD_EVENT_ID, eventId);

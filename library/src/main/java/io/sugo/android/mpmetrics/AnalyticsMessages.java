@@ -519,7 +519,7 @@ class AnalyticsMessages {
                     } else if (msg.what == UPDATE_API_CHECK) {
                         if (SystemClock.elapsedRealtime() >= mDecideRetryAfter) {
                             try {
-                                if (!SugoAPI.developmentMode) {
+                                if (!SugoAPI.editorConnected) {
                                     mApiChecker.runDecideChecks(getPoster());
                                 }
                             } catch (RemoteService.ServiceUnavailableException e) {
@@ -561,7 +561,7 @@ class AnalyticsMessages {
                         // a flush right here, so we may end up with two flushes
                         // in our queue, but we're OK with that.
                         long interval = mFlushInterval;
-                        if (SugoAPI.developmentMode) {
+                        if (SugoAPI.editorConnected) {
                             interval = 1000;
                         }
                         logAboutMessageToSugo("Queue depth " + returnCode + " - Adding flush in " + interval);

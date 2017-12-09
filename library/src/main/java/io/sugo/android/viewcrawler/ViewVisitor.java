@@ -35,9 +35,10 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
 
     private static final String LOGTAG = "SugoAPI.ViewVisitor";
 
-    private final List<Pathfinder.PathElement> mPath;
     private final Pathfinder mPathfinder;
     private View mRootView;
+    private final List<Pathfinder.PathElement> mPath;
+    private boolean mBinded = false;
 
     protected ViewVisitor(List<Pathfinder.PathElement> path) {
         mPath = path;
@@ -45,8 +46,8 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
     }
 
     /**
-     * Removes listeners and frees resources associated with the visitor. Once cleanup is called,
-     * the ViewVisitor should not be used again.
+     * Removes listeners and frees resources associated with the visitor.
+     * Once cleanup is called, the ViewVisitor should not be used again.
      */
     public abstract void cleanup();
 
@@ -72,13 +73,21 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
         return mRootView;
     }
 
+    public boolean isBinded() {
+        return mBinded;
+    }
+
+    public void setBinded(boolean isBinded) {
+        this.mBinded = isBinded;
+    }
+
     /**
-     * OnEvent will be fired when whatever the ViewVisitor installed fires
-     * (For example, if the ViewVisitor installs watches for clicks, then OnEvent will be called
+     * onEvent will be fired when whatever the ViewVisitor installed fires
+     * (For example, if the ViewVisitor installs watches for clicks, then onEvent will be called
      * on click)
      */
     public interface OnEventListener {
-        void OnEvent(View host, String eventId, String eventName, JSONObject properties, boolean debounce);
+        void onEvent(View host, String eventId, String eventName, JSONObject properties, boolean debounce);
     }
 
     public interface OnLayoutErrorListener {
@@ -86,6 +95,10 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
     }
 
     public static class LayoutErrorMessage {
+
+        private final String mErrorType;
+        private final String mName;
+
         public LayoutErrorMessage(String errorType, String name) {
             mErrorType = errorType;
             mName = name;
@@ -99,8 +112,6 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
             return mName;
         }
 
-        private final String mErrorType;
-        private final String mName;
     }
 
     private static class CycleDetector {
@@ -149,6 +160,23 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
     }
 
     public static class LayoutUpdateVisitor extends ViewVisitor {
+
+        private final WeakHashMap<View, int[]> mOriginalValues;
+        private final List<LayoutRule> mArgs;
+        private final String mName;
+        private static final Set<Integer> mHorizontalRules = new HashSet<Integer>(Arrays.asList(
+                RelativeLayout.LEFT_OF, RelativeLayout.RIGHT_OF,
+                RelativeLayout.ALIGN_LEFT, RelativeLayout.ALIGN_RIGHT
+        ));
+        private static final Set<Integer> mVerticalRules = new HashSet<Integer>(Arrays.asList(
+                RelativeLayout.ABOVE, RelativeLayout.BELOW,
+                RelativeLayout.ALIGN_BASELINE, RelativeLayout.ALIGN_TOP,
+                RelativeLayout.ALIGN_BOTTOM
+        ));
+        private boolean mAlive;
+        private final OnLayoutErrorListener mOnLayoutErrorListener;
+        private final CycleDetector mCycleDetector;
+
         public LayoutUpdateVisitor(List<Pathfinder.PathElement> path, List<LayoutRule> args,
                                    String name, OnLayoutErrorListener onLayoutErrorListener) {
             super(path);
@@ -283,21 +311,6 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
             return "Layout Update";
         }
 
-        private final WeakHashMap<View, int[]> mOriginalValues;
-        private final List<LayoutRule> mArgs;
-        private final String mName;
-        private static final Set<Integer> mHorizontalRules = new HashSet<Integer>(Arrays.asList(
-                RelativeLayout.LEFT_OF, RelativeLayout.RIGHT_OF,
-                RelativeLayout.ALIGN_LEFT, RelativeLayout.ALIGN_RIGHT
-        ));
-        private static final Set<Integer> mVerticalRules = new HashSet<Integer>(Arrays.asList(
-                RelativeLayout.ABOVE, RelativeLayout.BELOW,
-                RelativeLayout.ALIGN_BASELINE, RelativeLayout.ALIGN_TOP,
-                RelativeLayout.ALIGN_BOTTOM
-        ));
-        private boolean mAlive;
-        private final OnLayoutErrorListener mOnLayoutErrorListener;
-        private final CycleDetector mCycleDetector;
     }
 
     public static class LayoutRule {
@@ -312,11 +325,84 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
         public final int anchor;
     }
 
+
+    private static abstract class BaseEventTriggeringVisitor extends ViewVisitor {
+
+        private final OnEventListener onEventListener;
+        protected final String mEvenId;
+        protected final String mEventName;
+        private final Map<String, List<Pathfinder.PathElement>> mDimMap;
+        private final boolean mDebounce;
+        private String mEventTypeString;
+
+        public BaseEventTriggeringVisitor(List<Pathfinder.PathElement> path,
+                                          String eventId,
+                                          String eventName,
+                                          Map<String, List<Pathfinder.PathElement>> dimMap,
+                                          OnEventListener listener,
+                                          boolean debounce) {
+            super(path);
+            onEventListener = listener;
+            mEvenId = eventId;
+            mEventName = eventName;
+            mDimMap = dimMap;
+            mDebounce = debounce;
+        }
+
+        protected String getEventName() {
+            return mEventName;
+        }
+
+        protected String getEventTypeString() {
+            return mEventTypeString;
+        }
+
+        protected void setEventTypeString(String eventTypeString) {
+            mEventTypeString = eventTypeString;
+        }
+
+        protected void fireEvent(View found) {
+            final JSONObject properties = new JSONObject();
+
+            // 判断是否有关联的控件，去获取控件的值
+            if (mDimMap != null && mDimMap.size() > 0) {
+                for (final String dimName : mDimMap.keySet()) {
+                    getPathfinder().findTargetsInRoot(getRootView(), mDimMap.get(dimName), new Pathfinder.Accumulator() {
+                        @Override
+                        public void accumulate(View v) {
+                            String text = DynamicEventTracker.textPropertyFromView(v);
+                            try {
+                                properties.put(dimName, text);
+                            } catch (JSONException e) {
+                                Log.e(LOGTAG, "", e);
+                            }
+                        }
+                    });
+                }
+            }
+            try {
+                properties.put(SGConfig.FIELD_EVENT_TYPE, getEventTypeString());
+            } catch (JSONException ignored) {
+            }
+            onEventListener.onEvent(found, mEvenId, mEventName, properties, mDebounce);
+        }
+
+    }
+
     /**
-     * Adds an accessibility event, which will fire OnEvent, to every matching view.
+     * Adds an accessibility event, which will fire onEvent, to every matching view.
      */
-    public static class AddAccessibilityEventVisitor extends EventTriggeringVisitor {
-        public AddAccessibilityEventVisitor(List<Pathfinder.PathElement> path, int accessibilityEventType, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener) {
+    public static class AddAccessibilityEventVisitor extends BaseEventTriggeringVisitor {
+
+        private final int mEventType;
+        private final WeakHashMap<View, TrackingAccessibilityDelegate> mWatching;
+
+        public AddAccessibilityEventVisitor(List<Pathfinder.PathElement> path,
+                                            int accessibilityEventType,
+                                            String eventId,
+                                            String eventName,
+                                            Map<String, List<Pathfinder.PathElement>> dimMap,
+                                            OnEventListener listener) {
             super(path, eventId, eventName, dimMap, listener, false);
             mEventType = accessibilityEventType;
             if (mEventType == AccessibilityEvent.TYPE_VIEW_CLICKED) {
@@ -346,10 +432,12 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
                 }
             }
             mWatching.clear();
+            setBinded(false);
         }
 
         @Override
         public void accumulate(View found) {
+            // 热图渲染
             if (SugoHeatMap.isShowHeatMap()) {
                 int startColor = SugoHeatMap.getEventHeat(mEvenId);
                 int endColor = SugoHeatMap.sColdColor;
@@ -361,8 +449,11 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
 
                 found.setForeground(gradientDrawable);
             }
+
             final View.AccessibilityDelegate realDelegate = getOldDelegate(found);
-            if (realDelegate instanceof TrackingAccessibilityDelegate) {
+
+            // 判断之前的代理是不是 sugo 的代理，如果是，则判断此次事件与之前代理的事件是不是同一个，如果是，则此次绑定取消
+            if (realDelegate != null && realDelegate instanceof TrackingAccessibilityDelegate) {
                 final TrackingAccessibilityDelegate currentTracker = (TrackingAccessibilityDelegate) realDelegate;
                 if (currentTracker.willFireEvent(getEventName())) {
                     return; // Don't double track
@@ -376,6 +467,7 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
             final TrackingAccessibilityDelegate newDelegate = new TrackingAccessibilityDelegate(realDelegate);
             found.setAccessibilityDelegate(newDelegate);
             mWatching.put(found, newDelegate);
+            setBinded(true);
         }
 
         @Override
@@ -401,26 +493,42 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
             return ret;
         }
 
+        /**
+         * 内部类 AddAccessibilityEventVisitor 的内部类
+         */
         private class TrackingAccessibilityDelegate extends View.AccessibilityDelegate {
-            public TrackingAccessibilityDelegate(View.AccessibilityDelegate realDelegate) {
+
+            private View.AccessibilityDelegate mRealDelegate;
+
+            TrackingAccessibilityDelegate(View.AccessibilityDelegate realDelegate) {
                 mRealDelegate = realDelegate;
             }
 
-            public View.AccessibilityDelegate getRealDelegate() {
+            View.AccessibilityDelegate getRealDelegate() {
                 return mRealDelegate;
             }
 
-            public boolean willFireEvent(final String eventName) {
-                if (getEventName() == eventName) {
+            /**
+             * 如果是相同的事件名，那么这次绑定就会被取消
+             *
+             * @param eventName
+             * @return
+             */
+            boolean willFireEvent(final String eventName) {
+                if (getEventName().equals(eventName)) {
                     return true;
                 } else if (mRealDelegate instanceof TrackingAccessibilityDelegate) {
+                    // 如果获取的代理，仍是 sugo 的代理，则递归直到默认实现
                     return ((TrackingAccessibilityDelegate) mRealDelegate).willFireEvent(eventName);
                 } else {
                     return false;
                 }
             }
 
-            public void removeFromDelegateChain(final TrackingAccessibilityDelegate other) {
+            /**
+             * 移除掉这一个代理
+             */
+            void removeFromDelegateChain(final TrackingAccessibilityDelegate other) {
                 if (mRealDelegate == other) {
                     mRealDelegate = other.getRealDelegate();
                 } else if (mRealDelegate instanceof TrackingAccessibilityDelegate) {
@@ -442,17 +550,14 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
                 }
             }
 
-            private View.AccessibilityDelegate mRealDelegate;
         }
 
-        private final int mEventType;
-        private final WeakHashMap<View, TrackingAccessibilityDelegate> mWatching;
     }
 
     /**
      * Installs a TextWatcher in each matching view. Does nothing if matching views are not TextViews.
      */
-    public static class AddTextChangeListener extends EventTriggeringVisitor {
+    public static class AddTextChangeListener extends BaseEventTriggeringVisitor {
         public AddTextChangeListener(List<Pathfinder.PathElement> path, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener) {
             super(path, eventId, eventName, dimMap, listener, true);
             mWatching = new HashMap<TextView, TextWatcher>();
@@ -468,6 +573,7 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
             }
 
             mWatching.clear();
+            setBinded(false);
         }
 
         @Override
@@ -481,6 +587,7 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
                 }
                 foundTextView.addTextChangedListener(watcher);
                 mWatching.put(foundTextView, watcher);
+                setBinded(true);
             }
         }
 
@@ -519,7 +626,10 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
      * Monitors the view tree for the appearance of matching views where there were not
      * matching views before. Fires only once per traversal.
      */
-    public static class ViewDetectorVisitor extends EventTriggeringVisitor {
+    public static class ViewDetectorVisitor extends BaseEventTriggeringVisitor {
+
+        private boolean mSeen;
+
         public ViewDetectorVisitor(List<Pathfinder.PathElement> path, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener) {
             super(path, eventId, eventName, dimMap, listener, false);
             mSeen = false;
@@ -528,13 +638,15 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
 
         @Override
         public void cleanup() {
-            ; // Do nothing, we don't have anything to leak :)
+            // Do nothing, we don't have anything to leak :)
+            setBinded(false);
         }
 
         @Override
         public void accumulate(View found) {
             if (found != null && !mSeen) {
                 fireEvent(found);
+                setBinded(true);
             }
 
             mSeen = (found != null);
@@ -545,64 +657,6 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
             return getEventName() + " when Detected";
         }
 
-        private boolean mSeen;
-    }
-
-    private static abstract class EventTriggeringVisitor extends ViewVisitor {
-        public EventTriggeringVisitor(List<Pathfinder.PathElement> path, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener, boolean debounce) {
-            super(path);
-            mListener = listener;
-            mEvenId = eventId;
-            mEventName = eventName;
-            mDimMap = dimMap;
-            mDebounce = debounce;
-        }
-
-        protected void fireEvent(View found) {
-            final JSONObject properties = new JSONObject();
-            if (mDimMap != null && mDimMap.size() > 0) {
-                for (final String dimName : mDimMap.keySet()) {
-                    getPathfinder().findTargetsInRoot(getRootView(), mDimMap.get(dimName), new Pathfinder.Accumulator() {
-                        @Override
-                        public void accumulate(View v) {
-                            if (v instanceof TextView) {
-                                TextView tv = (TextView) v;
-                                try {
-                                    properties.put(dimName, tv.getText().toString());
-                                } catch (JSONException e) {
-                                    Log.e(LOGTAG, "", e);
-                                }
-                            }
-                        }
-                    });
-                }
-            }
-            try {
-                properties.put(SGConfig.FIELD_EVENT_TYPE, getEventTypeString());
-            } catch (JSONException e) {
-
-            }
-            mListener.OnEvent(found, mEvenId, mEventName, properties, mDebounce);
-        }
-
-        protected String getEventName() {
-            return mEventName;
-        }
-
-        protected String getEventTypeString() {
-            return mEventTypeString;
-        }
-
-        protected void setEventTypeString(String eventTypeString) {
-            mEventTypeString = eventTypeString;
-        }
-
-        private final OnEventListener mListener;
-        protected final String mEventName;
-        private final Map<String, List<Pathfinder.PathElement>> mDimMap;
-        protected final String mEvenId;
-        private final boolean mDebounce;
-        private String mEventTypeString;
     }
 
 }

@@ -19,6 +19,7 @@ import io.sugo.android.java_websocket.exceptions.WebsocketNotConnectedException;
 import io.sugo.android.java_websocket.framing.Framedata;
 import io.sugo.android.java_websocket.handshake.ServerHandshake;
 import io.sugo.android.mpmetrics.SGConfig;
+import io.sugo.android.mpmetrics.SugoAPI;
 
 /**
  * EditorClient should handle all communication to and from the socket. It should be fairly naive and
@@ -86,6 +87,7 @@ class EditorConnection {
 
         @Override
         public void onOpen(ServerHandshake handshakedata) {
+            SugoAPI.editorConnected = true;
             if (SGConfig.DEBUG) {
                 Log.v(LOGTAG, "Websocket connected");
             }
@@ -119,6 +121,7 @@ class EditorConnection {
 
         @Override
         public void onClose(int code, String reason, boolean remote) {
+            SugoAPI.editorConnected = false;
             if (SGConfig.DEBUG) {
                 Log.v(LOGTAG, "WebSocket closed. Code: " + code + ", reason: " + reason + "\nURI: " + mURI);
             }

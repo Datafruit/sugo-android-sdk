@@ -23,7 +23,7 @@ import io.sugo.android.mpmetrics.ResourceIds;
 import io.sugo.android.util.ImageStore;
 import io.sugo.android.util.JSONUtils;
 
-class EditProtocol {
+class BindingProtocol {
 
     @SuppressWarnings("unused")
     private static final String LOGTAG = "SugoAPI.EProtocol";
@@ -34,37 +34,8 @@ class EditProtocol {
 
     private static final Class<?>[] NO_PARAMS = new Class[0];
     private static final List<Pathfinder.PathElement> NEVER_MATCH_PATH = Collections.<Pathfinder.PathElement>emptyList();
-    public static class BadInstructionsException extends Exception {
-        private static final long serialVersionUID = -4062004792184145311L;
 
-        public BadInstructionsException(String message) {
-            super(message);
-        }
-
-        public BadInstructionsException(String message, Throwable e) {
-            super(message, e);
-        }
-    }
-
-    public static class InapplicableInstructionsException extends BadInstructionsException {
-        private static final long serialVersionUID = 3977056710817909104L;
-
-        public InapplicableInstructionsException(String message) {
-            super(message);
-        }
-    }
-
-    public static class CantGetEditAssetsException extends Exception {
-        public CantGetEditAssetsException(String message) {
-            super(message);
-        }
-
-        public CantGetEditAssetsException(String message, Throwable cause) {
-            super(message, cause);
-        }
-    }
-
-    public EditProtocol(ResourceIds resourceIds, ImageStore imageStore, ViewVisitor.OnLayoutErrorListener layoutErrorListener) {
+    public BindingProtocol(ResourceIds resourceIds, ImageStore imageStore, ViewVisitor.OnLayoutErrorListener layoutErrorListener) {
         mResourceIds = resourceIds;
         mImageStore = imageStore;
         mLayoutErrorListener = layoutErrorListener;
@@ -335,4 +306,37 @@ class EditProtocol {
         }
     }
 
-} // EditProtocol
+    public static class BadInstructionsException extends Exception {
+
+        private static final long serialVersionUID = -4062004792184145311L;
+
+        public BadInstructionsException(String message) {
+            super(message);
+        }
+
+        public BadInstructionsException(String message, Throwable e) {
+            super(message, e);
+        }
+    }
+
+    public static class InapplicableInstructionsException extends BadInstructionsException {
+
+        private static final long serialVersionUID = 3977056710817909104L;
+
+        public InapplicableInstructionsException(String message) {
+            super(message);
+        }
+    }
+
+    public static class CantGetEditAssetsException extends Exception {
+
+        public CantGetEditAssetsException(String message) {
+            super(message);
+        }
+
+        public CantGetEditAssetsException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
+
+} // BindingProtocol

@@ -59,7 +59,7 @@ public class SugoXWalkViewEventListener extends SugoWebEventListener {
 
     public static void bindEvents(String token, JSONArray eventBindings) {
 //        eventBindingsMap.put(token, eventBindings);
-        if (SugoAPI.developmentMode) {      // 只在连接编辑器模式下操作
+        if (SugoAPI.editorConnected) {      // 只在连接编辑器模式下操作
             updateXWalkViewInject();
         } else {
             sCurrentXWalkView.clear();

@@ -29,6 +29,19 @@ import io.sugo.android.mpmetrics.SugoAPI;
  */
 class DynamicEventTracker implements ViewVisitor.OnEventListener {
 
+    @SuppressWarnings("Unused")
+    private static String LOGTAG = "DynamicEventTracker";
+
+    private static final int MAX_PROPERTY_LENGTH = 128;
+    private static final int DEBOUNCE_TIME_MILLIS = 1000; // 1 second delay before sending
+
+    private final SugoAPI mSugo;
+    private final Handler mHandler;
+    private final Runnable mTask;
+
+    // List of debounced events, All accesses must be synchronized
+    private final Map<Signature, UnsentEvent> mDebouncedEvents;
+
     public DynamicEventTracker(SugoAPI sugoAPI, Handler homeHandler) {
         mSugo = sugoAPI;
         mDebouncedEvents = new HashMap<Signature, UnsentEvent>();
@@ -37,7 +50,7 @@ class DynamicEventTracker implements ViewVisitor.OnEventListener {
     }
 
     @Override
-    public void OnEvent(View v, String eventId, String eventName, JSONObject properties, boolean debounce) {
+    public void onEvent(View v, String eventId, String eventName, JSONObject properties, boolean debounce) {
         // Will be called on the UI thread
         final long moment = System.currentTimeMillis();
         try {
@@ -99,16 +112,17 @@ class DynamicEventTracker implements ViewVisitor.OnEventListener {
     }
 
     /**
-     * Recursively scans a view and it's children, looking for user-visible text to
-     * provide as an event property.
+     * Recursively scans a view and it's children,
+     * looking for user-visible text to provide as an event property.
      */
-    private static String textPropertyFromView(View v) {
+    public static String textPropertyFromView(View v) {
         String ret = null;
 
         // TODO: 2017/3/15 此处可增加 config 可选配置，用户可开启这个功能（默认禁用）
         if (v instanceof EditText) {
             int inputType = ((EditText) v).getInputType();
-            if (isPassword(inputType)) {     // textPassword / numberPassword
+            // textPassword / numberPassword
+            if (isPassword(inputType)) {
                 return ret;
             }
         }
@@ -155,9 +169,14 @@ class DynamicEventTracker implements ViewVisitor.OnEventListener {
         return isPwd;
     }
 
-    // An event is the same from a debouncing perspective if it comes from the same view,
-    // and has the same event name.
+    /**
+     * An event is the same from a debouncing perspective if it comes from the same view,
+     * and has the same event name.
+     */
     private static class Signature {
+
+        private final int mHashCode;
+
         public Signature(final View view, final String eventName) {
             mHashCode = view.hashCode() ^ eventName.hashCode();
         }
@@ -176,31 +195,20 @@ class DynamicEventTracker implements ViewVisitor.OnEventListener {
             return mHashCode;
         }
 
-        private final int mHashCode;
     }
 
     private static class UnsentEvent {
+
+        public final long timeSentMillis;
+        public final String eventName;
+        public final JSONObject properties;
+
         public UnsentEvent(final String name, final JSONObject props, final long timeSent) {
             eventName = name;
             properties = props;
             timeSentMillis = timeSent;
         }
 
-        public final long timeSentMillis;
-        public final String eventName;
-        public final JSONObject properties;
     }
 
-    private final SugoAPI mSugo;
-    private final Handler mHandler;
-    private final Runnable mTask;
-
-    // List of debounced events, All accesses must be synchronized
-    private final Map<Signature, UnsentEvent> mDebouncedEvents;
-
-    private static final int MAX_PROPERTY_LENGTH = 128;
-    private static final int DEBOUNCE_TIME_MILLIS = 1000; // 1 second delay before sending
-
-    @SuppressWarnings("Unused")
-    private static String LOGTAG = "DynamicEventTracker";
 }

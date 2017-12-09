@@ -9,6 +9,8 @@ import org.json.JSONObject;
 
 import java.util.List;
 
+import io.sugo.android.mpmetrics.SGConfig;
+
 /**
  * Paths in the view hierarchy, and the machinery for finding views using them.
  * <p>
@@ -148,6 +150,9 @@ class Pathfinder {
 
         if (remainingPath.isEmpty()) {
             // Nothing left to match- we're found!
+            if (SGConfig.DEBUG) {
+                Log.i(LOGTAG, "found");
+            }
             accumulator.accumulate(alreadyMatched);
             return;
         }
@@ -176,7 +181,7 @@ class Pathfinder {
                 findTargetsInMatchedView(child, nextPath, accumulator);
             }
             // 如果当前元素的 index 已经超过了已有的布局的 index ，则退出循环
-            if (matchElement.index >= 0 && mIndexStack.read(indexKey) > matchElement.index) {
+            if (matchElement.index >= 0 && (mIndexStack.read(indexKey) > matchElement.index)) {
                 break;
             }
         }
