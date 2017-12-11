@@ -1,6 +1,7 @@
 package io.sugo.android.viewcrawler;
 
 import android.annotation.TargetApi;
+import android.graphics.Rect;
 import android.graphics.drawable.GradientDrawable;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -37,7 +38,7 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
 
     private final Pathfinder mPathfinder;
     private View mRootView;
-    private final List<Pathfinder.PathElement> mPath;
+    protected final List<Pathfinder.PathElement> mPath;
     private boolean mBinded = false;
 
     protected ViewVisitor(List<Pathfinder.PathElement> path) {
@@ -467,6 +468,10 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
             final TrackingAccessibilityDelegate newDelegate = new TrackingAccessibilityDelegate(realDelegate);
             found.setAccessibilityDelegate(newDelegate);
             mWatching.put(found, newDelegate);
+            // 同列元素的 visitor，不设置 binded ，为了不断监控新生成的同类元素
+            if (mPath.get(mPath.size() - 1).index == -1) {
+                return;
+            }
             setBinded(true);
         }
 
@@ -555,9 +560,13 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
     }
 
     /**
-     * Installs a TextWatcher in each matching view. Does nothing if matching views are not TextViews.
+     * 为每个匹配视图安装一个 TextWatcher
+     * 如果匹配视图不是 TextView 类型，则什么也不做。
      */
     public static class AddTextChangeListener extends BaseEventTriggeringVisitor {
+
+        private final Map<TextView, TextWatcher> mWatching;
+
         public AddTextChangeListener(List<Pathfinder.PathElement> path, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener) {
             super(path, eventId, eventName, dimMap, listener, true);
             mWatching = new HashMap<TextView, TextWatcher>();
@@ -597,6 +606,9 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
         }
 
         private class TrackingTextWatcher implements TextWatcher {
+
+            private final View mBoundTo;
+
             public TrackingTextWatcher(View boundTo) {
                 mBoundTo = boundTo;
             }
@@ -616,21 +628,19 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
                 fireEvent(mBoundTo);
             }
 
-            private final View mBoundTo;
         }
 
-        private final Map<TextView, TextWatcher> mWatching;
     }
 
     /**
-     * Monitors the view tree for the appearance of matching views where there were not
-     * matching views before. Fires only once per traversal.
+     * 对视图树进行监视，以显示以前没有匹配到的视图。每次遍历时只触发一次。
      */
     public static class ViewDetectorVisitor extends BaseEventTriggeringVisitor {
 
         private boolean mSeen;
 
-        public ViewDetectorVisitor(List<Pathfinder.PathElement> path, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener) {
+        public ViewDetectorVisitor(List<Pathfinder.PathElement> path, String eventId, String eventName,
+                                   Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener) {
             super(path, eventId, eventName, dimMap, listener, false);
             mSeen = false;
             setEventTypeString("detected");
@@ -644,17 +654,45 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
 
         @Override
         public void accumulate(View found) {
-            if (found != null && !mSeen) {
-                fireEvent(found);
-                setBinded(true);
-            }
+            if (isShown(found)) {
+                if (found != null && !mSeen) {
+                    fireEvent(found);
+                    setBinded(true);
+                }
 
-            mSeen = (found != null);
+                mSeen = (found != null);
+            }
         }
 
         @Override
         protected String name() {
             return getEventName() + " when Detected";
+        }
+
+        /**
+         * 这个方法只能检查出这个 View 在手机屏幕（或者说是相对它的父 View）的位置，而不能检查出与其他兄弟 View 的相对位置:
+         * 比如有一个 ViewGroup，下面有 View1、View2 这两个子 View，View1 和 View2 是平级关系。
+         * 此时如果 View2 盖住了 View1，那么用 getGlobalVisibleRect 方法检查 View1 的可见性，
+         * 得到的返回值依然是 true，得到的可见矩形区域 rect 也是没有任何变化的。
+         * 也就是说 View1.getGlobalVisibleRect(rect) 得到的结果与 View2 没有任何关系。
+         *
+         * @param view
+         * @return
+         */
+        private boolean isShown(View view) {
+            if (view.getVisibility() != View.VISIBLE) {
+                return false;
+            }
+            if (!view.isShown()) {
+                return false;
+            }
+            if (!view.getGlobalVisibleRect(new Rect())) {
+                return false;
+            }
+            if (!view.getLocalVisibleRect(new Rect())) {
+                return false;
+            }
+            return true;
         }
 
     }

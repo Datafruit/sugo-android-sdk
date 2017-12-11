@@ -30,7 +30,7 @@ import io.sugo.android.metrics.SugoAPI;
 class DynamicEventTracker implements ViewVisitor.OnEventListener {
 
     @SuppressWarnings("Unused")
-    private static String LOGTAG = "DynamicEventTracker";
+    private static String LOGTAG = "SugoAPI.DynamicEventTracker";
 
     private static final int MAX_PROPERTY_LENGTH = 128;
     private static final int DEBOUNCE_TIME_MILLIS = 1000; // 1 second delay before sending

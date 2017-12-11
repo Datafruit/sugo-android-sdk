@@ -20,7 +20,6 @@ public class SugoPageManager {
 
     private static SugoPageManager sInstance = new SugoPageManager();
     private HashMap<String, JSONObject> mPageInfos;
-    private HashMap<String, JSONObject> mTempPageInfos = new HashMap<>();
 
     private SugoPageManager() {
 
@@ -48,7 +47,6 @@ public class SugoPageManager {
                 e.printStackTrace();
             }
         }
-        mTempPageInfos = new HashMap<>(mPageInfos);
     }
 
 

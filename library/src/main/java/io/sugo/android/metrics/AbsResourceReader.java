@@ -22,51 +22,15 @@ public abstract class AbsResourceReader implements ResourceIds {
     private final Map<String, Integer> mIdNameToId;
     private final SparseArray<String> mIdToIdName;
 
-    public static class Ids extends AbsResourceReader {
-        public Ids(String resourcePackageName, Context context) {
-            super(context);
-            mResourcePackageName = resourcePackageName;
-            initialize();
-        }
-
-        @Override
-        protected Class<?> getSystemClass() {
-            return android.R.id.class;
-        }
-
-        @Override
-        protected String getLocalClassName(Context context) {
-            return mResourcePackageName + ".R$id";
-        }
-
-        private final String mResourcePackageName;
-    }
-
-    public static class Drawables extends AbsResourceReader {
-        protected Drawables(String resourcePackageName, Context context) {
-            super(context);
-            mResourcePackageName = resourcePackageName;
-            initialize();
-        }
-
-        @Override
-        protected Class<?> getSystemClass() {
-            return android.R.drawable.class;
-        }
-
-        @Override
-        protected String getLocalClassName(Context context) {
-            return mResourcePackageName + ".R$drawable";
-        }
-
-        private final String mResourcePackageName;
-    }
-
     protected AbsResourceReader(Context context) {
         mContext = context;
         mIdNameToId = new HashMap<String, Integer>();
         mIdToIdName = new SparseArray<String>();
     }
+
+    protected abstract Class<?> getSystemClass();
+
+    protected abstract String getLocalClassName(Context context);
 
     @Override
     public boolean knownIdName(String name) {
@@ -110,10 +74,6 @@ public abstract class AbsResourceReader implements ResourceIds {
         }
     }
 
-    protected abstract Class<?> getSystemClass();
-
-    protected abstract String getLocalClassName(Context context);
-
     protected void initialize() {
         mIdNameToId.clear();
         mIdToIdName.clear();
@@ -145,6 +105,50 @@ public abstract class AbsResourceReader implements ResourceIds {
         for (Map.Entry<String, Integer> idMapping : mIdNameToId.entrySet()) {
             mIdToIdName.put(idMapping.getValue(), idMapping.getKey());
         }
+    }
+
+    public static class Ids extends AbsResourceReader {
+
+        private final String mResourcePackageName;
+
+        public Ids(String resourcePackageName, Context context) {
+            super(context);
+            mResourcePackageName = resourcePackageName;
+            initialize();
+        }
+
+        @Override
+        protected Class<?> getSystemClass() {
+            return android.R.id.class;
+        }
+
+        @Override
+        protected String getLocalClassName(Context context) {
+            return mResourcePackageName + ".R$id";
+        }
+
+    }
+
+    public static class Drawables extends AbsResourceReader {
+
+        private final String mResourcePackageName;
+
+        protected Drawables(String resourcePackageName, Context context) {
+            super(context);
+            mResourcePackageName = resourcePackageName;
+            initialize();
+        }
+
+        @Override
+        protected Class<?> getSystemClass() {
+            return android.R.drawable.class;
+        }
+
+        @Override
+        protected String getLocalClassName(Context context) {
+            return mResourcePackageName + ".R$drawable";
+        }
+
     }
 
 }

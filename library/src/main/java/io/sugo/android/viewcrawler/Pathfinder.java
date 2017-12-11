@@ -63,6 +63,17 @@ class Pathfinder {
      * elements with no index will be treated as having index == 0
      */
     public static class PathElement {
+
+        public static final int ZERO_LENGTH_PREFIX = 0;
+        public static final int SHORTEST_PREFIX = 1;
+
+        public final int prefix;
+        public final String viewClassName;
+        public final int index;
+        public final int viewId;
+        public final String contentDescription;
+        public final String tag;
+
         public PathElement(int usePrefix, String vClass, int ix, int vId, String cDesc, String vTag) {
             prefix = usePrefix;
             viewClassName = vClass;
@@ -100,15 +111,6 @@ class Pathfinder {
             }
         }
 
-        public final int prefix;
-        public final String viewClassName;
-        public final int index;
-        public final int viewId;
-        public final String contentDescription;
-        public final String tag;
-
-        public static final int ZERO_LENGTH_PREFIX = 0;
-        public static final int SHORTEST_PREFIX = 1;
     }
 
     public interface Accumulator {
@@ -282,6 +284,12 @@ class Pathfinder {
      * Bargain-bin pool of integers, for use in avoiding allocations during path crawl
      */
     private static class IntStack {
+
+        private static final int MAX_INDEX_STACK_SIZE = 256;
+
+        private final int[] mStack;
+        private int mStackSize;
+
         public IntStack() {
             mStack = new int[MAX_INDEX_STACK_SIZE];
             mStackSize = 0;
@@ -323,10 +331,6 @@ class Pathfinder {
             }
         }
 
-        private final int[] mStack;
-        private int mStackSize;
-
-        private static final int MAX_INDEX_STACK_SIZE = 256;
     }
 
 }

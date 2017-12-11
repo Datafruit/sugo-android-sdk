@@ -9,7 +9,7 @@ import java.lang.reflect.Method;
 class Caller {
 
     @SuppressWarnings("unused")
-    private static final String LOGTAG = "SugoABTest.Caller";
+    private static final String LOGTAG = "SugoAPI.Caller";
 
     private final String mMethodName;
     private final Object[] mMethodArgs;

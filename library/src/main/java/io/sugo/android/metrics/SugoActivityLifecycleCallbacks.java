@@ -15,6 +15,7 @@ import java.util.HashSet;
 
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
+
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private Runnable mCheckInBackground;
     private boolean mIsForeground = false;

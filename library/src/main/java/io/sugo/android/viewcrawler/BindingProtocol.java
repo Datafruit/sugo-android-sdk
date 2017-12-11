@@ -26,7 +26,7 @@ import io.sugo.android.util.JSONUtils;
 class BindingProtocol {
 
     @SuppressWarnings("unused")
-    private static final String LOGTAG = "SugoAPI.EProtocol";
+    private static final String LOGTAG = "SugoAPI.BindingProtocol";
 
     private final ResourceIds mResourceIds;
     private final ImageStore mImageStore;
