@@ -204,11 +204,15 @@ class Pathfinder {
     private View findPrefixedMatch(PathElement findElement, View subject, int indexKey) {
         final int currentIndex = mIndexStack.read(indexKey);
         if (matches(findElement, subject)) {
+            // 如果查找的元素不是同类元素，则 indexKey 对应的 index 增加一，用以退出循环
+            if (findElement.index != -1) {
+                mIndexStack.increment(indexKey);
+            }
             if (findElement.index == -1 || findElement.index == currentIndex) {
                 return subject;
             }
-            // 当前没有匹配上，则匹配下一个 index (外层循环是传一个兄弟 view 进来)
-            mIndexStack.increment(indexKey);
+            // 如果没有匹配上，则匹配下一个 index (外层循环是传一个兄弟 view 进来)
+
         }
 
         // 如果是 shortest 规则的元素，则一直递归查找到对应的元素，一般是指 content_view，以优化遍历性能
