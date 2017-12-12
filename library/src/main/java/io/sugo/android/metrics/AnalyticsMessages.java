@@ -8,6 +8,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
@@ -31,10 +32,8 @@ import io.sugo.android.viewcrawler.UpdatesFromSugo;
 import io.sugo.android.viewcrawler.ViewCrawler;
 
 /**
- * Manage communication of events with the internal database and the Sugo servers.
- * <p>
- * <p>This class straddles the thread boundary between user threads and
- * a logical Sugo thread.
+ * 管理 events 与内部数据、Sugo 服务器的沟通
+ * 将用户线程的操作，转移到 worker 中执行
  */
 class AnalyticsMessages {
 
@@ -53,16 +52,12 @@ class AnalyticsMessages {
 
     // push given JSON message to people DB
     private static final int ENQUEUE_EVENTS = 1;
-
     // push given JSON message to events DB
     private static final int FLUSH_QUEUE = 2;
-
     // Hard-kill the worker thread, discarding all events on the event queue. This is for testing, or disasters.
     private static final int KILL_WORKER = 5;
-
     // Run this DecideCheck at intervals until it isDestroyed()
     private static final int START_API_CHECK = 12;
-
     // Run this DecideCheck at intervals until it isDestroyed()
     private static final int UPDATE_API_CHECK = 14;
 
@@ -189,26 +184,20 @@ class AnalyticsMessages {
     public void postToServer() {
         final Message m = Message.obtain();
         m.what = FLUSH_QUEUE;
-
         mWorker.runMessage(m);
     }
 
     public void startApiCheck() {
         final Message m = Message.obtain();
         m.what = START_API_CHECK;
-
         mWorker.runMessage(m);
     }
 
     public void hardKill() {
         final Message m = Message.obtain();
         m.what = KILL_WORKER;
-
         mWorker.runMessage(m);
     }
-
-    /////////////////////////////////////////////////////////
-    // For testing, to allow for Mocking.
 
     boolean isDead() {
         return mWorker.isDead();
@@ -219,50 +208,6 @@ class AnalyticsMessages {
     }
 
     ////////////////////////////////////////////////////
-
-    static class EventDescription {
-        public EventDescription(String eventId, String eventName, JSONObject properties, String token) {
-            this.eventId = eventId;
-            this.eventName = eventName;
-            this.properties = properties;
-            this.token = token;
-        }
-
-        public String getEventName() {
-            return eventName;
-        }
-
-        public String getEventId() {
-            return eventId;
-        }
-
-        public JSONObject getProperties() {
-            return properties;
-        }
-
-        public String getToken() {
-            return token;
-        }
-
-        private final String eventName;
-        private final String eventId;
-        private final JSONObject properties;
-        private final String token;
-    }
-
-    // Sends a message if and only if we are running with Sugo Message log enabled.
-    // Will be called from the Sugo thread.
-    private void logAboutMessageToSugo(String message) {
-        if (SGConfig.DEBUG) {
-            Log.v(LOGTAG, message + " (Thread " + Thread.currentThread().getId() + ")");
-        }
-    }
-
-    private void logAboutMessageToSugo(String message, Throwable e) {
-        if (SGConfig.DEBUG) {
-            Log.v(LOGTAG, message + " (Thread " + Thread.currentThread().getId() + ")", e);
-        }
-    }
 
     // Worker will manage the (at most single) IO thread associated with
     // this AnalyticsMessages instance.
@@ -279,6 +224,13 @@ class AnalyticsMessages {
             mHandler = restartWorkerThread();
         }
 
+        protected Handler restartWorkerThread() {
+            final HandlerThread thread = new HandlerThread("com.sugo.android.AnalyticsWorker", Thread.MIN_PRIORITY);
+            thread.start();
+            final Handler ret = new AnalyticsMessageHandler(thread.getLooper());
+            return ret;
+        }
+
         public boolean isDead() {
             synchronized (mHandlerLock) {
                 return mHandler == null;
@@ -289,20 +241,11 @@ class AnalyticsMessages {
             synchronized (mHandlerLock) {
                 if (mHandler == null) {
                     // We died under suspicious circumstances. Don't try to send any more events.
-                    logAboutMessageToSugo("Dead sugo worker dropping a message: " + msg.what);
+                    log("Dead sugo worker dropping a message: " + msg.what);
                 } else {
                     mHandler.sendMessage(msg);
                 }
             }
-        }
-
-        // NOTE that the returned worker will run FOREVER, unless you send a hard kill
-        // (which you really shouldn't)
-        protected Handler restartWorkerThread() {
-            final HandlerThread thread = new HandlerThread("com.sugo.android.AnalyticsWorker", Thread.MIN_PRIORITY);
-            thread.start();
-            final Handler ret = new AnalyticsMessageHandler(thread.getLooper());
-            return ret;
         }
 
         private void updateFlushFrequency() {
@@ -315,7 +258,9 @@ class AnalyticsMessages {
                 mAveFlushFrequency = totalFlushTime / newFlushCount;
 
                 final long seconds = mAveFlushFrequency / 1000;
-                logAboutMessageToSugo("Average send frequency approximately " + seconds + " seconds.");
+                if (SGConfig.DEBUG) {
+                    log("Average send frequency approximately " + seconds + " seconds.");
+                }
             }
 
             mLastFlushTime = now;
@@ -349,7 +294,7 @@ class AnalyticsMessages {
             private void sendAllData(SugoDbAdapter dbAdapter) {
                 final RemoteService poster = getPoster();
                 if (!poster.isOnline(mContext, mConfig.getOfflineMode())) {
-                    logAboutMessageToSugo("Not flushing data to Sugo because the device is not connected to the internet.");
+                    log("Not flushing data to Sugo because the device is not connected to the internet.");
                     return;
                 }
 
@@ -382,7 +327,7 @@ class AnalyticsMessages {
                             response = poster.performRawRequest(url, encodedData, socketFactory);
                             if (null == response) {
                                 deleteEvents = false;
-                                logAboutMessageToSugo("Response was null, unexpected failure posting to " + url + ".");
+                                log("Response was null, unexpected failure posting to " + url + ".");
                             } else {
                                 // Delete events on any successful post, regardless of 1 or 0 response
                                 deleteEvents = true;
@@ -397,8 +342,8 @@ class AnalyticsMessages {
                                     removeMessages(FLUSH_QUEUE);
                                 }
 
-                                logAboutMessageToSugo("Successfully posted to " + url + ": \n" + rawMessage);
-                                logAboutMessageToSugo("Response was " + parsedResponse);
+                                log("Successfully posted to " + url + ": \n" + rawMessage);
+                                log("Response was " + parsedResponse);
                             }
                             break;
                         } catch (final OutOfMemoryError e) {
@@ -408,20 +353,20 @@ class AnalyticsMessages {
                             Log.e(LOGTAG, "Cannot interpret " + url + " as a URL.", e);
                             break;
                         } catch (final RemoteService.ServiceUnavailableException e) {
-                            logAboutMessageToSugo("Cannot post message to " + url + ".", e);
+                            log("Cannot post message to " + url + ".", e);
                             deleteEvents = false;
                             mTrackEngageRetryAfter = e.getRetryAfter() * 1000;
                         } catch (final SocketTimeoutException e) {
-                            logAboutMessageToSugo("Cannot post message to " + url + ".", e);
+                            log("Cannot post message to " + url + ".", e);
                             deleteEvents = false;
                         } catch (final IOException e) {
-                            logAboutMessageToSugo("Cannot post message to " + url + ".", e);
+                            log("Cannot post message to " + url + ".", e);
                             deleteEvents = false;
                         }
                     }
 
                     if (deleteEvents) {
-                        logAboutMessageToSugo("Not retrying this batch of events, deleting them from DB.");
+                        log("Not retrying this batch of events, deleting them from DB.");
                         dbAdapter.cleanupEvents(lastId, table);
                     } else {
                         removeMessages(FLUSH_QUEUE);
@@ -429,7 +374,7 @@ class AnalyticsMessages {
                         mTrackEngageRetryAfter = Math.min(mTrackEngageRetryAfter, 10 * 60 * 1000);
                         sendEmptyMessageDelayed(FLUSH_QUEUE, mTrackEngageRetryAfter);
                         mFailedRetries++;
-                        logAboutMessageToSugo("Retrying this batch of events in " + mTrackEngageRetryAfter + " ms");
+                        log("Retrying this batch of events in " + mTrackEngageRetryAfter + " ms");
                         break;
                     }
 
@@ -441,7 +386,6 @@ class AnalyticsMessages {
             }
 
             private JSONObject prepareEventObject(EventDescription eventDescription) throws JSONException {
-                final JSONObject eventObj = new JSONObject();
                 final JSONObject eventProperties = eventDescription.getProperties();
                 final JSONObject sendProperties = getDefaultEventProperties();
                 sendProperties.put(SGConfig.FIELD_TOKEN, eventDescription.getToken());
@@ -456,20 +400,6 @@ class AnalyticsMessages {
                     sendProperties.put(SGConfig.FIELD_EVENT_ID, eventId);
                 }
                 sendProperties.put(SGConfig.FIELD_EVENT_NAME, eventDescription.getEventName());
-//                for (final Iterator<?> iter = sendProperties.keys(); iter.hasNext(); ) {
-//                    String key = (String) iter.next();
-//                    key = key.replace("|", "").replace(",", "");
-//                    final Object value = sendProperties.get(key);
-//                    if (value instanceof Integer || value instanceof Long) {
-//                        eventObj.put("l|" + key, value);
-//                    } else if (value instanceof Float || value instanceof Double || value instanceof BigDecimal) {
-//                        eventObj.put("f|" + key, value);
-//                    } else if (value instanceof Date) {
-//                        eventObj.put("d|" + key, ((Date) value).getTime());
-//                    } else {
-//                        eventObj.put("s|" + key, value);
-//                    }
-//                }
                 return sendProperties;
             }
 
@@ -482,55 +412,63 @@ class AnalyticsMessages {
 
                 try {
                     int returnCode = SugoDbAdapter.DB_UNDEFINED_CODE;
-
                     if (msg.what == ENQUEUE_EVENTS) {
+                        // 将事件存入数据库
                         final EventDescription eventDescription = (EventDescription) msg.obj;
                         try {
                             final JSONObject message = prepareEventObject(eventDescription);
-                            logAboutMessageToSugo("Queuing event for sending later");
-                            logAboutMessageToSugo("    " + message.toString());
+                            log("Queuing event for sending later");
+                            log("    " + message.toString());
                             returnCode = mDbAdapter.addJSON(message, SugoDbAdapter.Table.EVENTS);
                         } catch (final JSONException e) {
                             Log.e(LOGTAG, "Exception tracking event " + eventDescription.getEventName(), e);
                         }
                     } else if (msg.what == FLUSH_QUEUE) {
-                        final String sharedPrefsName = ViewCrawler.SHARED_PREF_EDITS_FILE + SGConfig.getInstance(mContext).getToken();
-                        SharedPreferences preferences = mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
-                        final String storeInfo = preferences.getString(ViewCrawler.SHARED_PREF_DIMENSIONS_KEY, null);
-                        if (storeInfo == null || storeInfo.equals("") || storeInfo.equals("[]")) {
-                            logAboutMessageToSugo("empty dimensions, Flushing do not work !!!");
+                        // 将数据库的事件推向服务器
+                        final String storeInfo = getStoreInfo();
+                        if (TextUtils.isEmpty(storeInfo) || storeInfo.equals("[]")) {
+                            log("empty dimensions, Flushing do not work !!!");
                         } else {
-                            logAboutMessageToSugo("Flushing queue due to scheduled or forced flush");
+                            log("Flushing queue due to scheduled or forced flush");
                             updateFlushFrequency();
                             sendAllData(mDbAdapter);
                         }
                     } else if (msg.what == START_API_CHECK) {
-                        logAboutMessageToSugo("Installing a check for api");
-                        if (SystemClock.elapsedRealtime() >= mDecideRetryAfter) {
-                            try {
-                                mApiChecker.runDecideChecks(getPoster());
-                            } catch (RemoteService.ServiceUnavailableException e) {
-                                mDecideRetryAfter = SystemClock.elapsedRealtime() + e.getRetryAfter() * 1000;
-                            }
-                            if (mUpdateDecideInterval > 1000) {
+                        log("start a check for api");
+                        try {
+                            mApiChecker.runDecideChecks(getPoster());
+                            if (mUpdateDecideInterval < 1000) {
+                                sendEmptyMessageDelayed(UPDATE_API_CHECK, 600000);
+                            } else {
                                 sendEmptyMessageDelayed(UPDATE_API_CHECK, mUpdateDecideInterval);
                             }
+                        } catch (RemoteService.ServiceUnavailableException e) {
+                            int retryAfterSecond = e.getRetryAfter();
+                            mDecideRetryAfter = SystemClock.elapsedRealtime() + retryAfterSecond * 1000;
+                            sendEmptyMessageDelayed(UPDATE_API_CHECK, retryAfterSecond * 1000);
                         }
                     } else if (msg.what == UPDATE_API_CHECK) {
                         if (SystemClock.elapsedRealtime() >= mDecideRetryAfter) {
                             try {
+                                // 当处于可视化埋点编辑模式时，不请求 API 配置
                                 if (!SugoAPI.editorConnected) {
                                     mApiChecker.runDecideChecks(getPoster());
+                                    if (mUpdateDecideInterval < 1000) {
+                                        sendEmptyMessageDelayed(UPDATE_API_CHECK, 600000);
+                                    } else {
+                                        sendEmptyMessageDelayed(UPDATE_API_CHECK, mUpdateDecideInterval);
+                                    }
                                 }
                             } catch (RemoteService.ServiceUnavailableException e) {
-                                mDecideRetryAfter = SystemClock.elapsedRealtime() + e.getRetryAfter() * 1000;
-                            }
-                            if (mUpdateDecideInterval > 1000) {     // 不允许低于 1s 的值
-                                sendEmptyMessageDelayed(UPDATE_API_CHECK, mUpdateDecideInterval);
+                                int retryAfterSecond = e.getRetryAfter();
+                                mDecideRetryAfter = SystemClock.elapsedRealtime() + retryAfterSecond * 1000;
+                                sendEmptyMessageDelayed(UPDATE_API_CHECK, retryAfterSecond * 1000);
                             }
                         }
                     } else if (msg.what == KILL_WORKER) {
-                        Log.w(LOGTAG, "Worker received a hard kill. Dumping all events and force-killing. Thread id " + Thread.currentThread().getId());
+                        Log.w(LOGTAG, "Worker received a hard kill. \n" +
+                                "Delete all events and force-killing. \n" +
+                                "Thread id " + Thread.currentThread().getId());
                         synchronized (mHandlerLock) {
                             mDbAdapter.deleteDB();
                             mHandler = null;
@@ -541,30 +479,22 @@ class AnalyticsMessages {
                     }
 
                     ///////////////////////////
-                    if ((returnCode >= mConfig.getBulkUploadLimit()
-                            || returnCode == SugoDbAdapter.DB_OUT_OF_MEMORY_ERROR)
+                    if ((returnCode >= mConfig.getBulkUploadLimit() || returnCode == SugoDbAdapter.DB_OUT_OF_MEMORY_ERROR)
                             && mFailedRetries <= 0) {
-                        final String sharedPrefsName = ViewCrawler.SHARED_PREF_EDITS_FILE + SGConfig.getInstance(mContext).getToken();
-                        SharedPreferences preferences = mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
-                        final String storeInfo = preferences.getString(ViewCrawler.SHARED_PREF_DIMENSIONS_KEY, null);
-                        if (storeInfo == null || storeInfo.equals("") || storeInfo.equals("[]")) {
-                            logAboutMessageToSugo("empty dimensions, Flushing do not work !!!");
+                        final String storeInfo = getStoreInfo();
+                        if (TextUtils.isEmpty(storeInfo) || storeInfo.equals("[]")) {
+                            log("empty dimensions, Flushing do not work !!!");
                         } else {
-                            logAboutMessageToSugo("Flushing queue due to bulk upload limit");
+                            log("Flushing queue due to bulk upload limit");
                             updateFlushFrequency();
                             sendAllData(mDbAdapter);
                         }
                     } else if (returnCode > 0 && !hasMessages(FLUSH_QUEUE)) {
-                        // The !hasMessages(FLUSH_QUEUE) check is a courtesy for the common case
-                        // of delayed flushes already enqueued from inside of this thread.
-                        // Callers outside of this thread can still send
-                        // a flush right here, so we may end up with two flushes
-                        // in our queue, but we're OK with that.
+                        // hasMessages(FLUSH_QUEUE) 检查该线程内部已经排队的延迟 flush
+                        // 在这个线程之外的调用者仍然可以在这里发送一个 flush
+                        // 这样我们就可以在队列中得到两个 flush，但是我们可以接受。
                         long interval = mFlushInterval;
-                        if (SugoAPI.editorConnected) {
-                            interval = 1000;
-                        }
-                        logAboutMessageToSugo("Queue depth " + returnCode + " - Adding flush in " + interval);
+                        log("Queue depth " + returnCode + " - Adding flush in " + interval);
                         if (interval >= 0) {
                             sendEmptyMessageDelayed(FLUSH_QUEUE, interval);
                         }
@@ -583,6 +513,56 @@ class AnalyticsMessages {
                 }
             }// handleMessage
 
+        }
+    }
+
+    static class EventDescription {
+
+        private final String eventName;
+        private final String eventId;
+        private final JSONObject properties;
+        private final String token;
+
+        public EventDescription(String eventId, String eventName, JSONObject properties, String token) {
+            this.eventId = eventId;
+            this.eventName = eventName;
+            this.properties = properties;
+            this.token = token;
+        }
+
+        public String getEventName() {
+            return eventName;
+        }
+
+        public String getEventId() {
+            return eventId;
+        }
+
+        public JSONObject getProperties() {
+            return properties;
+        }
+
+        public String getToken() {
+            return token;
+        }
+
+    }
+
+    private String getStoreInfo() {
+        final String sharedPrefsName = ViewCrawler.SHARED_PREF_EDITS_FILE + SGConfig.getInstance(mContext).getToken();
+        SharedPreferences preferences = mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
+        return preferences.getString(ViewCrawler.SHARED_PREF_DIMENSIONS_KEY, null);
+    }
+
+    private void log(String message) {
+        if (SGConfig.DEBUG) {
+            Log.v(LOGTAG, message + " (Thread " + Thread.currentThread().getId() + ")");
+        }
+    }
+
+    private void log(String message, Throwable e) {
+        if (SGConfig.DEBUG) {
+            Log.v(LOGTAG, message + " (Thread " + Thread.currentThread().getId() + ")", e);
         }
     }
 

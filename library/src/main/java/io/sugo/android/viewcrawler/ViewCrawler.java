@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
@@ -34,6 +36,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -116,7 +119,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
         restoreDimensions();
 
         mBindingState = new BindingState();
-        mDeviceInfo = sugo.getDeviceInfo();
+        mDeviceInfo = getDeviceInfo();
         mScaledDensity = Resources.getSystem().getDisplayMetrics().scaledDensity;
 
         final Application app = (Application) context.getApplicationContext();
@@ -128,6 +131,25 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
         mMessageThreadHandler = new ViewCrawlerHandler(appContext, token, thread.getLooper(), this);
 
         mDynamicEventTracker = new DynamicEventTracker(sugo, mMessageThreadHandler);
+    }
+
+    private Map<String, String> getDeviceInfo() {
+        final Map<String, String> deviceInfo = new HashMap<String, String>();
+        deviceInfo.put("$android_lib_version", SGConfig.VERSION);
+        deviceInfo.put("$android_os", "Android");
+        deviceInfo.put("$android_os_version", Build.VERSION.RELEASE == null ? "UNKNOWN" : Build.VERSION.RELEASE);
+        deviceInfo.put("$android_manufacturer", Build.MANUFACTURER == null ? "UNKNOWN" : Build.MANUFACTURER);
+        deviceInfo.put("$android_brand", Build.BRAND == null ? "UNKNOWN" : Build.BRAND);
+        deviceInfo.put("$android_model", Build.MODEL == null ? "UNKNOWN" : Build.MODEL);
+        try {
+            final PackageManager manager = mContext.getPackageManager();
+            final PackageInfo info = manager.getPackageInfo(mContext.getPackageName(), 0);
+            deviceInfo.put("$android_app_version", info.versionName);
+            deviceInfo.put("$android_app_version_code", Integer.toString(info.versionCode));
+        } catch (final PackageManager.NameNotFoundException e) {
+            Log.e(LOGTAG, "Exception getting app version name", e);
+        }
+        return Collections.unmodifiableMap(deviceInfo);
     }
 
     private SharedPreferences getSharedPreferences() {
@@ -847,9 +869,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
             if (mEditorConnection == null) {
                 return;
             }
-
             final OutputStream out = mEditorConnection.getBufferedOutputStream();
-
             try {
                 JSONObject eventpkg = new JSONObject();
                 eventpkg.put("events", events);
@@ -868,10 +888,6 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                     Log.e(LOGTAG, "Can't close websocket writer", e);
                 }
             }
-
-//            if(!SugoAPI.editorConnected) {
-//                SugoWebEventListener.bindEvents(mToken, eventBindings);
-//            }
         }
 
         /**

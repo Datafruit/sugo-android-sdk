@@ -96,7 +96,6 @@ class PersistentIdentity {
         final Iterator<?> superIter = superProperties.keys();
         while (superIter.hasNext()) {
             final String key = (String) superIter.next();
-
             try {
                 ob.put(key, superProperties.get(key));
             } catch (JSONException e) {

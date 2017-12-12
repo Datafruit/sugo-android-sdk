@@ -20,13 +20,32 @@ import java.util.Set;
 
 /**
  * SQLite database adapter for SugoAPI.
- * <p>
- * <p>Not thread-safe. Instances of this class should only be used
- * by a single thread.
+ * Not thread-safe. Instances of this class should only be used by a single thread.
  */
 class SugoDbAdapter {
 
     private static final String LOGTAG = "SugoAPI.Database";
+
+    public static final String KEY_DATA = "data";
+    public static final String KEY_CREATED_AT = "created_at";
+
+    public static final int DB_UPDATE_ERROR = -1;
+    public static final int DB_OUT_OF_MEMORY_ERROR = -2;
+    public static final int DB_UNDEFINED_CODE = -3;
+
+    private static final String DATABASE_NAME = "sugo";
+    private static final int DATABASE_VERSION = 4;
+
+    private static final String CREATE_EVENTS_TABLE =
+            "CREATE TABLE " + Table.EVENTS.getName() + " (" +
+                    "_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    KEY_DATA + " STRING NOT NULL, " +
+                    KEY_CREATED_AT + " INTEGER NOT NULL);";
+
+    private static final String EVENTS_TIME_INDEX =
+            "CREATE INDEX IF NOT EXISTS time_idx ON " + Table.EVENTS.getName() + " (" + KEY_CREATED_AT + ");";
+
+    private final SugoDatabaseHelper mDb;
 
     public SugoDbAdapter(Context context) {
         this(context, DATABASE_NAME);
@@ -49,27 +68,6 @@ class SugoDbAdapter {
 
         private final String mTableName;
     }
-
-    public static final String KEY_DATA = "data";
-    public static final String KEY_CREATED_AT = "created_at";
-
-    public static final int DB_UPDATE_ERROR = -1;
-    public static final int DB_OUT_OF_MEMORY_ERROR = -2;
-    public static final int DB_UNDEFINED_CODE = -3;
-
-    private static final String DATABASE_NAME = "sugo";
-    private static final int DATABASE_VERSION = 4;
-
-    private static final String CREATE_EVENTS_TABLE =
-            "CREATE TABLE " + Table.EVENTS.getName() + " (_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    KEY_DATA + " STRING NOT NULL, " +
-                    KEY_CREATED_AT + " INTEGER NOT NULL);";
-
-    private static final String EVENTS_TIME_INDEX =
-            "CREATE INDEX IF NOT EXISTS time_idx ON " + Table.EVENTS.getName() +
-                    " (" + KEY_CREATED_AT + ");";
-
-    private final SugoDatabaseHelper mDb;
 
     private static class SugoDatabaseHelper extends SQLiteOpenHelper {
 
@@ -119,13 +117,11 @@ class SugoDbAdapter {
     }
 
     /**
-     * Adds a JSON string representing an event with properties or a person record
-     * to the SQLiteDatabase.
+     * Adds a JSON string representing an event with properties to the SQLiteDatabase.
      *
      * @param j     the JSON to record
-     * @param table the table to insert into, either "events" or "people"
-     * @return the number of rows in the table, or DB_OUT_OF_MEMORY_ERROR/DB_UPDATE_ERROR
-     * on failure
+     * @param table the table to insert into, either "events" or other
+     * @return the number of rows in the table, or DB_OUT_OF_MEMORY_ERROR/DB_UPDATE_ERROR on failure
      */
     public int addJSON(JSONObject j, Table table) {
         // we are aware of the race condition here, but what can we do..?
@@ -135,13 +131,10 @@ class SugoDbAdapter {
         }
 
         final String tableName = table.getName();
-
         Cursor c = null;
         int count = DB_UPDATE_ERROR;
-
         try {
             final SQLiteDatabase db = mDb.getWritableDatabase();
-
             final ContentValues cv = new ContentValues();
             cv.put(KEY_DATA, j.toString());
             cv.put(KEY_CREATED_AT, System.currentTimeMillis());
@@ -152,11 +145,9 @@ class SugoDbAdapter {
             count = c.getInt(0);
         } catch (final SQLiteException e) {
             Log.e(LOGTAG, "Could not add Sugo data to table " + tableName + ". Re-initializing database.", e);
-
-            // We assume that in general, the results of a SQL exception are
-            // unrecoverable, and could be associated with an oversized or
-            // otherwise unusable DB. Better to bomb it and get back on track
-            // than to leave it junked up (and maybe filling up the disk.)
+            // We assume that in general, the results of a SQL exception are unrecoverable,
+            // and could be associated with an oversized or otherwise unusable DB.
+            // Better to bomb it and get back on track than to leave it junked up (and maybe filling up the disk.)
             if (c != null) {
                 c.close();
                 c = null;
@@ -179,7 +170,6 @@ class SugoDbAdapter {
      */
     public void cleanupEvents(String last_id, Table table) {
         final String tableName = table.getName();
-
         try {
             final SQLiteDatabase db = mDb.getWritableDatabase();
             db.delete(tableName, "_id <= " + last_id, null);
@@ -197,7 +187,7 @@ class SugoDbAdapter {
     }
 
     /**
-     * Removes events before time.
+     * 清除过期的事件
      *
      * @param time  the unix epoch in milliseconds to remove events before
      * @param table the table to remove events from, either "events" or "people"

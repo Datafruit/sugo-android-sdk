@@ -6,8 +6,6 @@ import android.app.Application;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Looper;
@@ -31,7 +29,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -45,64 +42,9 @@ import io.sugo.android.viewcrawler.ViewCrawler;
 import io.sugo.android.viewcrawler.XWalkViewListener;
 
 /**
- * Core class for interacting with Sugo Analytics.
- * <p>
- * <p>Call {@link #getInstance(Context)} with
- * your main application activity and your Sugo API token as arguments
- * an to get an instance you can use to report how users are using your
- * application.
- * <p>
- * <p>Once you have an instance, you can send events to Sugo
- * using {@link #track(String, JSONObject)}
- * <p>
- * <p>The Sugo library will periodically send information to
- * Sugo servers, so your application will need to have
- * <tt>android.permission.INTERNET</tt>. In addition, to preserve
- * battery life, messages to Sugo servers may not be sent immediately
- * when you call <tt>track</tt>.
- * The library will send messages periodically throughout the lifetime
- * of your application, but you will need to call {@link #flush()}
- * before your application is completely shutdown to ensure all of your
- * events are sent.
- * <p>
- * <p>A typical use-case for the library might look like this:
- * <p>
- * <pre>
- * {@code
- * public class MainActivity extends Activity {
- *      SugoAPI mSugo;
+ * Core class for interacting with Sugo.
  *
- *      public void onCreate(Bundle saved) {
- *          mSugo = SugoAPI.getInstance(this, "YOUR SUGO API TOKEN");
- *          ...
- *      }
- *
- *      public void whenSomethingInterestingHappens(int flavor) {
- *          JSONObject properties = new JSONObject();
- *          properties.put("flavor", flavor);
- *          mSugo.track("Something Interesting Happened", properties);
- *          ...
- *      }
- *
- *      public void onDestroy() {
- *          mSugo.flush();
- *          super.onDestroy();
- *      }
- * }
- * }
- * </pre>
- * <p>
- * <p>In addition to this documentation, you may wish to take a look at
- * <a href="https://github.com/sugo/sample-android-sugo-integration">the Sugo sample Android application</a>.
- * <p>
- * <p>There are also <a href="https://sugo.com/docs/">step-by-step getting started documents</a>
- * available at sugo.com
- *
- * @author Administrator
- * @see <a href="https://sugo.com/docs/integration-libraries/android">getting started documentation for tracking events</a>
- * @see <a href="https://sugo.com/docs/people-analytics/android">getting started documentation for People Analytics</a>
- * @see <a href="https://sugo.com/docs/people-analytics/android-push">getting started with push notifications for Android</a>
- * @see <a href="https://github.com/sugo/sample-android-sugo-integration">The Sugo Android sample application</a>
+ * @author ouwenjie
  */
 public class SugoAPI {
     /**
@@ -125,7 +67,6 @@ public class SugoAPI {
     private final UpdatesFromSugo mUpdatesFromSugo;
     private final PersistentIdentity mPersistentIdentity;
     private final TrackingDebug mTrackingDebug;
-    private final Map<String, String> mDeviceInfo;
     private final Map<String, Long> mEventTimings;
     private SugoActivityLifecycleCallbacks mSugoActivityLifecycleCallbacks;
 
@@ -155,35 +96,13 @@ public class SugoAPI {
         mContext = appContext;
         mConfig = config;
         mToken = config.getToken();
-
         mSessionId = generateSessionId();
-
-        final Map<String, String> deviceInfo = new HashMap<String, String>();
-        deviceInfo.put("$android_lib_version", SGConfig.VERSION);
-        deviceInfo.put("$android_os", "Android");
-        deviceInfo.put("$android_os_version", Build.VERSION.RELEASE == null ? "UNKNOWN" : Build.VERSION.RELEASE);
-        deviceInfo.put("$android_manufacturer", Build.MANUFACTURER == null ? "UNKNOWN" : Build.MANUFACTURER);
-        deviceInfo.put("$android_brand", Build.BRAND == null ? "UNKNOWN" : Build.BRAND);
-        deviceInfo.put("$android_model", Build.MODEL == null ? "UNKNOWN" : Build.MODEL);
-        try {
-            final PackageManager manager = mContext.getPackageManager();
-            final PackageInfo info = manager.getPackageInfo(mContext.getPackageName(), 0);
-            deviceInfo.put("$android_app_version", info.versionName);
-            deviceInfo.put("$android_app_version_code", Integer.toString(info.versionCode));
-        } catch (final PackageManager.NameNotFoundException e) {
-            Log.e(LOGTAG, "Exception getting app version name", e);
-        }
-        mDeviceInfo = Collections.unmodifiableMap(deviceInfo);
-
         mUpdatesFromSugo = constructUpdatesFromSugo(context, mToken);
         mTrackingDebug = constructTrackingDebug();
         mPersistentIdentity = getPersistentIdentity(appContext, mToken);
         registerSuperProperties(sPreSuperProps);
         registerSuperPropertiesOnce(sPreSuperPropsOnce);
         mEventTimings = mPersistentIdentity.getTimeEvents();
-
-        // TODO reading persistent identify immediately forces the lazy load of the preferences, and defeats the
-        // purpose of PersistentIdentity's laziness.
         String distinctId = mPersistentIdentity.getEventsDistinctId();
         mConfig.setDistinctId(distinctId);
         mMessages = getAnalyticsMessages(mUpdatesFromSugo);
@@ -322,6 +241,13 @@ public class SugoAPI {
         timeEvent(eventName, tag, 0);
     }
 
+    /**
+     * 时长事件
+     *
+     * @param eventName 事件名
+     * @param tag       事件标签（与事件名拼接，成为保存时间的 key）
+     * @param offset    时间偏移，用于修正时间
+     */
     public void timeEvent(@NonNull final String eventName, @NonNull String tag, long offset) {
         final long writeTime = System.currentTimeMillis() + offset;
         synchronized (mEventTimings) {
@@ -364,19 +290,14 @@ public class SugoAPI {
     /**
      * Track an event.
      * <p>
-     * <p>Every call to track eventually results in a data point sent to Sugo. These data points
-     * are what are measured, counted, and broken down to create your Sugo reports. Events
-     * have a string name, and an optional set of name/value pairs that describe the properties of
-     * that event.
+     * <p>Every call to track eventually results in a data point sent to Sugo.
+     * These data points are what are measured, counted, and broken down to create your Sugo reports.
+     * Events have a string name, and an optional set of name/value pairs that describe the properties of that event.
      *
      * @param eventName  The name of the event to send
      * @param properties A JSONObject containing the key value pairs of the properties to include in this event.
      *                   Pass null if no extra properties exist.
      */
-    // DO NOT DOCUMENT, but track() must be thread safe since it is used to track events in
-    // notifications from the UI thread, which might not be our SugoAPI "home" thread.
-    // This MAY CHANGE IN FUTURE RELEASES, so minimize code that assumes thread safety
-    // (and perhaps document that code here).
     public void track(String eventId, @NonNull String eventName, JSONObject properties) {
         if (eventName.trim().equals("")) {
             Log.e("SugoAPI.track", "track failure. eventName can't be empty");
@@ -385,9 +306,12 @@ public class SugoAPI {
         if (SugoAPI.editorConnected && isMainThread()) {
             Toast.makeText(this.mContext, eventName, Toast.LENGTH_SHORT).show();
         }
+
+        // 时长事件处理
         final Long eventBegin;
         synchronized (mEventTimings) {
             String timeEventName = eventName;
+            // TIME_EVENT_TAG 是为了解决同名 fragment 的停留时间冲突所做的标识，取完即删掉
             if (properties != null && properties.has(SGConfig.TIME_EVENT_TAG)) {
                 timeEventName = eventName + properties.optString(SGConfig.TIME_EVENT_TAG, "");
                 properties.remove(SGConfig.TIME_EVENT_TAG);
@@ -399,21 +323,21 @@ public class SugoAPI {
 
         try {
             final JSONObject messageProps = new JSONObject();
-
+            // 添加此次事件的默认属性
             messageProps.put(SGConfig.SESSION_ID, getCurrentSessionId());
             messageProps.put(SGConfig.FIELD_PAGE, SugoPageManager.getInstance().getCurrentPage(mContext));
             messageProps.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance().getCurrentPageName(mContext));
             messageProps.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance().getCurrentPageCategory(mContext));
-
-            mPersistentIdentity.addSuperPropertiesToObject(messageProps);
-
-            // Don't allow super properties or referral properties to override these fields,
-            // but DO allow the caller to override them in their given properties.
-            final double timeSecondsDouble = (System.currentTimeMillis()) / 1000.0;
-            //final long timeSeconds = (long) timeSecondsDouble;
             messageProps.put(SGConfig.FIELD_TIME, System.currentTimeMillis());
             messageProps.put(SGConfig.FIELD_DISTINCT_ID, getDistinctId());
 
+            // 添加超级属性
+            mPersistentIdentity.addSuperPropertiesToObject(messageProps);
+
+            // Don't allow super properties to override these fields,
+            // but DO allow the caller to override them in their given properties.
+            // 计算时长
+            final double timeSecondsDouble = (System.currentTimeMillis()) / 1000.0;
             if (null != eventBegin) {
                 final double eventBeginDouble = ((double) eventBegin) / 1000.0;
                 final double secondsElapsed = timeSecondsDouble - eventBeginDouble;
@@ -423,6 +347,7 @@ public class SugoAPI {
                 }
             }
 
+            // 读取用户输入的属性，将覆盖默认的同名属性
             if (null != properties) {
                 final Iterator<?> propIter = properties.keys();
                 while (propIter.hasNext()) {
@@ -431,6 +356,7 @@ public class SugoAPI {
                 }
             }
 
+            // 转换事件类型为中文，如果事件类型为空，则取事件名为值
             final String eventTypeValue = messageProps.optString(SGConfig.FIELD_EVENT_TYPE);
             if (TextUtils.isEmpty(eventTypeValue)) {
                 messageProps.put(SGConfig.FIELD_EVENT_TYPE, eventName);
@@ -453,12 +379,13 @@ public class SugoAPI {
                 messageProps.put(SGConfig.FIELD_EVENT_TYPE, newValue);
             }
 
-
+            // 如果是连接可视化埋点测试状态
             if (SugoAPI.editorConnected) {
                 JSONArray events = new JSONArray();
                 JSONObject event = new JSONObject();
                 event.put(SGConfig.FIELD_EVENT_ID, eventId);
                 event.put(SGConfig.FIELD_EVENT_NAME, eventName);
+                // 遍历属性，将属性值是 date 类型的装换为 long
                 final Iterator<?> propIter = messageProps.keys();
                 while (propIter.hasNext()) {
                     final String key = (String) propIter.next();
@@ -467,6 +394,7 @@ public class SugoAPI {
                         messageProps.put(key, ((Date) value).getTime());
                     }
                 }
+                // 添加 SDK 默认属性
                 JSONObject defaultDimensions = mMessages.getDefaultEventProperties();
                 final Iterator<String> defaultPropIter = defaultDimensions.keys();
                 while (defaultPropIter.hasNext()) {
@@ -486,9 +414,6 @@ public class SugoAPI {
                         new AnalyticsMessages.EventDescription(eventId, eventName, messageProps, mToken);
                 mMessages.eventsMessage(eventDescription);
             }
-//            if (null != mTrackingDebug) {
-//                mTrackingDebug.reportTrack(eventName);
-//            }
         } catch (final JSONException e) {
             Log.e(LOGTAG, "Exception tracking event " + eventName, e);
         }
@@ -723,16 +648,6 @@ public class SugoAPI {
     }
 
     /**
-     * Returns an unmodifiable map that contains the device description properties
-     * that will be sent to Sugo. These are not all of the default properties,
-     * but are a subset that are dependant on the user's device or installed version
-     * of the host application, and are guaranteed not to change while the app is running.
-     */
-    public Map<String, String> getDeviceInfo() {
-        return mDeviceInfo;
-    }
-
-    /**
      * Attempt to register SugoActivityLifecycleCallbacks to the application's event lifecycle.
      * Once registered, we can automatically check for and show surveys and in-app notifications
      * when any Activity is opened.
@@ -927,7 +842,8 @@ public class SugoAPI {
         try {
             props.put(SGConfig.FIELD_PAGE, pathName);
             props.put(SGConfig.FIELD_PAGE_NAME, pageName);
-            if (timeEventTag != null && !timeEventTag.equals("")) {
+            if (!TextUtils.isEmpty(timeEventTag)) {
+                // 为了区别各种同名 fragment 的停留时间
                 props.put(SGConfig.TIME_EVENT_TAG, timeEventTag);
             }
         } catch (JSONException e) {

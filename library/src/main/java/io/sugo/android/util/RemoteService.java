@@ -26,7 +26,8 @@ public interface RemoteService {
             try {
                 retry = Integer.parseInt(strRetryAfter);
             } catch (NumberFormatException e) {
-                retry = 0;
+                // 默认是 60 秒后重试
+                retry = 60;
             }
             mRetryAfter = retry;
         }

@@ -16,15 +16,16 @@ import java.util.HashSet;
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
 
+    private static final int CHECK_DELAY = 1000;
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private Runnable mCheckInBackground;
     private boolean mIsForeground = false;
     private boolean mPaused = true;
-    public static final int CHECK_DELAY = 1000;
     private final SugoAPI mSugoAPI;
     private final SGConfig mConfig;
 
-    private boolean mIsLaunching = true;     // 是否启动中
+    // 是否启动中
+    private boolean mIsLaunching = true;
     private HashSet<Activity> mDisableActivities;
 
     public SugoActivityLifecycleCallbacks(SugoAPI sugoAPI, SGConfig config) {
@@ -32,7 +33,8 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
         mDisableActivities = new HashSet<>();
         mConfig = config;
 
-        mSugoAPI.track("启动");    // 第一个界面正在启动
+        // 第一个界面正在启动
+        mSugoAPI.track("启动");
         mSugoAPI.timeEvent("APP停留");
     }
 
@@ -108,6 +110,7 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
         mHandler.postDelayed(mCheckInBackground = new Runnable() {
             @Override
             public void run() {
+                // 延迟一段时间后检测 APP 没有处于前台的话，那就是【后台】状态
                 if (mIsForeground && mPaused) {
                     mIsForeground = false;
                     JSONObject props = new JSONObject();
@@ -120,7 +123,8 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                    mSugoAPI.track("后台", props);        // App 进入后台运行状态
+                    // App 进入后台运行状态
+                    mSugoAPI.track("后台", props);
                     mSugoAPI.flush();
                 }
             }
