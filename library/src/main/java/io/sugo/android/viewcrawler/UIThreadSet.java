@@ -10,7 +10,8 @@ import java.util.Set;
 /**
  * Wrapper around a set that will throw RuntimeErrors if accessed in a thread that is not the main thread.
  */
-/* package */ class UIThreadSet<T> {
+class UIThreadSet<T> {
+
     public UIThreadSet() {
         mSet = new HashSet<T>();
     }

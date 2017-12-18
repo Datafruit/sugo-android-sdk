@@ -19,42 +19,6 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
 
-        registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
-            @Override
-            public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-                Log.i("ActivityLifecycle:", "onActivityCreated:" + activity.getClass().getSimpleName());
-            }
-
-            @Override
-            public void onActivityStarted(Activity activity) {
-                Log.i("ActivityLifecycle:", "onActivityStarted:" + activity.getClass().getSimpleName());
-            }
-
-            @Override
-            public void onActivityResumed(Activity activity) {
-                Log.i("ActivityLifecycle:", "onActivityResumed:" + activity.getClass().getSimpleName());
-            }
-
-            @Override
-            public void onActivityPaused(Activity activity) {
-                Log.i("ActivityLifecycle:", " onActivityPaused:" + activity.getClass().getSimpleName());
-            }
-
-            @Override
-            public void onActivityStopped(Activity activity) {
-                Log.i("ActivityLifecycle:", "onActivityStopped:" + activity.getClass().getSimpleName());
-            }
-
-            @Override
-            public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-                Log.i("ActivityLifecycle:", "onActivitySaveInstanceState:" + activity.getClass().getSimpleName());
-            }
-
-            @Override
-            public void onActivityDestroyed(Activity activity) {
-                Log.i("ActivityLifecycle:", "ActivityDestroyed:" + activity.getClass().getSimpleName());
-            }
-        });
     }
 
 }

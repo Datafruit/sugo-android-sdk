@@ -19,7 +19,6 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
         <activity android:name=".activity.LoadingActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -37,7 +36,7 @@
         </activity>
         <activity
             android:name=".activity.MainActivity"
-            android:launchMode="singleTask"></activity>
+            android:launchMode="singleTask" />
         <activity android:name=".activity.NativeActivity" />
         <activity android:name=".activity.DescriptionActivity" />
         <activity android:name=".activity.WebActivity" />
@@ -48,14 +47,13 @@
 
         <meta-data
             android:name="io.sugo.android.SGConfig.UpdateDecideInterval"
-            android:value="10000" />
+            android:value="600000" />
         <meta-data
             android:name="io.sugo.android.SGConfig.ResourcePackageName"
             android:value="io.sugo.sdkdemo" />
         <meta-data
             android:name="io.sugo.android.SGConfig.EnableDebugLogging"
             android:value="true" />
-
         <meta-data
             android:name="io.sugo.android.SGConfig.token"
             android:value="5bab5fa8dccf2a91320223ca9f8df327" />
@@ -77,6 +75,8 @@
         <activity android:name=".activity.DebugFragmentsActivity" />
         <activity android:name=".activity.TestViewActivity" />
         <activity android:name=".activity.SendTestDataActivity" />
+        <activity android:name=".activity.FragmentTestActivity" />
+        <activity android:name=".activity.RecyclerViewActivity"></activity>
     </application>
 
 </manifest>

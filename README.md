@@ -6,7 +6,7 @@
 **1.1 Gradle 集成**   
 ```Groovy   
 dependencies {
-    compile 'io.sugo.android:sugo-android-sdk:2.2.2'
+    compile 'io.sugo.android:sugo-android-sdk:2.3.0'
 }
 ```
 
@@ -147,10 +147,11 @@ dependencies {
 }
 -keepattributes *JavascriptInterface*
 
+-keep class android.view.* { *; }
 -keep class io.sugo.* { *; }
--keep class io.sugo.android.mpmetrics.SugoAPI { *; }
--keep class io.sugo.android.mpmetrics.SugoWebEventListener { *; }
--keep class io.sugo.android.mpmetrics.SugoWebNodeReporter { *; }
+-keep class io.sugo.android.metrics.SugoAPI { *; }
+-keep class io.sugo.android.metrics.SugoWebEventListener { *; }
+-keep class io.sugo.android.metrics.SugoWebNodeReporter { *; }
 
 ```
 
@@ -237,6 +238,12 @@ if(imageUpload()){
     sugoAPI.track("Image Upload");
 }
 ```
+#### 3.1.3 首次登录  
+调用 `SugoAPI.login(userIdKey, userIdValue)` 来记录一次用户登录行为（后台需要配置用户表）   
+其中，`userIdKey` 是上报 userIdValue 的维度名，`userIdValue` 一般是用户标识，例如  `SugoAPI.login("userId", 123456)` 。   
+调用 `login`之后，如果是第一次登录，则触发【首次登录】事件，并且将来所有上报的事件都会带上【首次登录时间】【userIdKey】这个维度。   
+调用 `SugoAPI.logout()` 退出登录，这两个维度将不会继续上报。   
+
 
 
 #### 3.1.3 开启 H5 埋点

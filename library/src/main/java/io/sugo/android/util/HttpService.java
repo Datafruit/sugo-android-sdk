@@ -20,30 +20,30 @@ import java.util.Map;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
 
-import io.sugo.android.mpmetrics.SGConfig;
+import io.sugo.android.metrics.SGConfig;
 
 /**
- * An HTTP utility class for internal use in the Mixpanel library. Not thread-safe.
+ * An HTTP utility class for internal use in the Sugo library. Not thread-safe.
+ *
+ * @author ouwenjie
  */
 public class HttpService implements RemoteService {
 
-    private static boolean sIsMixpanelBlocked;
+    private static final String LOGTAG = "SugoAPI.HttpService";
+
+    private static boolean sIsSugoBlocked;
     private static final int MIN_UNAVAILABLE_HTTP_RESPONSE_CODE = HttpURLConnection.HTTP_INTERNAL_ERROR;
     private static final int MAX_UNAVAILABLE_HTTP_RESPONSE_CODE = 599;
 
     @Override
-    public void checkIsMixpanelBlocked() {
+    public void checkIsSugoBlocked() {
         Thread t = new Thread(new Runnable() {
             public void run() {
                 try {
-                    InetAddress apiMixpanelInet = InetAddress.getByName("api.mixpanel.com");
-                    InetAddress decideMixpanelInet = InetAddress.getByName("decide.mixpanel.com");
-                    sIsMixpanelBlocked = apiMixpanelInet.isLoopbackAddress() ||
-                            apiMixpanelInet.isAnyLocalAddress() ||
-                            decideMixpanelInet.isLoopbackAddress() ||
-                            decideMixpanelInet.isAnyLocalAddress();
-                    if (SGConfig.DEBUG && sIsMixpanelBlocked) {
-                        Log.v(LOGTAG, "AdBlocker is enabled. Won't be able to use Mixpanel services.");
+                    InetAddress sugoNet = InetAddress.getByName("sugo.io");
+                    sIsSugoBlocked = sugoNet.isLoopbackAddress() || sugoNet.isAnyLocalAddress();
+                    if (SGConfig.DEBUG && sIsSugoBlocked) {
+                        Log.v(LOGTAG, "AdBlocker is enabled. Won't be able to use Sugo services.");
                     }
                 } catch (Exception e) {
                 }
@@ -55,8 +55,8 @@ public class HttpService implements RemoteService {
 
     @Override
     public boolean isOnline(Context context, OfflineMode offlineMode) {
-        if (sIsMixpanelBlocked) return false;
-        if (onOfflineMode(offlineMode)) return false;
+//        if (sIsSugoBlocked) return false;
+//        if (onOfflineMode(offlineMode)) return false;
 
         boolean isOnline;
         try {
@@ -183,7 +183,7 @@ public class HttpService implements RemoteService {
         }
         if (SGConfig.DEBUG) {
             if (retries >= 3) {
-                Log.v(LOGTAG, "Could not connect to Mixpanel service after three retries.");
+                Log.v(LOGTAG, "Could not connect to Sugo service after three retries.");
             }
         }
         return response;
@@ -276,7 +276,7 @@ public class HttpService implements RemoteService {
         }
         if (SGConfig.DEBUG) {
             if (retries >= 3) {
-                Log.v(LOGTAG, "Could not connect to Mixpanel service after three retries.");
+                Log.v(LOGTAG, "Could not connect to Sugo service after three retries.");
             }
         }
         return response;
@@ -298,5 +298,5 @@ public class HttpService implements RemoteService {
         return buffer.toByteArray();
     }
 
-    private static final String LOGTAG = "SugoAPI.Message";
+
 }

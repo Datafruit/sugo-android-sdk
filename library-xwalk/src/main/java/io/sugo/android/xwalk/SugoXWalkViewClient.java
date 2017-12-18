@@ -5,7 +5,7 @@ import android.content.Context;
 
 import org.xwalk.core.XWalkView;
 
-import io.sugo.android.mpmetrics.SugoWebViewClient;
+import io.sugo.android.metrics.SugoWebViewClient;
 
 /**
  * Created by Administrator on 2017/2/8.

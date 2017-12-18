@@ -14,7 +14,16 @@ import java.util.List;
  * <p>
  * An individual pathfinder is NOT THREAD SAFE, and should only be used by one thread at a time.
  */
-/* package */ class Pathfinder {
+class Pathfinder {
+
+    @SuppressWarnings("unused")
+    private static final String LOGTAG = "SugoAPI.PathFinder";
+
+    private final IntStack mIndexStack;
+
+    public Pathfinder() {
+        mIndexStack = new IntStack();
+    }
 
     /**
      * a path element E matches a view V if each non "prefix" or "index"
@@ -22,7 +31,7 @@ import java.util.List;
      * <p>
      * So
      * <p>
-     * E.viewClassName == 'com.mixpanel.Awesome' => V instanceof com.mixpanelAwesome
+     * E.viewClassName == 'com.sugo.Awesome' => V instanceof com.sugo.Awesome
      * E.id == 123 => V.getId() == 123
      * <p>
      * The index attribute, counting from root to leaf, and first child to last child, selects a particular
@@ -52,6 +61,17 @@ import java.util.List;
      * elements with no index will be treated as having index == 0
      */
     public static class PathElement {
+
+        public static final int ZERO_LENGTH_PREFIX = 0;
+        public static final int SHORTEST_PREFIX = 1;
+
+        public final int prefix;
+        public final String viewClassName;
+        public final int index;
+        public final int viewId;
+        public final String contentDescription;
+        public final String tag;
+
         public PathElement(int usePrefix, String vClass, int ix, int vId, String cDesc, String vTag) {
             prefix = usePrefix;
             viewClassName = vClass;
@@ -89,23 +109,10 @@ import java.util.List;
             }
         }
 
-        public final int prefix;
-        public final String viewClassName;
-        public final int index;
-        public final int viewId;
-        public final String contentDescription;
-        public final String tag;
-
-        public static final int ZERO_LENGTH_PREFIX = 0;
-        public static final int SHORTEST_PREFIX = 1;
     }
 
     public interface Accumulator {
         public void accumulate(View v);
-    }
-
-    public Pathfinder() {
-        mIndexStack = new IntStack();
     }
 
     public void findTargetsInRoot(View givenRootView, List<PathElement> path, Accumulator accumulator) {
@@ -171,7 +178,7 @@ import java.util.List;
                 findTargetsInMatchedView(child, nextPath, accumulator);
             }
             // 如果当前元素的 index 已经超过了已有的布局的 index ，则退出循环
-            if (matchElement.index >= 0 && mIndexStack.read(indexKey) > matchElement.index) {
+            if (matchElement.index >= 0 && (mIndexStack.read(indexKey) > matchElement.index)) {
                 break;
             }
         }
@@ -194,11 +201,15 @@ import java.util.List;
     private View findPrefixedMatch(PathElement findElement, View subject, int indexKey) {
         final int currentIndex = mIndexStack.read(indexKey);
         if (matches(findElement, subject)) {
+            // 如果查找的元素不是同类元素，则 indexKey 对应的 index 增加一，用以退出循环
+            if (findElement.index != -1) {
+                mIndexStack.increment(indexKey);
+            }
             if (findElement.index == -1 || findElement.index == currentIndex) {
                 return subject;
             }
-            // 当前没有匹配上，则匹配下一个 index (外层循环是传一个兄弟 view 进来)
-            mIndexStack.increment(indexKey);
+            // 如果没有匹配上，则匹配下一个 index (外层循环是传一个兄弟 view 进来)
+
         }
 
         // 如果是 shortest 规则的元素，则一直递归查找到对应的元素，一般是指 content_view，以优化遍历性能
@@ -268,6 +279,12 @@ import java.util.List;
      * Bargain-bin pool of integers, for use in avoiding allocations during path crawl
      */
     private static class IntStack {
+
+        private static final int MAX_INDEX_STACK_SIZE = 256;
+
+        private final int[] mStack;
+        private int mStackSize;
+
         public IntStack() {
             mStack = new int[MAX_INDEX_STACK_SIZE];
             mStackSize = 0;
@@ -309,14 +326,6 @@ import java.util.List;
             }
         }
 
-        private final int[] mStack;
-        private int mStackSize;
-
-        private static final int MAX_INDEX_STACK_SIZE = 256;
     }
 
-    private final IntStack mIndexStack;
-
-    @SuppressWarnings("unused")
-    private static final String LOGTAG = "SugoAPI.PathFinder";
 }

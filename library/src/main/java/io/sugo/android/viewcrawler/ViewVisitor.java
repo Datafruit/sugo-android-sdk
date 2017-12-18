@@ -1,10 +1,10 @@
 package io.sugo.android.viewcrawler;
 
 import android.annotation.TargetApi;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.Rect;
 import android.graphics.drawable.GradientDrawable;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.util.SparseArray;
@@ -30,18 +30,66 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
 
-import io.sugo.android.mpmetrics.SGConfig;
+import io.sugo.android.metrics.SGConfig;
 
 @TargetApi(SGConfig.UI_FEATURES_MIN_API)
-/* package */ abstract class ViewVisitor implements Pathfinder.Accumulator {
+abstract class ViewVisitor implements Pathfinder.Accumulator {
+
+    private static final String LOGTAG = "SugoAPI.ViewVisitor";
+
+    private final Pathfinder mPathfinder;
+    private View mRootView;
+    protected final List<Pathfinder.PathElement> mPath;
+    private boolean mBinded = false;
+
+    protected ViewVisitor(List<Pathfinder.PathElement> path) {
+        mPath = path;
+        mPathfinder = new Pathfinder();
+    }
 
     /**
-     * OnEvent will be fired when whatever the ViewVisitor installed fires
-     * (For example, if the ViewVisitor installs watches for clicks, then OnEvent will be called
+     * Removes listeners and frees resources associated with the visitor.
+     * Once cleanup is called, the ViewVisitor should not be used again.
+     */
+    public abstract void cleanup();
+
+    protected abstract String name();
+
+    /**
+     * Scans the View hierarchy below rootView, applying it's operation to each matching child view.
+     */
+    public void visit(View rootView) {
+        mRootView = rootView;
+        mPathfinder.findTargetsInRoot(rootView, mPath, this);
+    }
+
+    protected List<Pathfinder.PathElement> getPath() {
+        return mPath;
+    }
+
+    protected Pathfinder getPathfinder() {
+        return mPathfinder;
+    }
+
+    protected View getRootView() {
+        return mRootView;
+    }
+
+    public boolean isBinded() {
+        return mBinded;
+    }
+
+    public void setBinded(boolean isBinded) {
+        this.mBinded = isBinded;
+    }
+
+    /**
+     * onEvent will be fired when whatever the ViewVisitor installed fires
+     * (For example, if the ViewVisitor installs watches for clicks, then onEvent will be called
      * on click)
      */
     public interface OnEventListener {
-        void OnEvent(View host, String eventId, String eventName, JSONObject properties, boolean debounce);
+        void onEvent(View host, String eventId, String eventName, JSONObject properties, boolean debounce);
     }
 
     public interface OnLayoutErrorListener {
@@ -49,6 +97,10 @@ import io.sugo.android.mpmetrics.SGConfig;
     }
 
     public static class LayoutErrorMessage {
+
+        private final String mErrorType;
+        private final String mName;
+
         public LayoutErrorMessage(String errorType, String name) {
             mErrorType = errorType;
             mName = name;
@@ -62,92 +114,6 @@ import io.sugo.android.mpmetrics.SGConfig;
             return mName;
         }
 
-        private final String mErrorType;
-        private final String mName;
-    }
-
-    /**
-     * Attempts to apply mutator to every matching view. Use this to update properties
-     * in the view hierarchy. If accessor is non-null, it will be used to attempt to
-     * prevent calls to the mutator if the property already has the intended value.
-     */
-    public static class PropertySetVisitor extends ViewVisitor {
-        public PropertySetVisitor(List<Pathfinder.PathElement> path, Caller mutator, Caller accessor) {
-            super(path);
-            mMutator = mutator;
-            mAccessor = accessor;
-            mOriginalValueHolder = new Object[1];
-            mOriginalValues = new WeakHashMap<View, Object>();
-        }
-
-        @Override
-        public void cleanup() {
-            for (Map.Entry<View, Object> original : mOriginalValues.entrySet()) {
-                final View changedView = original.getKey();
-                final Object originalValue = original.getValue();
-                if (null != originalValue) {
-                    mOriginalValueHolder[0] = originalValue;
-                    mMutator.applyMethodWithArguments(changedView, mOriginalValueHolder);
-                }
-            }
-        }
-
-        @Override
-        public void accumulate(View found) {
-            if (null != mAccessor) {
-                final Object[] setArgs = mMutator.getArgs();
-                if (1 == setArgs.length) {
-                    final Object desiredValue = setArgs[0];
-                    final Object currentValue = mAccessor.applyMethod(found);
-
-                    if (desiredValue == currentValue) {
-                        return;
-                    }
-
-                    if (null != desiredValue) {
-                        if (desiredValue instanceof Bitmap && currentValue instanceof Bitmap) {
-                            final Bitmap desiredBitmap = (Bitmap) desiredValue;
-                            final Bitmap currentBitmap = (Bitmap) currentValue;
-                            if (desiredBitmap.sameAs(currentBitmap)) {
-                                return;
-                            }
-                        } else if (desiredValue instanceof BitmapDrawable && currentValue instanceof BitmapDrawable) {
-                            final Bitmap desiredBitmap = ((BitmapDrawable) desiredValue).getBitmap();
-                            final Bitmap currentBitmap = ((BitmapDrawable) currentValue).getBitmap();
-                            if (desiredBitmap != null && desiredBitmap.sameAs(currentBitmap)) {
-                                return;
-                            }
-                        } else if (desiredValue.equals(currentValue)) {
-                            return;
-                        }
-                    }
-
-                    if (currentValue instanceof Bitmap ||
-                            currentValue instanceof BitmapDrawable ||
-                            mOriginalValues.containsKey(found)) {
-                        ; // Cache exactly one non-image original value
-                    } else {
-                        mOriginalValueHolder[0] = currentValue;
-                        if (mMutator.argsAreApplicable(mOriginalValueHolder)) {
-                            mOriginalValues.put(found, currentValue);
-                        } else {
-                            mOriginalValues.put(found, null);
-                        }
-                    }
-                }
-            }
-
-            mMutator.applyMethod(found);
-        }
-
-        protected String name() {
-            return "Property Mutator";
-        }
-
-        private final Caller mMutator;
-        private final Caller mAccessor;
-        private final WeakHashMap<View, Object> mOriginalValues;
-        private final Object[] mOriginalValueHolder;
     }
 
     private static class CycleDetector {
@@ -196,6 +162,23 @@ import io.sugo.android.mpmetrics.SGConfig;
     }
 
     public static class LayoutUpdateVisitor extends ViewVisitor {
+
+        private final WeakHashMap<View, int[]> mOriginalValues;
+        private final List<LayoutRule> mArgs;
+        private final String mName;
+        private static final Set<Integer> mHorizontalRules = new HashSet<Integer>(Arrays.asList(
+                RelativeLayout.LEFT_OF, RelativeLayout.RIGHT_OF,
+                RelativeLayout.ALIGN_LEFT, RelativeLayout.ALIGN_RIGHT
+        ));
+        private static final Set<Integer> mVerticalRules = new HashSet<Integer>(Arrays.asList(
+                RelativeLayout.ABOVE, RelativeLayout.BELOW,
+                RelativeLayout.ALIGN_BASELINE, RelativeLayout.ALIGN_TOP,
+                RelativeLayout.ALIGN_BOTTOM
+        ));
+        private boolean mAlive;
+        private final OnLayoutErrorListener mOnLayoutErrorListener;
+        private final CycleDetector mCycleDetector;
+
         public LayoutUpdateVisitor(List<Pathfinder.PathElement> path, List<LayoutRule> args,
                                    String name, OnLayoutErrorListener onLayoutErrorListener) {
             super(path);
@@ -325,25 +308,11 @@ import io.sugo.android.mpmetrics.SGConfig;
             return mCycleDetector.hasCycle(dependencyGraph);
         }
 
+        @Override
         protected String name() {
             return "Layout Update";
         }
 
-        private final WeakHashMap<View, int[]> mOriginalValues;
-        private final List<LayoutRule> mArgs;
-        private final String mName;
-        private static final Set<Integer> mHorizontalRules = new HashSet<Integer>(Arrays.asList(
-                RelativeLayout.LEFT_OF, RelativeLayout.RIGHT_OF,
-                RelativeLayout.ALIGN_LEFT, RelativeLayout.ALIGN_RIGHT
-        ));
-        private static final Set<Integer> mVerticalRules = new HashSet<Integer>(Arrays.asList(
-                RelativeLayout.ABOVE, RelativeLayout.BELOW,
-                RelativeLayout.ALIGN_BASELINE, RelativeLayout.ALIGN_TOP,
-                RelativeLayout.ALIGN_BOTTOM
-        ));
-        private boolean mAlive;
-        private final OnLayoutErrorListener mOnLayoutErrorListener;
-        private final CycleDetector mCycleDetector;
     }
 
     public static class LayoutRule {
@@ -358,11 +327,89 @@ import io.sugo.android.mpmetrics.SGConfig;
         public final int anchor;
     }
 
+
+    private static abstract class BaseEventTriggeringVisitor extends ViewVisitor {
+
+        private final OnEventListener onEventListener;
+        protected final String mEvenId;
+        protected final String mEventName;
+        private final Map<String, List<Pathfinder.PathElement>> mDimMap;
+        private final boolean mDebounce;
+        private String mEventTypeString;
+
+        public BaseEventTriggeringVisitor(List<Pathfinder.PathElement> path,
+                                          String eventId,
+                                          String eventName,
+                                          Map<String, List<Pathfinder.PathElement>> dimMap,
+                                          OnEventListener listener,
+                                          boolean debounce) {
+            super(path);
+            onEventListener = listener;
+            mEvenId = eventId;
+            mEventName = eventName;
+            mDimMap = dimMap;
+            mDebounce = debounce;
+        }
+
+        protected String getEventName() {
+            return mEventName;
+        }
+
+        protected String getEventTypeString() {
+            return mEventTypeString;
+        }
+
+        protected void setEventTypeString(String eventTypeString) {
+            mEventTypeString = eventTypeString;
+        }
+
+        protected void fireEvent(View found) {
+            final JSONObject properties = new JSONObject();
+
+            // 判断是否有关联的控件，去获取控件的值
+            if (mDimMap != null && mDimMap.size() > 0) {
+                for (final String dimName : mDimMap.keySet()) {
+                    getPathfinder().findTargetsInRoot(getRootView(), mDimMap.get(dimName), new Pathfinder.Accumulator() {
+                        @Override
+                        public void accumulate(View v) {
+                            String text = DynamicEventTracker.textPropertyFromView(v);
+                            try {
+                                String newValue = text;
+                                String oldValue = properties.optString(dimName, "");
+                                if (!TextUtils.isEmpty(oldValue) && (!TextUtils.isEmpty(text))) {
+                                    newValue = oldValue + "\n" + text;
+                                }
+                                properties.put(dimName, newValue);
+                            } catch (JSONException e) {
+                                Log.e(LOGTAG, "", e);
+                            }
+                        }
+                    });
+                }
+            }
+            try {
+                properties.put(SGConfig.FIELD_EVENT_TYPE, getEventTypeString());
+            } catch (JSONException ignored) {
+            }
+            onEventListener.onEvent(found, mEvenId, mEventName, properties, mDebounce);
+        }
+
+    }
+
     /**
-     * Adds an accessibility event, which will fire OnEvent, to every matching view.
+     * Adds an accessibility event, which will fire onEvent, to every matching view.
      */
-    public static class AddAccessibilityEventVisitor extends EventTriggeringVisitor {
-        public AddAccessibilityEventVisitor(List<Pathfinder.PathElement> path, int accessibilityEventType, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener) {
+    public static class AddAccessibilityEventVisitor extends BaseEventTriggeringVisitor {
+
+        private final int mEventType;
+        private final WeakHashMap<View, TrackingAccessibilityDelegate> mWatching;
+
+        public AddAccessibilityEventVisitor(List<Pathfinder.PathElement> path,
+                                            int accessibilityEventType,
+                                            String eventId,
+                                            String eventName,
+                                            Map<String, List<Pathfinder.PathElement>> dimMap,
+                                            OnEventListener listener) {
             super(path, eventId, eventName, dimMap, listener, false);
             mEventType = accessibilityEventType;
             if (mEventType == AccessibilityEvent.TYPE_VIEW_CLICKED) {
@@ -392,10 +439,12 @@ import io.sugo.android.mpmetrics.SGConfig;
                 }
             }
             mWatching.clear();
+            setBinded(false);
         }
 
         @Override
         public void accumulate(View found) {
+            // 热图渲染
             if (SugoHeatMap.isShowHeatMap()) {
                 int startColor = SugoHeatMap.getEventHeat(mEvenId);
                 int endColor = SugoHeatMap.sColdColor;
@@ -407,8 +456,11 @@ import io.sugo.android.mpmetrics.SGConfig;
 
                 found.setForeground(gradientDrawable);
             }
+
             final View.AccessibilityDelegate realDelegate = getOldDelegate(found);
-            if (realDelegate instanceof TrackingAccessibilityDelegate) {
+
+            // 判断之前的代理是不是 sugo 的代理，如果是，则判断此次事件与之前代理的事件是不是同一个，如果是，则此次绑定取消
+            if (realDelegate != null && realDelegate instanceof TrackingAccessibilityDelegate) {
                 final TrackingAccessibilityDelegate currentTracker = (TrackingAccessibilityDelegate) realDelegate;
                 if (currentTracker.willFireEvent(getEventName())) {
                     return; // Don't double track
@@ -422,6 +474,11 @@ import io.sugo.android.mpmetrics.SGConfig;
             final TrackingAccessibilityDelegate newDelegate = new TrackingAccessibilityDelegate(realDelegate);
             found.setAccessibilityDelegate(newDelegate);
             mWatching.put(found, newDelegate);
+            // 同列元素的 visitor，不设置 binded ，为了不断监控新生成的同类元素
+            if (mPath.get(mPath.size() - 1).index == -1) {
+                return;
+            }
+            setBinded(true);
         }
 
         @Override
@@ -447,26 +504,42 @@ import io.sugo.android.mpmetrics.SGConfig;
             return ret;
         }
 
+        /**
+         * 内部类 AddAccessibilityEventVisitor 的内部类
+         */
         private class TrackingAccessibilityDelegate extends View.AccessibilityDelegate {
-            public TrackingAccessibilityDelegate(View.AccessibilityDelegate realDelegate) {
+
+            private View.AccessibilityDelegate mRealDelegate;
+
+            TrackingAccessibilityDelegate(View.AccessibilityDelegate realDelegate) {
                 mRealDelegate = realDelegate;
             }
 
-            public View.AccessibilityDelegate getRealDelegate() {
+            View.AccessibilityDelegate getRealDelegate() {
                 return mRealDelegate;
             }
 
-            public boolean willFireEvent(final String eventName) {
-                if (getEventName() == eventName) {
+            /**
+             * 如果是相同的事件名，那么这次绑定就会被取消
+             *
+             * @param eventName
+             * @return
+             */
+            boolean willFireEvent(final String eventName) {
+                if (getEventName().equals(eventName)) {
                     return true;
                 } else if (mRealDelegate instanceof TrackingAccessibilityDelegate) {
+                    // 如果获取的代理，仍是 sugo 的代理，则递归直到默认实现
                     return ((TrackingAccessibilityDelegate) mRealDelegate).willFireEvent(eventName);
                 } else {
                     return false;
                 }
             }
 
-            public void removeFromDelegateChain(final TrackingAccessibilityDelegate other) {
+            /**
+             * 移除掉这一个代理
+             */
+            void removeFromDelegateChain(final TrackingAccessibilityDelegate other) {
                 if (mRealDelegate == other) {
                     mRealDelegate = other.getRealDelegate();
                 } else if (mRealDelegate instanceof TrackingAccessibilityDelegate) {
@@ -488,17 +561,18 @@ import io.sugo.android.mpmetrics.SGConfig;
                 }
             }
 
-            private View.AccessibilityDelegate mRealDelegate;
         }
 
-        private final int mEventType;
-        private final WeakHashMap<View, TrackingAccessibilityDelegate> mWatching;
     }
 
     /**
-     * Installs a TextWatcher in each matching view. Does nothing if matching views are not TextViews.
+     * 为每个匹配视图安装一个 TextWatcher
+     * 如果匹配视图不是 TextView 类型，则什么也不做。
      */
-    public static class AddTextChangeListener extends EventTriggeringVisitor {
+    public static class AddTextChangeListener extends BaseEventTriggeringVisitor {
+
+        private final Map<TextView, TextWatcher> mWatching;
+
         public AddTextChangeListener(List<Pathfinder.PathElement> path, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener) {
             super(path, eventId, eventName, dimMap, listener, true);
             mWatching = new HashMap<TextView, TextWatcher>();
@@ -514,6 +588,7 @@ import io.sugo.android.mpmetrics.SGConfig;
             }
 
             mWatching.clear();
+            setBinded(false);
         }
 
         @Override
@@ -527,6 +602,7 @@ import io.sugo.android.mpmetrics.SGConfig;
                 }
                 foundTextView.addTextChangedListener(watcher);
                 mWatching.put(foundTextView, watcher);
+                setBinded(true);
             }
         }
 
@@ -536,6 +612,9 @@ import io.sugo.android.mpmetrics.SGConfig;
         }
 
         private class TrackingTextWatcher implements TextWatcher {
+
+            private final View mBoundTo;
+
             public TrackingTextWatcher(View boundTo) {
                 mBoundTo = boundTo;
             }
@@ -555,18 +634,19 @@ import io.sugo.android.mpmetrics.SGConfig;
                 fireEvent(mBoundTo);
             }
 
-            private final View mBoundTo;
         }
 
-        private final Map<TextView, TextWatcher> mWatching;
     }
 
     /**
-     * Monitors the view tree for the appearance of matching views where there were not
-     * matching views before. Fires only once per traversal.
+     * 对视图树进行监视，以显示以前没有匹配到的视图。每次遍历时只触发一次。
      */
-    public static class ViewDetectorVisitor extends EventTriggeringVisitor {
-        public ViewDetectorVisitor(List<Pathfinder.PathElement> path, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener) {
+    public static class ViewDetectorVisitor extends BaseEventTriggeringVisitor {
+
+        private boolean mSeen;
+
+        public ViewDetectorVisitor(List<Pathfinder.PathElement> path, String eventId, String eventName,
+                                   Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener) {
             super(path, eventId, eventName, dimMap, listener, false);
             mSeen = false;
             setEventTypeString("detected");
@@ -574,16 +654,20 @@ import io.sugo.android.mpmetrics.SGConfig;
 
         @Override
         public void cleanup() {
-            ; // Do nothing, we don't have anything to leak :)
+            // Do nothing, we don't have anything to leak :)
+            setBinded(false);
         }
 
         @Override
         public void accumulate(View found) {
-            if (found != null && !mSeen) {
-                fireEvent(found);
-            }
+            if (isShown(found)) {
+                if (found != null && !mSeen) {
+                    fireEvent(found);
+                    setBinded(true);
+                }
 
-            mSeen = (found != null);
+                mSeen = (found != null);
+            }
         }
 
         @Override
@@ -591,101 +675,32 @@ import io.sugo.android.mpmetrics.SGConfig;
             return getEventName() + " when Detected";
         }
 
-        private boolean mSeen;
-    }
-
-    private static abstract class EventTriggeringVisitor extends ViewVisitor {
-        public EventTriggeringVisitor(List<Pathfinder.PathElement> path, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener, boolean debounce) {
-            super(path);
-            mListener = listener;
-            mEvenId = eventId;
-            mEventName = eventName;
-            mDimMap = dimMap;
-            mDebounce = debounce;
-        }
-
-        protected void fireEvent(View found) {
-            final JSONObject properties = new JSONObject();
-            if (mDimMap != null && mDimMap.size() > 0) {
-                for (final String dimName : mDimMap.keySet()) {
-                    getPathfinder().findTargetsInRoot(getRootView(), mDimMap.get(dimName), new Pathfinder.Accumulator() {
-                        @Override
-                        public void accumulate(View v) {
-                            if (v instanceof TextView) {
-                                TextView tv = (TextView) v;
-                                try {
-                                    properties.put(dimName, tv.getText().toString());
-                                } catch (JSONException e) {
-                                    Log.e(LOGTAG, "", e);
-                                }
-                            }
-                        }
-                    });
-                }
+        /**
+         * 这个方法只能检查出这个 View 在手机屏幕（或者说是相对它的父 View）的位置，而不能检查出与其他兄弟 View 的相对位置:
+         * 比如有一个 ViewGroup，下面有 View1、View2 这两个子 View，View1 和 View2 是平级关系。
+         * 此时如果 View2 盖住了 View1，那么用 getGlobalVisibleRect 方法检查 View1 的可见性，
+         * 得到的返回值依然是 true，得到的可见矩形区域 rect 也是没有任何变化的。
+         * 也就是说 View1.getGlobalVisibleRect(rect) 得到的结果与 View2 没有任何关系。
+         *
+         * @param view
+         * @return
+         */
+        private boolean isShown(View view) {
+            if (view.getVisibility() != View.VISIBLE) {
+                return false;
             }
-            try {
-                properties.put(SGConfig.FIELD_EVENT_TYPE, getEventTypeString());
-            } catch (JSONException e) {
-
+            if (!view.isShown()) {
+                return false;
             }
-            mListener.OnEvent(found, mEvenId, mEventName, properties, mDebounce);
+            if (!view.getGlobalVisibleRect(new Rect())) {
+                return false;
+            }
+            if (!view.getLocalVisibleRect(new Rect())) {
+                return false;
+            }
+            return true;
         }
 
-        protected String getEventName() {
-            return mEventName;
-        }
-
-        protected String getEventTypeString() {
-            return mEventTypeString;
-        }
-
-        protected void setEventTypeString(String eventTypeString) {
-            mEventTypeString = eventTypeString;
-        }
-
-        private final OnEventListener mListener;
-        protected final String mEventName;
-        private final Map<String, List<Pathfinder.PathElement>> mDimMap;
-        protected final String mEvenId;
-        private final boolean mDebounce;
-        private String mEventTypeString;
     }
 
-    /**
-     * Scans the View hierarchy below rootView, applying it's operation to each matching child view.
-     */
-    public void visit(View rootView) {
-        mRootView = rootView;
-        mPathfinder.findTargetsInRoot(rootView, mPath, this);
-    }
-
-    /**
-     * Removes listeners and frees resources associated with the visitor. Once cleanup is called,
-     * the ViewVisitor should not be used again.
-     */
-    public abstract void cleanup();
-
-    protected ViewVisitor(List<Pathfinder.PathElement> path) {
-        mPath = path;
-        mPathfinder = new Pathfinder();
-    }
-
-    protected List<Pathfinder.PathElement> getPath() {
-        return mPath;
-    }
-
-    protected Pathfinder getPathfinder() {
-        return mPathfinder;
-    }
-
-    protected View getRootView() {
-        return mRootView;
-    }
-
-    protected abstract String name();
-
-    private final List<Pathfinder.PathElement> mPath;
-    private final Pathfinder mPathfinder;
-    private View mRootView;
-    private static final String LOGTAG = "SugoAPI.ViewVisitor";
 }

@@ -11,7 +11,7 @@ import javax.net.ssl.SSLSocketFactory;
 public interface RemoteService {
     boolean isOnline(Context context, OfflineMode offlineMode);
 
-    void checkIsMixpanelBlocked();
+    void checkIsSugoBlocked();
 
     byte[] performRequest(String endpointUrl, Map<String, Object> params, SSLSocketFactory socketFactory)
             throws ServiceUnavailableException, IOException;
@@ -26,7 +26,8 @@ public interface RemoteService {
             try {
                 retry = Integer.parseInt(strRetryAfter);
             } catch (NumberFormatException e) {
-                retry = 0;
+                // 默认是 60 秒后重试
+                retry = 60;
             }
             mRetryAfter = retry;
         }

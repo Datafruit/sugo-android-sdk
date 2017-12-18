@@ -26,7 +26,7 @@ import android.graphics.Bitmap;
  * <p>Copyright: Enrique López Mañas</p>
  * <p>License: Apache License 2.0</p>
  *
- * <p>This file has been modified from its original version by Mixpanel, Inc
+ * <p>This file has been modified from its original version by Sugo, Inc
  * The original was retrieved from
  * https://github.com/kikoso/android-stackblur on October 23rd, 2013</p>
  */

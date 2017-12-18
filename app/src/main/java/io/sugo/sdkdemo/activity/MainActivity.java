@@ -22,7 +22,7 @@ import com.google.zxing.integration.android.IntentResult;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import io.sugo.android.mpmetrics.SugoAPI;
+import io.sugo.android.metrics.SugoAPI;
 import io.sugo.sdkdemo.R;
 
 public class MainActivity extends AppCompatActivity {
