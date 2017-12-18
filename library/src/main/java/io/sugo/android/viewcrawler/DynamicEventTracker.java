@@ -32,7 +32,7 @@ class DynamicEventTracker implements ViewVisitor.OnEventListener {
     @SuppressWarnings("Unused")
     private static String LOGTAG = "SugoAPI.DynamicEventTracker";
 
-    private static final int MAX_PROPERTY_LENGTH = 128;
+    private static final int MAX_PROPERTY_LENGTH = 256;
     private static final int DEBOUNCE_TIME_MILLIS = 1000; // 1 second delay before sending
 
     private final SugoAPI mSugo;
@@ -123,7 +123,7 @@ class DynamicEventTracker implements ViewVisitor.OnEventListener {
             int inputType = ((EditText) v).getInputType();
             // textPassword / numberPassword
             if (isPassword(inputType)) {
-                return ret;
+                return "";
             }
         }
         if (v instanceof TextView) {
@@ -142,7 +142,7 @@ class DynamicEventTracker implements ViewVisitor.OnEventListener {
                 final String childText = textPropertyFromView(child);
                 if (null != childText && childText.length() > 0) {
                     if (textSeen) {
-                        builder.append(", ");
+                        builder.append("\t");
                     }
                     builder.append(childText);
                     textSeen = true;

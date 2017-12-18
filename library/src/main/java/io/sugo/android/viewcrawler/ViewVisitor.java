@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.graphics.Rect;
 import android.graphics.drawable.GradientDrawable;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.util.SparseArray;
@@ -373,7 +374,12 @@ abstract class ViewVisitor implements Pathfinder.Accumulator {
                         public void accumulate(View v) {
                             String text = DynamicEventTracker.textPropertyFromView(v);
                             try {
-                                properties.put(dimName, text);
+                                String newValue = text;
+                                String oldValue = properties.optString(dimName, "");
+                                if (!TextUtils.isEmpty(oldValue) && (!TextUtils.isEmpty(text))) {
+                                    newValue = oldValue + "\n" + text;
+                                }
+                                properties.put(dimName, newValue);
                             } catch (JSONException e) {
                                 Log.e(LOGTAG, "", e);
                             }

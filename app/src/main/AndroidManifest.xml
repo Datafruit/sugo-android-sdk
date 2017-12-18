@@ -46,12 +46,6 @@
             tools:replace="screenOrientation" />
 
         <meta-data
-            android:name="com.mixpanel.android.MPConfig.ResourcePackageName"
-            android:value="io.sugo.sdkdemo" />
-        <meta-data
-            android:name="com.mixpanel.android.MPConfig.EnableDebugLogging"
-            android:value="true" />
-        <meta-data
             android:name="io.sugo.android.SGConfig.UpdateDecideInterval"
             android:value="600000" />
         <meta-data

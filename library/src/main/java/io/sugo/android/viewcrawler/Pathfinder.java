@@ -9,8 +9,6 @@ import org.json.JSONObject;
 
 import java.util.List;
 
-import io.sugo.android.metrics.SGConfig;
-
 /**
  * Paths in the view hierarchy, and the machinery for finding views using them.
  * <p>
@@ -152,9 +150,6 @@ class Pathfinder {
 
         if (remainingPath.isEmpty()) {
             // Nothing left to match- we're found!
-            if (SGConfig.DEBUG) {
-                Log.i(LOGTAG, "found");
-            }
             accumulator.accumulate(alreadyMatched);
             return;
         }

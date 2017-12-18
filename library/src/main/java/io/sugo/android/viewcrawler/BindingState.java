@@ -63,9 +63,6 @@ class BindingState extends UIThreadSet<Activity> {
             if (binding.getActivityName().equals(activityName)) {
                 binding.kill();
                 iterator.remove();
-                if (SGConfig.DEBUG) {
-                    Log.d(LOGTAG, "remove:" + binding.getViewVisitor().name());
-                }
             }
         }
     }
@@ -222,9 +219,6 @@ class BindingState extends UIThreadSet<Activity> {
 
         @Override
         public void run() {
-            if (SGConfig.DEBUG) {
-                Log.d(LOGTAG, this + ":run want visit :" + mViewVisitor.name());
-            }
             if (!mAlive) {
                 return;
             }
@@ -239,9 +233,6 @@ class BindingState extends UIThreadSet<Activity> {
             if (!mViewVisitor.isBinded()) {
                 // 找到这个 View ，并绑定对应的 View 观察者
                 // ViewVisitor 内部执行的代码，将替换该 View 的 AccessibilityDelegate 实现监听
-                if (SGConfig.DEBUG) {
-                    Log.d(LOGTAG, "start visit:" + mViewVisitor.name());
-                }
                 mViewVisitor.visit(viewRoot);
             }
             mUIHandler.removeCallbacks(this);
@@ -259,9 +250,6 @@ class BindingState extends UIThreadSet<Activity> {
         @SuppressWarnings("deprecation")
         private void cleanUp() {
             if (mAlive) {
-                if (SGConfig.DEBUG) {
-                    Log.d(LOGTAG, "cleanup:" + mViewVisitor.name());
-                }
                 final View viewRoot = mViewRoot.get();
                 if (null != viewRoot) {
                     final ViewTreeObserver observer = viewRoot.getViewTreeObserver();
