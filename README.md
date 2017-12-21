@@ -6,7 +6,7 @@
 **1.1 Gradle 集成**   
 ```Groovy   
 dependencies {
-    compile 'io.sugo.android:sugo-android-sdk:2.3.0'
+    compile 'io.sugo.android:sugo-android-sdk:2.3.1'
 }
 ```
 

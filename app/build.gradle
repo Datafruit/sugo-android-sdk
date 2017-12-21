@@ -4,7 +4,7 @@ android {
     compileSdkVersion 25
     buildToolsVersion '26.0.2'
     defaultConfig {
-        applicationId "io.sugo.sdkdemo.dev220kf"
+        applicationId "io.sugo.sdkdemo.tsa"
         minSdkVersion 14
         targetSdkVersion 22
         versionCode 4
@@ -55,11 +55,6 @@ android {
         disable 'ExtraTranslation'
         disable 'InvalidPackage'
     }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-
 }
 
 repositories {
@@ -73,6 +68,7 @@ repositories {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile(project(':library'))
+//    compile 'io.sugo.android:sugo-android-sdk:2.3.0'
     compile 'com.android.support:support-annotations:25.4.0'
     compile 'com.android.support:appcompat-v7:25.4.0'
     compile 'com.android.support:recyclerview-v7:25.4.0'
