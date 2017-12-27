@@ -26,7 +26,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
-                <data android:scheme="sugo.44b9a424302f467d5b35f7fbdce2ddde" />
+                <data android:scheme="sugo.6c275a878890d2df224cf3f48385d27e" />
 
                 <action android:name="android.intent.action.VIEW" />
 
@@ -58,12 +58,12 @@
         <!-- 设置ProjectId -->
         <meta-data
             android:name="io.sugo.android.SGConfig.ProjectId"
-            android:value="com_H1bIzqK2SZ_project_HybrS_99b" />
+            android:value="com_H1bIzqK2SZ_project_r1HAty5zM" />
 
         <!-- 设置 Token -->
         <meta-data
             android:name="io.sugo.android.SGConfig.token"
-            android:value="44b9a424302f467d5b35f7fbdce2ddde" />
+            android:value="6c275a878890d2df224cf3f48385d27e" />
 
         <!-- 设置埋点配置地址 -->
         <meta-data
