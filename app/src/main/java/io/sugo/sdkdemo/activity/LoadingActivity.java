@@ -4,8 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
-import io.sugo.android.metrics.SGConfig;
-import io.sugo.android.metrics.SugoAPI;
 import io.sugo.sdkdemo.R;
 
 /**
@@ -17,8 +15,6 @@ public class LoadingActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_loading);
-
-        SugoAPI.startSugo(this, SGConfig.getInstance(this).logConfig());
 
     }
 
