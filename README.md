@@ -18,6 +18,8 @@ dependencies {
     compile 'io.sugo.android:weex-support:1.0.0'
 ```
 
+**XWalkView 支持**   
+
 > 如果需要支持`XWalkView`，请另外再添加   
 (如果不知道这个，就不需要)   
 

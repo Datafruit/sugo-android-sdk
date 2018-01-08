@@ -114,6 +114,8 @@ public class WXSugoModule extends WXModule {
                     }
                 }
                 if (webView != null) {
+                    webView.getSettings().setJavaScriptEnabled(true);
+                    getSugoAPI().addWebViewJavascriptInterface(webView);
                     SugoWebViewClient.handlePageFinished(webView, path);
                 }
             }
