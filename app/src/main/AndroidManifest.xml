@@ -68,17 +68,17 @@
         <!-- 设置埋点配置地址 -->
         <meta-data
             android:name="io.sugo.android.SGConfig.APIHost"
-            android:value="http://192.168.0.220:8000" />
+            android:value="http://192.168.0.134:8080" />
 
         <!-- 设置可视化埋点地址 -->
         <meta-data
             android:name="io.sugo.android.SGConfig.EditorHost"
-            android:value="ws://192.168.0.220:8887" />
+            android:value="ws://192.168.0.134:8887" />
 
         <!-- 设置数据上报地址 -->
         <meta-data
             android:name="io.sugo.android.SGConfig.EventsHost"
-            android:value="http://192.168.0.220" />
+            android:value="http://192.168.0.134" />
 
         <activity android:name=".activity.PrivateFuncActivity" />
         <activity android:name=".activity.DebugViewPagerActivity" />
