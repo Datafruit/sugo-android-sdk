@@ -1,6 +1,5 @@
 package io.sugo.android.weex_support;
 
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
@@ -18,7 +17,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import io.sugo.android.metrics.SGConfig;
 import io.sugo.android.metrics.SugoAPI;
 import io.sugo.android.metrics.SugoWebViewClient;
 
@@ -91,12 +89,8 @@ public class WXSugoModule extends WXModule {
         getSugoAPI().logout();
     }
 
-    /**
-     * @param path
-     * @param ref
-     */
-    @JSMethod
-    public void handleWebView(String path, String ref) {
+    @JSMethod(uiThread = true)
+    public void initWebView(String ref) {
         WXComponent webComponent =
                 WXSDKManager.getInstance()
                         .getWXRenderManager()
@@ -116,6 +110,34 @@ public class WXSugoModule extends WXModule {
                 if (webView != null) {
                     webView.getSettings().setJavaScriptEnabled(true);
                     getSugoAPI().addWebViewJavascriptInterface(webView);
+                }
+            }
+        }
+    }
+
+    /**
+     * @param path
+     * @param ref
+     */
+    @JSMethod(uiThread = true)
+    public void handleWebView(final String path, String ref) {
+        WXComponent webComponent =
+                WXSDKManager.getInstance()
+                        .getWXRenderManager()
+                        .getWXComponent(mWXSDKInstance.getInstanceId(), ref);
+        if (webComponent instanceof WXWeb) {
+            WebView webView = null;
+            View hostView = ((WXWeb) webComponent).getHostView();
+            if (hostView instanceof ViewGroup) {
+                int count = ((ViewGroup) hostView).getChildCount();
+                for (int i = 0; i < count; i++) {
+                    View childView = ((ViewGroup) hostView).getChildAt(i);
+                    if (childView instanceof WebView) {
+                        webView = (WebView) childView;
+                        break;
+                    }
+                }
+                if (webView != null) {
                     SugoWebViewClient.handlePageFinished(webView, path);
                 }
             }
@@ -124,9 +146,6 @@ public class WXSugoModule extends WXModule {
 
     private synchronized SugoAPI getSugoAPI() {
         if (sugoAPI == null) {
-            if (SGConfig.DEBUG) {
-                Log.d(LOG_TAG, "SugoAPI.getInstance");
-            }
             sugoAPI = SugoAPI.getInstance(mWXSDKInstance.getContext());
         }
         return sugoAPI;
