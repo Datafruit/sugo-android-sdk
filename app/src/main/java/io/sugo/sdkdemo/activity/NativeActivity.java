@@ -80,7 +80,7 @@ public class NativeActivity extends AppCompatActivity {
 
     }
 
-    @OnClick({R.id.back_img, R.id.a_btn, R.id.b_btn, R.id.to_fragments_btn, R.id.to_list_btn})
+    @OnClick({R.id.back_img, R.id.a_btn, R.id.b_btn, R.id.to_fragments_btn, R.id.to_list_btn, R.id.to_view_pager_btn})
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.back_img:
@@ -101,6 +101,9 @@ public class NativeActivity extends AppCompatActivity {
                 break;
             case R.id.to_list_btn:
                 startActivity(new Intent(NativeActivity.this, RecyclerViewActivity.class));
+                break;
+            case R.id.to_view_pager_btn:
+                startActivity(new Intent(this, DebugViewPagerActivity.class));
                 break;
             default:
                 break;

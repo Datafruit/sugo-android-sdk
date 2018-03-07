@@ -20,7 +20,7 @@ dependencies {
 若要支持 Weex 生成的页面，请额外添加   
 
 ```Groovy    
-    compile 'io.sugo.android:weex-support:1.0.0'
+    compile 'io.sugo.android:sugo-weex:1.0.0'
 ```
 
 **XWalkView 支持**   

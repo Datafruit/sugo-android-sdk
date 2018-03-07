@@ -19,6 +19,8 @@ import io.sugo.sdkdemo.R;
  * A fragment with a Google +1 button.
  * Use the {@link OneTextFragment#newInstance} factory method to
  * create an instance of this fragment.
+ *
+ * @author going
  */
 public class OneTextFragment extends Fragment {
 

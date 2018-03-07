@@ -1,4 +1,4 @@
-package io.sugo.android.weex_support;
+package io.sugo.android.weex;
 
 import android.view.View;
 import android.view.ViewGroup;

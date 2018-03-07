@@ -2,9 +2,9 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion '26.0.2'
+    buildToolsVersion '26.0.3'
     defaultConfig {
-        applicationId "io.sugo.sdkdemo.dev134kf"
+        applicationId "io.sugo.sdkdemo.tsa"
         minSdkVersion 14
         targetSdkVersion 22
         versionCode 4
