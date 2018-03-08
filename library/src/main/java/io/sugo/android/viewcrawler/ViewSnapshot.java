@@ -14,6 +14,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v4.widget.NestedScrollView;
 import android.util.Base64;
 import android.util.Base64OutputStream;
 import android.util.DisplayMetrics;
@@ -22,8 +23,11 @@ import android.util.Log;
 import android.util.LruCache;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.webkit.WebView;
+import android.widget.HorizontalScrollView;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 
 import org.json.JSONObject;
 
@@ -84,7 +88,7 @@ class ViewSnapshot {
         mMainThreadHandler.post(infoFuture);
 
         final OutputStreamWriter writer = new OutputStreamWriter(out);
-        List<RootViewInfo> infoList = Collections.<RootViewInfo>emptyList();
+        List<RootViewInfo> infoList = Collections.emptyList();
         writer.write("[");
 
         try {
@@ -164,6 +168,48 @@ class ViewSnapshot {
         if (view.getVisibility() != View.VISIBLE) {
             return;
         }
+        // 不处理 ScrollView 未显示的 item
+        if (isScrollViewChild(view)) {
+            int scrollTop = ((ScrollView) view.getParent().getParent()).getScrollY();
+            int scrollviewHeight = ((ScrollView) view.getParent().getParent()).getHeight();
+            int viewTop = view.getTop();
+            int viewBottom = view.getBottom();
+            if (viewTop - scrollTop > scrollviewHeight) {
+                return;
+            }
+            if (scrollTop > viewBottom) {
+                return;
+            }
+        }
+        // 不处理 NestedScrollView 未显示的 item
+        if (isNestedScrollViewChild(view)) {
+            int scrollTop = ((NestedScrollView) view.getParent().getParent()).getScrollY();
+            int scrollviewHeight = ((NestedScrollView) view.getParent().getParent()).getHeight();
+            int viewTop = view.getTop();
+            int viewBottom = view.getBottom();
+            if (viewTop - scrollTop > scrollviewHeight) {
+                return;
+            }
+            if (scrollTop > viewBottom) {
+                return;
+            }
+        }
+        // 不处理 HorizontalScrollView 未显示的 item
+        if (isHorizontalScrollViewChild(view)) {
+            int scrollX = ((HorizontalScrollView) view.getParent().getParent()).getScrollX();
+            int scrollviewWidth = ((HorizontalScrollView) view.getParent().getParent()).getWidth();
+            int viewLeft = view.getLeft();
+            int viewRight = view.getRight();
+            // item 的最左边，超过了 scroller 的最大宽度，该 item 在 scroller 外边
+            if (viewLeft - scrollX > scrollviewWidth) {
+                return;
+            }
+            // item 的最右边，在 scroller 的最左边的外边
+            if (scrollX > viewRight) {
+                return;
+            }
+        }
+
         final int viewId = view.getId();
         final String viewIdName;
         if (-1 == viewId) {
@@ -231,6 +277,11 @@ class ViewSnapshot {
             }
             j.endArray();
         }
+        // 因为 Scroller 会优化未显示的 item， 所以要为 Scroller 的 子 View 添加正确的 index
+        if (isScrollViewChild(view) || isHorizontalScrollViewChild(view) || isNestedScrollViewChild(view)) {
+            int index = ((ViewGroup) view.getParent()).indexOfChild(view);
+            j.name("indexOfScroller").value(index);
+        }
         if (view instanceof WebView) {
             SugoWebNodeReporter sugoWebNodeReporter = SugoAPI.getSugoWebNodeReporter(view);
             if (sugoWebNodeReporter != null) {
@@ -266,6 +317,7 @@ class ViewSnapshot {
                 Log.v(LOGTAG, "You can call SugoAPI.handlerWebView() before WebView.loadUrl() for snapshot html page");
             }
         }
+
         if (mXWalkViewListener != null) {
             mXWalkViewListener.snapshotSpecialView(j, view);
         }
@@ -342,6 +394,39 @@ class ViewSnapshot {
                 }
             }
         }
+    }
+
+    private boolean isScrollViewChild(View view) {
+        if (view.getParent() == null) {
+            return false;
+        }
+        if (view.getParent().getParent() == null) {
+            return false;
+        }
+        ViewParent viewParent = view.getParent().getParent();
+        return viewParent instanceof ScrollView;
+    }
+
+    private boolean isNestedScrollViewChild(View view) {
+        if (view.getParent() == null) {
+            return false;
+        }
+        if (view.getParent().getParent() == null) {
+            return false;
+        }
+        ViewParent viewParent = view.getParent().getParent();
+        return viewParent instanceof NestedScrollView;
+    }
+
+    private boolean isHorizontalScrollViewChild(View view) {
+        if (view.getParent() == null) {
+            return false;
+        }
+        if (view.getParent().getParent() == null) {
+            return false;
+        }
+        ViewParent viewParent = view.getParent().getParent();
+        return viewParent instanceof HorizontalScrollView;
     }
 
     public void setXWalkViewListener(XWalkViewListener XWalkViewListener) {
@@ -535,9 +620,9 @@ class ViewSnapshot {
 
                 // Create Hex String
                 StringBuffer hexString = new StringBuffer();
-                for (int i = 0; i < messageDigest.length; i++)
-                    hexString.append(Integer.toHexString(0xFF & messageDigest
-                            [i]));
+                for (int i = 0; i < messageDigest.length; i++) {
+                    hexString.append(Integer.toHexString(0xFF & messageDigest[i]));
+                }
                 mCachedHash = hexString.toString();
             } catch (NoSuchAlgorithmException e) {
                 mCachedHash = null;
