@@ -1,6 +1,6 @@
 apply plugin: 'com.android.library'
 
-//apply from: "MavenUpload.gradle"
+apply from: "MavenUpload.gradle"
 
 android {
     compileSdkVersion 25
@@ -9,8 +9,8 @@ android {
     defaultConfig {
         minSdkVersion 9
         targetSdkVersion 22
-        versionCode 8
-        versionName "2.3.1"
+        versionCode 9
+        versionName "2.3.2"
     }
     buildTypes {
         release {
