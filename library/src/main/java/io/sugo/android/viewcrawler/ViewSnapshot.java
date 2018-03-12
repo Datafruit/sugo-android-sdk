@@ -14,6 +14,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.support.v4.widget.NestedScrollView;
 import android.util.Base64;
 import android.util.Base64OutputStream;
@@ -280,6 +281,9 @@ class ViewSnapshot {
         // 因为 Scroller 会优化未显示的 item， 所以要为 Scroller 的 子 View 添加正确的 index
         if (isScrollViewChild(view) || isHorizontalScrollViewChild(view) || isNestedScrollViewChild(view)) {
             int index = ((ViewGroup) view.getParent()).indexOfChild(view);
+            int otherTypeCount = getOtherTypeCount(0, index, view.getClass().getCanonicalName(),
+                    ((ViewGroup) view.getParent()));
+            index = index - otherTypeCount;
             j.name("indexOfScroller").value(index);
         }
         if (view instanceof WebView) {
@@ -427,6 +431,17 @@ class ViewSnapshot {
         }
         ViewParent viewParent = view.getParent().getParent();
         return viewParent instanceof HorizontalScrollView;
+    }
+
+    private int getOtherTypeCount(int start, int end, @NonNull String canonicalName, @NonNull ViewGroup viewParent) {
+        int count = 0;
+        for (int i = start; i < end; i++) {
+            // 统计不是同类型的兄弟 View 的个数
+            if (!canonicalName.equals(viewParent.getChildAt(i).getClass().getCanonicalName())) {
+                count++;
+            }
+        }
+        return count;
     }
 
     public void setXWalkViewListener(XWalkViewListener XWalkViewListener) {
