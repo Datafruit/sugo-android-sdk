@@ -14,8 +14,8 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.NonNull;
 import android.support.v4.widget.NestedScrollView;
+import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Base64OutputStream;
 import android.util.DisplayMetrics;
@@ -281,8 +281,7 @@ class ViewSnapshot {
         // 因为 Scroller 会优化未显示的 item， 所以要为 Scroller 的 子 View 添加正确的 index
         if (isScrollViewChild(view) || isHorizontalScrollViewChild(view) || isNestedScrollViewChild(view)) {
             int index = ((ViewGroup) view.getParent()).indexOfChild(view);
-            int otherTypeCount = getOtherTypeCount(0, index, view.getClass().getCanonicalName(),
-                    ((ViewGroup) view.getParent()));
+            int otherTypeCount = getOtherTypeCount(0, index, view, ((ViewGroup) view.getParent()));
             index = index - otherTypeCount;
             j.name("indexOfScroller").value(index);
         }
@@ -433,12 +432,47 @@ class ViewSnapshot {
         return viewParent instanceof HorizontalScrollView;
     }
 
-    private int getOtherTypeCount(int start, int end, @NonNull String canonicalName, @NonNull ViewGroup viewParent) {
+    private int getOtherTypeCount(int start, int end, View view, ViewGroup viewParent) {
+        String canonicalName = view.getClass().getCanonicalName();
+        int viewId = view.getId();
+        String contentDesc = view.getContentDescription() == null ? null : view.getContentDescription().toString();
+        String viewTag = view.getTag() == null ? null : view.getTag().toString();
+
         int count = 0;
         for (int i = start; i < end; i++) {
             // 统计不是同类型的兄弟 View 的个数
-            if (!canonicalName.equals(viewParent.getChildAt(i).getClass().getCanonicalName())) {
+            View broView = viewParent.getChildAt(i);
+
+            // 类名必须相同
+            if (!canonicalName.equals(broView.getClass().getCanonicalName())) {
                 count++;
+                continue;
+            }
+
+            // 如果有 id ，id 必须相同
+//            if (viewId != -1 && (viewId != broView.getId())) {
+//                count++;
+//                continue;
+//            }
+
+            // 如果有 contentDesc ，那么必须相同
+            if (!TextUtils.isEmpty(contentDesc) && (TextUtils.isEmpty(broView.getContentDescription()))) {
+                count++;
+                continue;
+            }
+            if (!TextUtils.isEmpty(contentDesc) && (!contentDesc.equals(broView.getContentDescription()))) {
+                count++;
+                continue;
+            }
+
+            // 如果有 tag ，那么必须相同
+            if (!TextUtils.isEmpty(viewTag) && (broView.getTag() == null)) {
+                count++;
+                continue;
+            }
+            if (!TextUtils.isEmpty(viewTag) && (!broView.getTag().toString().equals(viewTag))) {
+                count++;
+                continue;
             }
         }
         return count;
