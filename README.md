@@ -1,27 +1,36 @@
 # Sugo Android SDK 使用文档   
 
 ## 1. SDK 集成   
-> 集成 Sugo Android SDK 有三种方式，**选择其中一种即可**。   
+> 集成 Sugo Android SDK   
 
-**1.1 Gradle 集成**   
+**通过 Gradle 集成**   
 ```Groovy   
 dependencies {
-    compile 'io.sugo.android:sugo-android-sdk:2.3.1'
+    compile 'io.sugo.android:sugo-android-sdk:2.3.2'
 }
 ```
+
+添加 sugo sdk 依赖后，进入项目管理 / SDK 接入 / Android 接入页面，点击【接入说明】按钮，   
+拷贝 SDK 配置，运行 app 即可完成接入。   
+
+如需了解更多详细配置和功能使用，可继续往下看。   
+
+**Weex 支持**    
+> Weex 是一套简单易用的跨平台开发方案，能以 web 的开发体验构建高性能、可扩展的 native 应用,   
+若要支持 Weex 生成的页面，请额外添加   
+
+```Groovy    
+    compile 'io.sugo.android:sugo-weex:0.0.1'
+```
+
+**XWalkView 支持**   
 
 > 如果需要支持`XWalkView`，请另外再添加   
 (如果不知道这个，就不需要)   
 
 ```Groovy   
-dependencies {
     compile 'io.sugo.android:sugo-xwalkview-support:2.1.0'
-}
 ```
-
-**1.2 下载 SDK 并集成**   
-下载 SDK 压缩包，解压后将其中的 sugo-android-sdk.jar 导入你的项目 libs 目录中   
-> 如果需要支持`XWalkView`，请另外再导入`sugo-android-sdk-xwalk.jar`   
 
 ---
 
@@ -116,8 +125,17 @@ dependencies {
 ```
 
 #### 2.1.7 扫码跳转页面   
+> 必填   
 
-在启动的 Activity 上（该 Activity 不能在初始化`Sugo.startSugo()`被调用之前），配置
+在启动的 Activity 上，也就是配置有
+```xml
+    <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+
+        <category android:name="android.intent.category.LAUNCHER" />
+    </intent-filter>
+```
+的 Activity 下，添加以下配置
 
 ```
     <intent-filter>
@@ -129,7 +147,7 @@ dependencies {
     </intent-filter>
 ```
 
-#### 2.1... 代码混淆   
+#### 2.1.8 代码混淆   
 > 如果您的应用使用了代码混淆， 请添加   
 
 
@@ -160,7 +178,7 @@ dependencies {
 
 ## 3. SDK 使用   
 
-添加依赖   
+### 添加依赖   
 
 ```groovy
     compile 'com.android.support:support-annotations:{support_version}'
@@ -168,10 +186,18 @@ dependencies {
     compile 'com.android.support:support-v4:{support_version}'
 ```
 
-初始化   
+### 初始化   
 
 ```Java
-    SugoAPI.startSugo(this, SGConfig.getInstance(this));
+    public class App extends Application {
+    
+        @Override
+        public void onCreate() {
+            super.onCreate();
+            SugoAPI.startSugo(this, SGConfig.getInstance(this));
+        }
+    
+    }
 ```   
 
 标准的使用实例，应该是在 APP 启动的第一个`Activity`中，添加以下代码  
@@ -182,13 +208,8 @@ public class MainActivity extends Activity {
     SugoAPI mSugo;
 
     public void onCreate(Bundle saved) {
-        // SDK 将会初始化，此处若设置 Token 、 ProjectId，将覆盖 AndroidManifest 中的设置
-        SugoAPI.startSugo(this, SGConfig.getInstance(this)
-            .logConfig());
-
         // 获取 SugoAPI 实例，在第一次调用时，
         mSugo = SugoAPI.getInstance(this);
-        ...
     }
 
     // 使用 SugoAPI.track 方法来记录事件
@@ -196,7 +217,6 @@ public class MainActivity extends Activity {
         JSONObject properties = new JSONObject();
         properties.put("flavor", flavor);
         mSugo.track("Something Interesting Happened", properties);
-        ...
     }
 
     public void onDestroy() {
@@ -214,8 +234,9 @@ public class MainActivity extends Activity {
 **参数说明**
 - eventId : 事件 id
 - eventName : 事件名称
-- properties : 事件的属性
-```Java
+- properties : 事件的属性   
+
+```Java   
 SugoAPI sugoAPI = SugoAPI.getInstance(context);
 
 JSONObject props = new JSONObject();
@@ -227,7 +248,8 @@ sugoAPI.track("Plan Selected", props);
 
 #### 3.1.2 时长事件
 调用`SugoAPI.timeEvent()`来追踪一个事件发生的时长，例如统计一次图片上传所消耗的时间
-```Java
+```Java   
+
 SugoAPI sugoAPI = SugoAPI.getInstance(context);
 
 // start the timer for the event "Image Upload"

@@ -1,11 +1,11 @@
 package io.sugo.sdkdemo;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.Application;
 import android.os.Build;
-import android.os.Bundle;
-import android.util.Log;
+
+import io.sugo.android.metrics.SGConfig;
+import io.sugo.android.metrics.SugoAPI;
 
 /**
  * @author Administrator
@@ -18,6 +18,8 @@ public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        SugoAPI.startSugo(this, SGConfig.getInstance(this).logConfig());
 
     }
 

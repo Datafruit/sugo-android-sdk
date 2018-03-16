@@ -40,12 +40,18 @@ public class RecyclerViewActivity extends AppCompatActivity {
 
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View itemView = LayoutInflater.from(getApplicationContext())
+            final View itemView = LayoutInflater.from(getApplicationContext())
                     .inflate(R.layout.layout_list_item, parent, false);
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.i("ClickItem:", v.getTag().toString());
+                    Log.i("ClickItem:", itemView.getTag().toString());
+                }
+            });
+            itemView.findViewById(R.id.textView3).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.i("Click textView3:", itemView.getTag().toString());
                 }
             });
             return new ViewHolder(itemView);
