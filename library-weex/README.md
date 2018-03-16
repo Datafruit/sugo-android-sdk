@@ -4,7 +4,7 @@
 若要支持 Weex 生成的页面，请额外添加   
 
 ```Groovy    
-    compile 'io.sugo.android:weex:1.0.0'
+    compile 'io.sugo.android:weex:0.0.1'
 ```
 
 首先，在原生代码中，注册 Sugo SDK Weex 扩展模块

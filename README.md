@@ -6,7 +6,7 @@
 **通过 Gradle 集成**   
 ```Groovy   
 dependencies {
-    compile 'io.sugo.android:sugo-android-sdk:2.3.1'
+    compile 'io.sugo.android:sugo-android-sdk:2.3.2'
 }
 ```
 
@@ -20,7 +20,7 @@ dependencies {
 若要支持 Weex 生成的页面，请额外添加   
 
 ```Groovy    
-    compile 'io.sugo.android:sugo-weex:1.0.0'
+    compile 'io.sugo.android:sugo-weex:0.0.1'
 ```
 
 **XWalkView 支持**   
