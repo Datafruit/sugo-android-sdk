@@ -87,6 +87,8 @@ import io.sugo.android.util.OfflineMode;
  * <dt>io.sugo.android.SGConfig.EditorUrl</dt>
  * <dd>A string URL. If present, the library will attempt to connect to this endpoint when in interactive editing mode, rather than to the default Sugo editor url.</dd>
  * </dl>
+ *
+ * @author Administrator
  */
 public class SGConfig {
 
@@ -176,6 +178,7 @@ public class SGConfig {
     private static final Object sInstanceLock = new Object();
 
     public static boolean DEBUG = false;
+    private static boolean sugoEnable = true;
 
     /**
      * Minimum API level for support of rich UI features, like Surveys, In-App notifications, and dynamic event binding.
@@ -573,4 +576,12 @@ public class SGConfig {
         return mImageCacheMaxMemoryFactor;
     }
 
+    public boolean isSugoEnable() {
+        return sugoEnable;
+    }
+
+    public SGConfig setSugoEnable(boolean sugoEnable) {
+        SGConfig.sugoEnable = sugoEnable;
+        return this;
+    }
 }

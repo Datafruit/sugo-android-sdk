@@ -26,7 +26,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
-                <data android:scheme="sugo.5bab5fa8dccf2a91320223ca9f8df327" />
+                <data android:scheme="sugo.6c275a878890d2df224cf3f48385d27e" />
 
                 <action android:name="android.intent.action.VIEW" />
 
@@ -58,27 +58,27 @@
         <!-- 设置ProjectId -->
         <meta-data
             android:name="io.sugo.android.SGConfig.ProjectId"
-            android:value="com_SJLnjowGe_project_SyHwyk1kf" />
+            android:value="com_H1bIzqK2SZ_project_r1HAty5zM" />
 
         <!-- 设置 Token -->
         <meta-data
             android:name="io.sugo.android.SGConfig.token"
-            android:value="5bab5fa8dccf2a91320223ca9f8df327" />
+            android:value="6c275a878890d2df224cf3f48385d27e" />
 
         <!-- 设置埋点配置地址 -->
         <meta-data
             android:name="io.sugo.android.SGConfig.APIHost"
-            android:value="http://192.168.0.134:8080" />
+            android:value="http://58.63.110.97:2270" />
 
         <!-- 设置可视化埋点地址 -->
         <meta-data
             android:name="io.sugo.android.SGConfig.EditorHost"
-            android:value="ws://192.168.0.134:8887" />
+            android:value="ws://58.63.110.97:2227" />
 
         <!-- 设置数据上报地址 -->
         <meta-data
             android:name="io.sugo.android.SGConfig.EventsHost"
-            android:value="http://192.168.0.220" />
+            android:value="http://58.63.110.97:2271" />
 
         <activity android:name=".activity.PrivateFuncActivity" />
         <activity android:name=".activity.DebugViewPagerActivity" />
