@@ -5,6 +5,8 @@
 
 ```Groovy    
     compile 'io.sugo.android:weex:0.0.1'
+    
+    compile 'io.sugo.android:sugo-android-sdk:2.3.2'
 ```
 
 首先，在原生代码中，注册 Sugo SDK Weex 扩展模块
@@ -12,6 +14,7 @@
 
 ```
     WXSDKEngine.registerModule("sugo", WXSugoModule.class);
+    SugoAPI.startSugo(this, SGConfig.getInstance(this));
 ```
 
 接着，在 JS 中引入模块      
