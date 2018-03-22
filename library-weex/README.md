@@ -6,7 +6,7 @@
 ```Groovy    
     compile 'io.sugo.android:weex:0.0.1'
     
-    compile 'io.sugo.android:sugo-android-sdk:2.3.2'
+    compile 'io.sugo.android:sugo-android-sdk:2.3.4'
 ```
 
 首先，在原生代码中，注册 Sugo SDK Weex 扩展模块
