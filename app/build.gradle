@@ -68,7 +68,7 @@ repositories {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile(project(':library-wxj'))
-//    compile 'io.sugo.android:sugo-android-sdk:2.3.1'
+//    compile 'io.sugo.android:sugo-android-sdk:2.3.2'
     compile ('org.xwalk:xwalk_core_library:22.52.561.4') {
         exclude group: 'com.android.support'
     }
