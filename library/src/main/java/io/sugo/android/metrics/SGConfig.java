@@ -99,7 +99,7 @@ public class SGConfig {
      * we can't rely on BuildConfig.SUGO_VERSION existing, so this must
      * be hard-coded both in our gradle files and here in code.
      */
-    public static final String VERSION = "2.3.2";
+    public static final String VERSION = "2.3.4";
 
     public static final String FIELD_APP_BUILD_NUMBER = "app_build_number";
     public static final String FIELD_APP_VERSION_STRING = "app_version";
