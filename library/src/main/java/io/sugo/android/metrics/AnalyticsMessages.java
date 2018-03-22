@@ -471,6 +471,7 @@ class AnalyticsMessages {
                                 "Thread id " + Thread.currentThread().getId());
                         synchronized (mHandlerLock) {
                             mDbAdapter.deleteDB();
+                            mHandler.removeCallbacksAndMessages(null);
                             mHandler = null;
                             Looper.myLooper().quit();
                         }

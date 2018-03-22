@@ -58,6 +58,7 @@ public class SugoAPI {
      * 是否正在连接可视化埋点编辑器
      */
     public static boolean editorConnected = false;
+    private static boolean SUGO_ENABLE = true;
 
     private final Context mContext;
     private final AnalyticsMessages mMessages;
@@ -70,9 +71,8 @@ public class SugoAPI {
     private final Map<String, Long> mEventTimings;
     private SugoActivityLifecycleCallbacks mSugoActivityLifecycleCallbacks;
 
-    // Maps each token to a singleton SugoAPI instance
-    private static final Map<Context, SugoAPI> sInstanceMap = new HashMap<Context, SugoAPI>();
-    private static final SharedPreferencesLoader sPrefsLoader = new SharedPreferencesLoader();
+    private static final Map<Context, SugoAPI> S_INSTANCE_MAP = new HashMap<Context, SugoAPI>();
+    private static final SharedPreferencesLoader S_PREFS_LOADER = new SharedPreferencesLoader();
 
     // SugoAPI 实例化之前设置 superProperties 的临时变量
     private static JSONObject sPreSuperProps = new JSONObject();
@@ -96,6 +96,8 @@ public class SugoAPI {
         mContext = appContext;
         mConfig = config;
         mToken = config.getToken();
+        SUGO_ENABLE = mConfig.isSugoEnable();
+
         mSessionId = generateSessionId();
         mUpdatesFromSugo = constructUpdatesFromSugo(context, mToken);
         mTrackingDebug = constructTrackingDebug();
@@ -106,6 +108,12 @@ public class SugoAPI {
         String distinctId = mPersistentIdentity.getEventsDistinctId();
         mConfig.setDistinctId(distinctId);
         mMessages = getAnalyticsMessages(mUpdatesFromSugo);
+
+        if (!SUGO_ENABLE) {
+            // 禁用 Sugo 的功能，初始化到此结束
+            mMessages.hardKill();
+            return;
+        }
 
         if (!mConfig.getDisableDecideChecker()) {
             mMessages.startApiCheck();
@@ -154,13 +162,13 @@ public class SugoAPI {
         if (null == context) {
             return null;
         }
-        synchronized (sInstanceMap) {
+        synchronized (S_INSTANCE_MAP) {
             final Context appContext = context.getApplicationContext();
 
-            SugoAPI instance = sInstanceMap.get(appContext);
+            SugoAPI instance = S_INSTANCE_MAP.get(appContext);
             if (null == instance && ConfigurationChecker.checkBasicConfiguration(appContext)) {
                 instance = new SugoAPI(context);
-                sInstanceMap.put(appContext, instance);
+                S_INSTANCE_MAP.put(appContext, instance);
             }
 
             return instance;
@@ -169,26 +177,36 @@ public class SugoAPI {
 
     public static void startSugo(Context context, SGConfig sgConfig) {
         if (null == context) {
-            Log.e(LOGTAG, "startSugo 失败，context 为空");
+            if (SGConfig.DEBUG) {
+                Log.e(LOGTAG, "startSugo 失败，context 为空");
+            }
             return;
         }
-        synchronized (sInstanceMap) {
-            if (sInstanceMap.get(context.getApplicationContext()) != null) {
-                Log.e(LOGTAG, "Sugo SDK 已经初始化，不能再次初始化");
+        synchronized (S_INSTANCE_MAP) {
+            if (S_INSTANCE_MAP.get(context.getApplicationContext()) != null) {
+                if (SGConfig.DEBUG) {
+                    Log.e(LOGTAG, "Sugo SDK 已经初始化，不能再次初始化");
+                }
                 return;
             }
         }
         if (TextUtils.isEmpty(sgConfig.getToken())) {
-            Log.e(LOGTAG, "未检测到 SugoSDK 的 Token，请正确设置 io.sugo.android.SGConfig.token");
+            if (SGConfig.DEBUG) {
+                Log.e(LOGTAG, "未检测到 SugoSDK 的 Token，请正确设置 io.sugo.android.SGConfig.token");
+            }
             return;
         }
         if (TextUtils.isEmpty(sgConfig.getProjectId())) {
-            Log.e(LOGTAG, "未检测到 SugoSDK 的 ProjectId，请正确设置 io.sugo.android.SGConfig.ProjectId");
+            if (SGConfig.DEBUG) {
+                Log.e(LOGTAG, "未检测到 SugoSDK 的 ProjectId，请正确设置 io.sugo.android.SGConfig.ProjectId");
+            }
             return;
         }
 
         SugoAPI.getInstance(context);
-        Log.i("Sugo", "SugoSDK 初始化成功！");
+        if (SGConfig.DEBUG) {
+            Log.i("Sugo", "SugoSDK 初始化成功！");
+        }
     }
 
     private String generateSessionId() {
@@ -219,6 +237,9 @@ public class SugoAPI {
      *                   value is globally unique for each individual user you intend to track.
      */
     public void identify(String distinctId) {
+        if (!SUGO_ENABLE) {
+            return;
+        }
         synchronized (mPersistentIdentity) {
             mPersistentIdentity.setEventsDistinctId(distinctId);
             distinctId = mPersistentIdentity.getEventsDistinctId();
@@ -249,6 +270,9 @@ public class SugoAPI {
      * @param offset    时间偏移，用于修正时间
      */
     public void timeEvent(@NonNull final String eventName, @NonNull String tag, long offset) {
+        if (!SUGO_ENABLE) {
+            return;
+        }
         final long writeTime = System.currentTimeMillis() + offset;
         synchronized (mEventTimings) {
             String timeEventName = eventName + tag;
@@ -272,6 +296,9 @@ public class SugoAPI {
      *                   See also {@link #track(String, org.json.JSONObject)}
      */
     public void trackMap(@NonNull String eventName, Map<String, Object> properties) {
+        if (!SUGO_ENABLE) {
+            return;
+        }
         if (null == properties) {
             track(null, eventName, null);
         } else {
@@ -299,6 +326,9 @@ public class SugoAPI {
      *                   Pass null if no extra properties exist.
      */
     public void track(String eventId, @NonNull String eventName, JSONObject properties) {
+        if (!SUGO_ENABLE) {
+            return;
+        }
         if (eventName.trim().equals("")) {
             Log.e("SugoAPI.track", "track failure. eventName can't be empty");
             return;
@@ -441,6 +471,9 @@ public class SugoAPI {
      * your main application activity.
      */
     public void flush() {
+        if (!SUGO_ENABLE) {
+            return;
+        }
         mMessages.postToServer();
     }
 
@@ -451,6 +484,9 @@ public class SugoAPI {
      * and persist beyond the lifetime of your application.
      */
     public JSONObject getSuperProperties() {
+        if (!SUGO_ENABLE) {
+            return new JSONObject();
+        }
         JSONObject ret = new JSONObject();
         mPersistentIdentity.addSuperPropertiesToObject(ret);
         return ret;
@@ -465,6 +501,9 @@ public class SugoAPI {
      * @see #identify(String)
      */
     public String getDistinctId() {
+        if (!SUGO_ENABLE) {
+            return null;
+        }
         return mPersistentIdentity.getEventsDistinctId();
     }
 
@@ -486,6 +525,9 @@ public class SugoAPI {
      *                        See also {@link #registerSuperProperties(org.json.JSONObject)}
      */
     public void registerSuperPropertiesMap(Map<String, Object> superProperties) {
+        if (!SUGO_ENABLE) {
+            return;
+        }
         if (null == superProperties) {
             Log.e(LOGTAG, "registerSuperPropertiesMap does not accept null properties");
             return;
@@ -517,15 +559,21 @@ public class SugoAPI {
      * @see #clearSuperProperties()
      */
     public void registerSuperProperties(JSONObject superProperties) {
+        if (!SUGO_ENABLE) {
+            return;
+        }
         mPersistentIdentity.registerSuperProperties(superProperties);
     }
 
     public static void setSuperPropertiesBeforeStartSugo(Context context, String key, String value) {
+        if (!SUGO_ENABLE) {
+            return;
+        }
         if (context == null || TextUtils.isEmpty(key)) {
             return;
         }
         try {
-            SugoAPI instance = sInstanceMap.get(context.getApplicationContext());
+            SugoAPI instance = S_INSTANCE_MAP.get(context.getApplicationContext());
             if (instance != null) {     // 证明初始化过 SugoAPI.getInstance
                 JSONObject object = new JSONObject();
                 object.put(key, value);
@@ -539,11 +587,14 @@ public class SugoAPI {
     }
 
     public static void setSuperPropertiesOnceBeforeStartSugo(Context context, String key, String value) {
+        if (!SUGO_ENABLE) {
+            return;
+        }
         if (context == null || TextUtils.isEmpty(key)) {
             return;
         }
         try {
-            SugoAPI instance = sInstanceMap.get(context.getApplicationContext());
+            SugoAPI instance = S_INSTANCE_MAP.get(context.getApplicationContext());
             if (instance != null) {     // 证明初始化过 SugoAPI.getInstance
                 JSONObject object = new JSONObject();
                 object.put(key, value);
@@ -567,6 +618,9 @@ public class SugoAPI {
      * @see #registerSuperProperties(JSONObject)
      */
     public void unregisterSuperProperty(String superPropertyName) {
+        if (!SUGO_ENABLE) {
+            return;
+        }
         mPersistentIdentity.unregisterSuperProperty(superPropertyName);
     }
 
@@ -581,6 +635,9 @@ public class SugoAPI {
      *                        See also {@link #registerSuperPropertiesOnce(org.json.JSONObject)}
      */
     public void registerSuperPropertiesOnceMap(Map<String, Object> superProperties) {
+        if (!SUGO_ENABLE) {
+            return;
+        }
         if (null == superProperties) {
             Log.e(LOGTAG, "registerSuperPropertiesOnceMap does not accept null properties");
             return;
@@ -603,6 +660,9 @@ public class SugoAPI {
      * @see #registerSuperProperties(JSONObject)
      */
     public void registerSuperPropertiesOnce(JSONObject superProperties) {
+        if (!SUGO_ENABLE) {
+            return;
+        }
         mPersistentIdentity.registerSuperPropertiesOnce(superProperties);
     }
 
@@ -617,6 +677,9 @@ public class SugoAPI {
      * @see #registerSuperProperties(JSONObject)
      */
     public void clearSuperProperties() {
+        if (!SUGO_ENABLE) {
+            return;
+        }
         mPersistentIdentity.clearSuperProperties();
     }
 
@@ -630,6 +693,9 @@ public class SugoAPI {
      * @param update A function from one set of super properties to another. The update should not return null.
      */
     public void updateSuperProperties(SuperPropertyUpdate update) {
+        if (!SUGO_ENABLE) {
+            return;
+        }
         mPersistentIdentity.updateSuperProperties(update);
     }
 
@@ -639,6 +705,9 @@ public class SugoAPI {
      * Will not clear referrer information.
      */
     public void reset() {
+        if (!SUGO_ENABLE) {
+            return;
+        }
         // Will clear distinct_ids, superProperties, notifications, surveys, experiments,
         // and waiting People Analytics properties. Will have no effect
         // on messages already queued to send with AnalyticsMessages.
@@ -682,10 +751,10 @@ public class SugoAPI {
     private PersistentIdentity getPersistentIdentity(final Context context, final String token) {
 
         final String prefsName = "io.sugo.android.metrics.SugoAPI_" + token;
-        final Future<SharedPreferences> storedPreferences = sPrefsLoader.loadPreferences(context, prefsName, null);
+        final Future<SharedPreferences> storedPreferences = S_PREFS_LOADER.loadPreferences(context, prefsName, null);
 
         final String timeEventsPrefsName = "SugoAPI.TimeEvents_" + token;
-        final Future<SharedPreferences> timeEventsPrefs = sPrefsLoader.loadPreferences(context, timeEventsPrefsName, null);
+        final Future<SharedPreferences> timeEventsPrefs = S_PREFS_LOADER.loadPreferences(context, timeEventsPrefsName, null);
 
         return new PersistentIdentity(storedPreferences, timeEventsPrefs);
     }
@@ -696,6 +765,11 @@ public class SugoAPI {
             return new NoOpUpdatesFromSugo();
         } else if (mConfig.getDisableViewCrawler() || Arrays.asList(mConfig.getDisableViewCrawlerForProjects()).contains(token)) {
             Log.i(LOGTAG, "DisableViewCrawler is set to true. Web Configuration are disabled.");
+            return new NoOpUpdatesFromSugo();
+        } else if (!SUGO_ENABLE) {
+            if (SGConfig.DEBUG) {
+                Log.i(LOGTAG, "Sugo web configuration is disabled");
+            }
             return new NoOpUpdatesFromSugo();
         } else {
             return new ViewCrawler(context, mToken, this);
@@ -711,6 +785,7 @@ public class SugoAPI {
     }
 
     class NoOpUpdatesFromSugo implements UpdatesFromSugo {
+
         public NoOpUpdatesFromSugo() {
         }
 
@@ -756,7 +831,6 @@ public class SugoAPI {
     }
 
     public void handleWebView(WebView webView) {
-
         handleWebView(webView, mConfig.getToken(), null);
     }
 
@@ -807,6 +881,9 @@ public class SugoAPI {
      * @param data 例如: sugo.9db31f867e0b54b2744e48dde0a3d1bb://sugo/?sKey=e628da6c344acf503bc1b0574326f3b4
      */
     public void connectEditor(Uri data) {
+        if (!SUGO_ENABLE) {
+            return;
+        }
         mUpdatesFromSugo.sendConnectEditor(data);
     }
 
@@ -816,6 +893,9 @@ public class SugoAPI {
      * @param activity
      */
     public void disableTraceActivity(Activity activity) {
+        if (!SUGO_ENABLE) {
+            return;
+        }
         mSugoActivityLifecycleCallbacks.disableTraceActivity(activity);
     }
 
@@ -838,6 +918,9 @@ public class SugoAPI {
     }
 
     private void traceFragment(String eventName, String timeEventTag, String pathName, String pageName) {
+        if (!SUGO_ENABLE) {
+            return;
+        }
         JSONObject props = new JSONObject();
         try {
             props.put(SGConfig.FIELD_PAGE, pathName);
@@ -857,6 +940,9 @@ public class SugoAPI {
      * @param userIdValue "123456"
      */
     public void login(final String userIdKey, final String userIdValue) {
+        if (!SUGO_ENABLE) {
+            return;
+        }
         final Map<String, Object> firstLoginTimeMap = new HashMap<>();
         if (!TextUtils.isEmpty(userIdKey)) {
             mPersistentIdentity.writeUserIdKey(userIdKey);
@@ -927,6 +1013,9 @@ public class SugoAPI {
     }
 
     public void logout() {
+        if (!SUGO_ENABLE) {
+            return;
+        }
         String userIdKey = mPersistentIdentity.readUserIdKey();
         if (userIdKey != null) {
             unregisterSuperProperty(userIdKey);

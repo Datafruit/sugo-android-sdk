@@ -15,7 +15,6 @@ import android.widget.SeekBar;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import io.sugo.android.metrics.SugoAPI;
 import io.sugo.sdkdemo.R;
 
 public class NativeActivity extends AppCompatActivity {
@@ -59,10 +58,10 @@ public class NativeActivity extends AppCompatActivity {
                 if (TextUtils.isEmpty(userId)) {
                     userId = "userId123";
                 }
-                SugoAPI.getInstance(getApplicationContext()).login("test_user_id", userId);
+//                SugoAPI.getInstance(getApplicationContext()).login("test_user_id", userId);
                 break;
             case R.id.b_btn:
-                SugoAPI.getInstance(getApplicationContext()).logout();
+//                SugoAPI.getInstance(getApplicationContext()).logout();
                 break;
             case R.id.to_fragments_btn:
                 startActivity(new Intent(NativeActivity.this, FragmentTestActivity.class));
