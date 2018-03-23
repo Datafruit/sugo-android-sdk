@@ -4,8 +4,8 @@ import android.annotation.TargetApi;
 import android.app.Application;
 import android.os.Build;
 
-import io.sugo.android.mpmetrics.SGConfig;
-import io.sugo.android.mpmetrics.SugoAPI;
+import io.sugo.android.metrics.SGConfig;
+import io.sugo.android.metrics.SugoAPI;
 
 
 /**
@@ -20,7 +20,7 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
 
-        SugoAPI.startSugo(this, SGConfig.getInstance(this).setSugoEnable(false).logConfig());
+        SugoAPI.startSugo(this, SGConfig.getInstance(this).setSugoEnable(true).logConfig());
 
     }
 
