@@ -11,8 +11,8 @@ import android.widget.ImageView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import io.sugo.android.mpmetrics.SugoAPI;
-import io.sugo.android.mpmetrics.SugoWebViewClient;
+import io.sugo.android.metrics.SugoAPI;
+import io.sugo.android.metrics.SugoWebViewClient;
 import io.sugo.sdkdemo.R;
 
 public class WebActivity extends AppCompatActivity {
