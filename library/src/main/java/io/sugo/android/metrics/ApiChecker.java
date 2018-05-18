@@ -107,13 +107,16 @@ class ApiChecker {
                     newEventBindingVersion = response.optInt("event_bindings_version", 0);
                     SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + token, Context.MODE_PRIVATE);
                     int oldEventBindingVersion = preferences.getInt(ViewCrawler.SP_EVENT_BINDING_VERSION, -1);
-                    if (newEventBindingVersion <= oldEventBindingVersion) {
-                        // 配置没有更新内容，不覆盖旧配置
-                        return null;
-                    } else {
+                    String oldEventBindingsAppVersion = preferences.getString(ViewCrawler.SP_EVENT_BINDINGS_APP_VERSION, null);
+                    String currentEventBindingsAppVersion = mSystemInformation.getAppVersionName();
+                    if ((newEventBindingVersion != oldEventBindingVersion) || !(currentEventBindingsAppVersion.equals(oldEventBindingsAppVersion))) {
                         SharedPreferences.Editor editor = preferences.edit();
+                        editor.putString(ViewCrawler.SP_EVENT_BINDINGS_APP_VERSION, currentEventBindingsAppVersion);
                         editor.putInt(ViewCrawler.SP_EVENT_BINDING_VERSION, newEventBindingVersion);
                         editor.apply();
+                    } else {
+                        // 配置没有更新内容，不覆盖旧配置
+                        return null;
                     }
                 }
                 parsed = parseApiResponse(responseString);
@@ -196,7 +199,12 @@ class ApiChecker {
                 .append(SGConfig.getInstance(mContext).getProjectId());
 
         SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + unescapedToken, Context.MODE_PRIVATE);
-        int oldEventBindingVersion = preferences.getInt(ViewCrawler.SP_EVENT_BINDING_VERSION, -1);
+        String oldEventBindingsAppVersion = preferences.getString(ViewCrawler.SP_EVENT_BINDINGS_APP_VERSION, null);
+        String currentEventBindingsAppVersion = mSystemInformation.getAppVersionName();
+        int oldEventBindingVersion = -1;
+        if (currentEventBindingsAppVersion.equals(oldEventBindingsAppVersion)) {
+            oldEventBindingVersion = preferences.getInt(ViewCrawler.SP_EVENT_BINDING_VERSION, -1);
+        }
         queryBuilder.append("&event_bindings_version=").append(oldEventBindingVersion);
 
         if (null != escapedId) {
