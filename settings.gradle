@@ -1,1 +1,1 @@
-include ':app', ':library', ':library-xwalk', ':library-weex', ':library-wxj'
+include ':app', ':library', ':library-xwalk', ':library-weex', ':library-wxj', ':library-reactnative'
