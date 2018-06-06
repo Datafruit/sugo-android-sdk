@@ -296,6 +296,8 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
 
         @Override
         public void onActivityCreated(Activity activity, Bundle bundle) {
+            bindComponent(activity);
+            tryToConnectToEditor(activity);
         }
 
         @Override
@@ -304,14 +306,22 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
 
         @Override
         public void onActivityResumed(Activity activity) {
-            mBindingState.add(activity);
-            Uri data = activity.getIntent().getData();
-            if (data != null) {
-                if (sendConnectEditor(data)) {
-                    // 防止未再次扫码却自动连接的情况
-                    activity.getIntent().setData(null);
+            bindComponent(activity);
+            tryToConnectToEditor(activity);
+        }
+
+        private void tryToConnectToEditor(Activity activity){
+            if(!SugoAPI.editorConnected){
+                Uri data = activity.getIntent().getData();
+                if (data != null) {
+                    sendConnectEditor(data);
                 }
             }
+        }
+
+        private void bindComponent(Activity activity){
+            if (!mBindingState.getAll().contains(activity))
+                mBindingState.add(activity);
         }
 
         @Override
