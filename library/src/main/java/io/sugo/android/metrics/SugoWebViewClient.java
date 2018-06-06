@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.os.Environment;
 import android.text.TextUtils;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -40,7 +41,7 @@ public class SugoWebViewClient extends WebViewClient {
             "    }\n" +
             "\n" +
             "    sugo.relative_path = window.location.pathname.replace(/$sugo_webroot$/g, '');\n" +
-            "    sugo.relative_path = sugo.relative_path.replace('$sugo_remove_path$', '');\n" +
+            "    sugo.relative_path = sugo.relative_path.replace('RNSugo', '');\n" +
             "    sugo.hash = window.location.hash;\n" +
             "    sugo.hash = sugo.hash.indexOf('?') < 0 ? sugo.hash : sugo.hash.substring(0, sugo.hash.indexOf('?'));\n" +
             "    sugo.relative_path += sugo.hash;\n" +
@@ -309,6 +310,12 @@ public class SugoWebViewClient extends WebViewClient {
         String filePath = activity.getFilesDir().getPath(); // /data/user/0/io.sugo.xxx/files
         String dataPkgPath = filePath.substring(0, filePath.indexOf("/files"));      // /data/user/0/io.sugo.xxx
 
+        String sugoRemovePath = dataPkgPath;
+
+        String esPath = Environment.getExternalStorageDirectory().getPath();
+        if (url.contains(esPath)){
+            sugoRemovePath = esPath;
+        }
         JSONObject pageInfo = getPageInfo(activity, url, dataPkgPath);
         String initCode = "";
         String pageName = "";
@@ -328,7 +335,7 @@ public class SugoWebViewClient extends WebViewClient {
         String tempTrackJS = trackJS;
         tempTrackJS = tempTrackJS.replace("$sugo_enable_page_event$", sugoAPI.getConfig().isEnablePageEvent() + "");
         tempTrackJS = tempTrackJS.replace("$sugo_webroot$", webRoot);
-        tempTrackJS = tempTrackJS.replace("$sugo_remove_path$", dataPkgPath);
+        tempTrackJS = tempTrackJS.replace("$sugo_remove_path$", sugoRemovePath);
         tempTrackJS = tempTrackJS.replace("$sugo_init_code$", initCode);
         tempTrackJS = tempTrackJS.replace("$sugo_init_page_name$", pageName);
         tempTrackJS = tempTrackJS.replace("$sugo_init_page_category$", pageCategory);
