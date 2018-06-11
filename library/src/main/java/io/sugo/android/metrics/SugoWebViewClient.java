@@ -202,6 +202,8 @@ public class SugoWebViewClient extends WebViewClient {
             "        sugo.delegate('click');\n" +
             "        sugo.delegate('focus');\n" +
             "        sugo.delegate('change');\n" +
+            "        sugo.delegate('touchstart');\n" +
+            "        sugo.delegate('touchend');\n" +
             "    };\n" +
             "\n" +
             "    if (!window.sugo) {\n" +
