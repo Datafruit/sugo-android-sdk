@@ -41,7 +41,7 @@ public class SugoWebViewClient extends WebViewClient {
             "    }\n" +
             "\n" +
             "    sugo.relative_path = window.location.pathname.replace(/$sugo_webroot$/g, '');\n" +
-            "    sugo.relative_path = sugo.relative_path.replace('RNSugo', '');\n" +
+            "    sugo.relative_path = sugo.relative_path.replace('$sugo_remove_path$', '');\n" +
             "    sugo.hash = window.location.hash;\n" +
             "    sugo.hash = sugo.hash.indexOf('?') < 0 ? sugo.hash : sugo.hash.substring(0, sugo.hash.indexOf('?'));\n" +
             "    sugo.relative_path += sugo.hash;\n" +
