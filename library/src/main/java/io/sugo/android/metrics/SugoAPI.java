@@ -863,6 +863,10 @@ public class SugoAPI {
         return mConfig;
     }
 
+    public UpdatesFromSugo getmUpdatesFromSugo() {
+        return mUpdatesFromSugo;
+    }
+
     public static SugoWebNodeReporter getSugoWebNodeReporter(Object key) {
         return SugoWebEventListener.sugoWNReporter.get(key);
     }
