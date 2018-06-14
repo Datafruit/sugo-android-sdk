@@ -11,9 +11,6 @@ import android.view.accessibility.AccessibilityEvent;
 import com.facebook.react.ReactRootView;
 import com.facebook.react.views.view.ReactViewGroup;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import io.sugo.android.metrics.SugoAPI;
 import io.sugo.android.viewcrawler.ViewCrawler;
 
@@ -33,38 +30,48 @@ public class RNLifecycleCallbacks implements Application.ActivityLifecycleCallba
         final Activity finalActivity = activity;
         View rootView = activity.getWindow().getDecorView();
         ReactRootView reactRootView = getReactRootView(rootView);
-
-        reactRootView.setOnHierarchyChangeListener(new ViewGroup.OnHierarchyChangeListener(){
-
+        final View.OnTouchListener onTouchListener = new View.OnTouchListener(){
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN){
+                    v.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_CLICKED);
+                }
+                return false;
+            }
+        };
+        ViewGroup.OnHierarchyChangeListener onHierarchyChangeListener = new ViewGroup.OnHierarchyChangeListener(){
             @Override
             public void onChildViewAdded(View parent, View child) {
                 ViewCrawler viewCrawler = (ViewCrawler) SugoAPI.getInstance(finalActivity.getApplicationContext()).getmUpdatesFromSugo();
                 viewCrawler.getmBindingState().add(finalActivity);
-                if(child instanceof ReactViewGroup){
-                    ReactViewGroup reactViewGroup = (ReactViewGroup) child;
-                    int childCount = reactViewGroup.getChildCount();
-                    for (int i = 0; i < childCount; i++) {
-                        View view = reactViewGroup.getChildAt(i);
-                        view.setOnTouchListener(new View.OnTouchListener(){
-                            @Override
-                            public boolean onTouch(View v, MotionEvent event) {
-                                if (event.getAction() == MotionEvent.ACTION_DOWN){
-                                    v.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_CLICKED);
-                                }
-                                return true;
-                            }
-                        });
-                    }
-                }
-
+                setListener(child, this, onTouchListener);
             }
 
             @Override
             public void onChildViewRemoved(View parent, View child) {
 
             }
-        });
+        };
 
+        reactRootView.setOnHierarchyChangeListener(onHierarchyChangeListener);
+
+    }
+
+    private void setListener(View view, ViewGroup.OnHierarchyChangeListener onHierarchyChangeListener, View.OnTouchListener onTouchListener){
+        if(view instanceof ViewGroup){
+            ViewGroup reactViewGroup = (ViewGroup) view;
+            reactViewGroup.setOnHierarchyChangeListener(onHierarchyChangeListener);
+            int childCount = reactViewGroup.getChildCount();
+            for (int i = 0; i < childCount; i++) {
+                View v = reactViewGroup.getChildAt(i);
+                setListener(v, onHierarchyChangeListener, onTouchListener);
+            }
+            if (view instanceof ReactViewGroup){
+                view.setOnTouchListener(onTouchListener);
+            }
+        } else {
+            view.setOnTouchListener(onTouchListener);
+        }
     }
 
     private ReactRootView getReactRootView(View view){

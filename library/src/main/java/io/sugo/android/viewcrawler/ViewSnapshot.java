@@ -364,7 +364,12 @@ class ViewSnapshot {
                 } else if (value instanceof Number) {
                     j.name(desc.name).value((Number) value);
                 } else if (value instanceof Boolean) {
-                    j.name(desc.name).value((Boolean) value);
+                    if (desc.name.equals("clickable") && ((!(v instanceof ViewGroup) && v.getClass().getName().contains("React"))
+                            || v.getClass().getName().contains("ReactViewGroup"))){
+                        j.name(desc.name).value(true);
+                    }else {
+                        j.name(desc.name).value((Boolean) value);
+                    }
                 } else if (value instanceof ColorStateList) {
                     j.name(desc.name).value((Integer) ((ColorStateList) value).getDefaultColor());
                 } else if (value instanceof Drawable) {

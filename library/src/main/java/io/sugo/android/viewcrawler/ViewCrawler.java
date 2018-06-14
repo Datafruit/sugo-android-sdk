@@ -1079,4 +1079,9 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
         }
     }
 
+    public BindingState getmBindingState() {
+        return mBindingState;
+    }
+
+
 }
