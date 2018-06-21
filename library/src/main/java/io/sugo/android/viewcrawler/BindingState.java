@@ -23,7 +23,7 @@ import io.sugo.android.metrics.SGConfig;
  * SDK 可以替换 app 的所有绑定事件 {@link BindingState#setBindings(java.util.Map)}
  * SDK 可以接受 activity 是否还存在的通知 {@link BindingState#add(android.app.Activity)} and {@link BindingState#remove(android.app.Activity)}
  */
-class BindingState extends UIThreadSet<Activity> {
+public class BindingState extends UIThreadSet<Activity> {
 
     @SuppressWarnings("unused")
     private static final String LOGTAG = "SugoAPI.BindingState";

@@ -3,6 +3,9 @@ apply plugin: 'com.android.library'
 apply from: "MavenUpload.gradle"
 
 android {
+    lintOptions {
+        abortOnError false
+    }
     compileSdkVersion 25
     buildToolsVersion '26.0.3'
 
