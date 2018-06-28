@@ -54,7 +54,7 @@ public class RNSugoModule extends ReactContextBaseJavaModule implements Lifecycl
 
     @Override
     public String getName() {
-        return "RNSugo";
+        return "Sugo";
     }
 
     // Is there a better way to convert ReadableMap to JSONObject?
