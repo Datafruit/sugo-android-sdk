@@ -296,7 +296,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
 
         @Override
         public void onActivityCreated(Activity activity, Bundle bundle) {
-            bindComponent(activity);
+            //bindComponent(activity);
             tryToConnectToEditor(activity);
         }
 
