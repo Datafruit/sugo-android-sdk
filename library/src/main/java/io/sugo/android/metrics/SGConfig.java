@@ -144,7 +144,8 @@ public class SGConfig {
     private final String mToken;
     private final String mProjectId;
     private final String mEventsEndpoint;
-    private final String mDecideEndpoint;
+    private final String mDimDecideEndpoint;
+    private final String mEventDecideEndpoint;
     private final String mHeatMapEndpoint;
     private final String mFirstLoginEndpoint;
     private final String mEditorUrl;
@@ -243,7 +244,8 @@ public class SGConfig {
         String eventsHost = metaData.getString("io.sugo.android.SGConfig.EventsHost");
         String editorHost = metaData.getString("io.sugo.android.SGConfig.EditorHost");
 
-        mDecideEndpoint = apiHost + "/api/sdk/decide";
+        mDimDecideEndpoint = apiHost + "/api/sdk/decide-dimesion";
+        mEventDecideEndpoint = apiHost + "/api/sdk/decide-event";
         mHeatMapEndpoint = apiHost + "/api/sdk/heat";
         mFirstLoginEndpoint = apiHost + "/api/sdk/get-first-login-time";
         mEventsEndpoint = eventsHost + "/posts?locate=" + mProjectId;
@@ -365,7 +367,8 @@ public class SGConfig {
                             "    EnableDebugLogging " + DEBUG + "\n" +
                             "    Token " + getToken() + "\n" +
                             "    ProjectId " + getProjectId() + "\n" +
-                            "    DecideEndpoint " + getDecideEndpoint() + "\n" +
+                            "    DimDecideEndpoint " + getDimDecideEndpoint() + "\n" +
+                            "    EventDecideEndpoint " + getEventDecideEndpoint() + "\n" +
                             "    EditorUrl " + getEditorUrl() + "\n" +
                             "    EventsEndpoint " + getEventsEndpoint() + "\n" +
                             "    DisableDecideChecker " + getDisableDecideChecker() + "\n" +
@@ -497,8 +500,11 @@ public class SGConfig {
     }
 
     // Preferred URL for pulling decide data
-    public String getDecideEndpoint() {
-        return mDecideEndpoint;
+    public String getDimDecideEndpoint() {
+        return mDimDecideEndpoint;
+    }
+    public String getEventDecideEndpoint() {
+        return mEventDecideEndpoint;
     }
 
     public String getHeatMapEndpoint() {

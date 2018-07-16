@@ -61,10 +61,15 @@ class ApiChecker {
         final String token = mConfig.getToken();
         final String distinctId = mConfig.getDistinctId();
         try {
-            final Result result = runApiRequest(token, distinctId, poster);
-            if (result != null) {
-                reportResults(result.eventBindings, result.h5EventBindings,
-                        result.pageInfo, result.dimensions);
+            final Result eventRes = runEventApiRequest(token, distinctId, poster);
+
+            if (eventRes != null) {
+                reportResults(eventRes.eventBindings, eventRes.h5EventBindings,
+                        eventRes.pageInfo);
+            }
+            final Result dimRes = runDimApiRequest(token, distinctId, poster);
+            if (dimRes != null) {
+                reportDims(dimRes.dimensions);
             }
         } catch (final UnintelligibleMessageException e) {
             Log.e(LOGTAG, e.getMessage(), e);
@@ -73,11 +78,13 @@ class ApiChecker {
 
     public synchronized void reportResults(JSONArray eventBindings,
                                            JSONArray h5EventBindings,
-                                           JSONArray pageInfos,
-                                           JSONArray dimensions) {
+                                           JSONArray pageInfos) {
         mUpdatesFromSugo.setEventBindings(eventBindings);
         mUpdatesFromSugo.setH5EventBindings(h5EventBindings);
         mUpdatesFromSugo.setPageInfos(pageInfos);
+
+    }
+    public synchronized void reportDims(JSONArray dimensions) {
         mUpdatesFromSugo.setDimensions(dimensions);
 
     }
@@ -90,9 +97,9 @@ class ApiChecker {
         }
     }
 
-    private Result runApiRequest(final String token, final String distinctId, final RemoteService poster)
+    private Result runEventApiRequest(final String token, final String distinctId, final RemoteService poster)
             throws RemoteService.ServiceUnavailableException, UnintelligibleMessageException {
-        final String responseString = getApiResponseFromServer(token, distinctId, poster);
+        final String responseString = getEventApiResponseFromServer(token, distinctId, poster);
         if (SGConfig.DEBUG) {
             Log.v(LOGTAG, "Sugo decide server response was:\n" + responseString);
         }
@@ -129,8 +136,45 @@ class ApiChecker {
             // 没有返回配置，不覆盖旧配置
             return null;
         }
-    }// runApiRequest
+    }
 
+    private Result runDimApiRequest(final String token, final String distinctId, final RemoteService poster)
+            throws RemoteService.ServiceUnavailableException, UnintelligibleMessageException {
+        final String responseString = getDimApiResponseFromServer(token, distinctId, poster);
+        if (SGConfig.DEBUG) {
+            Log.v(LOGTAG, "Sugo dimensions response was:\n" + responseString);
+        }
+
+        Result parsed = null;
+        if (!TextUtils.isEmpty(responseString)) {
+            JSONObject response;
+            long newEventBindingVersion;
+            try {
+                response = new JSONObject(responseString);
+                if (response.has("dimension_version")) {
+                    newEventBindingVersion = response.optLong("dimension_version", 0);
+                    SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + token, Context.MODE_PRIVATE);
+                    long oldEventBindingVersion = preferences.getLong(ViewCrawler.SP_DIMENSION_VERSION, -1);
+                    if (newEventBindingVersion != oldEventBindingVersion) {
+                        SharedPreferences.Editor editor = preferences.edit();
+                        editor.putLong(ViewCrawler.SP_DIMENSION_VERSION, newEventBindingVersion);
+                        editor.apply();
+                    } else {
+                        // 配置没有更新内容，不覆盖旧配置
+                        return null;
+                    }
+                }
+                parsed = parseApiResponse(responseString);
+                return parsed;
+            } catch (final JSONException e) {
+                final String message = "Sugo dimensions endpoint returned unparsable result:\n" + responseString;
+                throw new UnintelligibleMessageException(message, e);
+            }
+        } else {
+            // 没有返回配置，不覆盖旧配置
+            return null;
+        }
+    }
     static Result parseApiResponse(String responseString) throws UnintelligibleMessageException {
         JSONObject response;
         final Result ret = new Result();
@@ -177,7 +221,7 @@ class ApiChecker {
         return ret;
     }
 
-    private String getApiResponseFromServer(@NonNull String unescapedToken, String unescapedDistinctId, RemoteService poster)
+    private String getEventApiResponseFromServer(@NonNull String unescapedToken, String unescapedDistinctId, RemoteService poster)
             throws RemoteService.ServiceUnavailableException {
         final String escapedToken;
         final String escapedId;
@@ -231,14 +275,88 @@ class ApiChecker {
         final String checkQuery = queryBuilder.toString();
         final String[] urls;
         if (mConfig.getDisableFallback()) {
-            urls = new String[]{mConfig.getDecideEndpoint() + checkQuery};
+            urls = new String[]{mConfig.getEventDecideEndpoint() + checkQuery};
         } else {
-            urls = new String[]{mConfig.getDecideEndpoint() + checkQuery,
+            urls = new String[]{mConfig.getEventDecideEndpoint() + checkQuery,
                     mConfig.getDecideFallbackEndpoint() + checkQuery};
         }
 
         if (SGConfig.DEBUG) {
             Log.v(LOGTAG, "Querying decide server, urls:");
+            for (int i = 0; i < urls.length; i++) {
+                Log.v(LOGTAG, "    >> " + urls[i]);
+            }
+        }
+
+        final byte[] response = getUrls(poster, mContext, urls);
+        if (null == response) {
+            return null;
+        }
+        try {
+            return new String(response, "UTF-8");
+        } catch (final UnsupportedEncodingException e) {
+            throw new RuntimeException("UTF not supported on this platform?", e);
+        }
+    }
+
+    private String getDimApiResponseFromServer(@NonNull String unescapedToken, String unescapedDistinctId, RemoteService poster)
+            throws RemoteService.ServiceUnavailableException {
+        final String escapedToken;
+        final String escapedId;
+        try {
+            escapedToken = URLEncoder.encode(unescapedToken, "utf-8");
+            if (null != unescapedDistinctId) {
+                escapedId = URLEncoder.encode(unescapedDistinctId, "utf-8");
+            } else {
+                escapedId = null;
+            }
+        } catch (final UnsupportedEncodingException e) {
+            throw new RuntimeException("Sugo library requires utf-8 string encoding to be available", e);
+        }
+
+        final StringBuilder queryBuilder = new StringBuilder()
+                .append("?version=1&lib=android&token=")
+                .append(escapedToken)
+                .append("&projectId=")
+                .append(SGConfig.getInstance(mContext).getProjectId());
+
+        SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + unescapedToken, Context.MODE_PRIVATE);
+
+        long oldDimensionVersion = preferences.getLong(ViewCrawler.SP_DIMENSION_VERSION, -1);
+        queryBuilder.append("&dimension_version=").append(oldDimensionVersion);
+
+        if (null != escapedId) {
+            queryBuilder.append("&distinct_id=").append(escapedId);
+        }
+
+        JSONObject properties = new JSONObject();
+        try {
+            String appVersion = URLEncoder.encode(mSystemInformation.getAppVersionName(), "utf-8");
+            queryBuilder.append("&app_version=").append(appVersion);
+
+            properties.putOpt("$android_lib_version", SGConfig.VERSION);
+            properties.putOpt("$android_app_version", mSystemInformation.getAppVersionName());
+            properties.putOpt("$android_version", Build.VERSION.RELEASE);
+            properties.putOpt("$android_app_release", mSystemInformation.getAppVersionCode());
+            properties.putOpt("$android_device_model", Build.MODEL);
+
+            queryBuilder.append("&properties=");
+            queryBuilder.append(URLEncoder.encode(properties.toString(), "utf-8"));
+        } catch (Exception e) {
+            Log.e(LOGTAG, "Exception constructing properties JSON", e.getCause());
+        }
+
+        final String checkQuery = queryBuilder.toString();
+        final String[] urls;
+        if (mConfig.getDisableFallback()) {
+            urls = new String[]{mConfig.getDimDecideEndpoint() + checkQuery};
+        } else {
+            urls = new String[]{mConfig.getDimDecideEndpoint() + checkQuery,
+                    mConfig.getDecideFallbackEndpoint() + checkQuery};
+        }
+
+        if (SGConfig.DEBUG) {
+            Log.v(LOGTAG, "Querying dim decide server, urls:");
             for (int i = 0; i < urls.length; i++) {
                 Log.v(LOGTAG, "    >> " + urls[i]);
             }
