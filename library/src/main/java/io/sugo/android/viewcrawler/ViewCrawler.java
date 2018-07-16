@@ -74,6 +74,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
     public static final String SHARED_PREF_PAGE_INFO_KEY = "sugo.viewcrawler.page_info";
     public static final String SHARED_PREF_DIMENSIONS_KEY = "sugo.viewcrawler.dimensions";
     public static final String SP_EVENT_BINDING_VERSION = "sugo.event_bindings_version";
+    public static final String SP_DIMENSION_VERSION = "sugo.dimension_version";
     public static final String SP_EVENT_BINDINGS_APP_VERSION = "sugo.event_bindings_app_version";
 
     private static final int MESSAGE_INITIALIZE_CHANGES = 0;
