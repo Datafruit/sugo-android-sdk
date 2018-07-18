@@ -123,8 +123,7 @@ class AnalyticsMessages {
 
         final DisplayMetrics displayMetrics = mSystemInformation.getDisplayMetrics();
         ret.put(SGConfig.FIELD_SCREEN_DPI, displayMetrics.densityDpi);
-        ret.put(SGConfig.FIELD_SCREEN_HEIGHT, displayMetrics.heightPixels);
-        ret.put(SGConfig.FIELD_SCREEN_WIDTH, displayMetrics.widthPixels);
+        ret.put(SGConfig.FIELD_SCREEN_PIXEL, displayMetrics.widthPixels + "*" + displayMetrics.heightPixels);
 
         final String applicationVersionName = mSystemInformation.getAppVersionName();
         if (null != applicationVersionName) {
