@@ -64,7 +64,7 @@ public class SugoAPI {
     private final AnalyticsMessages mMessages;
     private final SGConfig mConfig;
     private final String mToken;
-    private final String mSessionId;
+    private String mSessionId;
     private final UpdatesFromSugo mUpdatesFromSugo;
     private final PersistentIdentity mPersistentIdentity;
     private final TrackingDebug mTrackingDebug;
@@ -215,6 +215,10 @@ public class SugoAPI {
 
     private String getCurrentSessionId() {
         return mSessionId;
+    }
+
+    public void updateSessionId(){
+        mSessionId = this.generateSessionId();
     }
 
     /**

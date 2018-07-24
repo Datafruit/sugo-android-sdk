@@ -394,6 +394,10 @@ public class SugoAPI {
         return mSessionId;
     }
 
+    public void updateSessionId(){
+        mSessionId = this.generateSessionId();
+    }
+
     private void restorePageInfo() {
         final String sharedPrefsName = ViewCrawler.SHARED_PREF_EDITS_FILE + mToken;
         SharedPreferences preferences = mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
@@ -1423,7 +1427,7 @@ public class SugoAPI {
     private final AnalyticsMessages mMessages;
     private final SGConfig mConfig;
     private final String mToken;
-    private final String mSessionId;
+    private String mSessionId;
     private final UpdatesFromMixpanel mUpdatesFromMixpanel;
     private final PersistentIdentity mPersistentIdentity;
     private final UpdatesListener mUpdatesListener;
