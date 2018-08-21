@@ -128,7 +128,7 @@ import java.util.HashSet;
                         e.printStackTrace();
                     }
                     mSugoAPI.track("APP停留", props);        // App 进入停留状态
-                    mSugoAPI.flush();
+                    //mSugoAPI.flush();
                 }
             }
         }, CHECK_DELAY);
@@ -188,7 +188,7 @@ import java.util.HashSet;
 //                e.printStackTrace();
 //            }
 //        }
-        mSugoAPI.flush();
+        //mSugoAPI.flush();
     }
 
     @Override
