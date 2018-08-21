@@ -125,7 +125,7 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
                     }
                     // App 进入后台运行状态
                     mSugoAPI.track("后台", props);
-                    mSugoAPI.flush();
+                    //mSugoAPI.flush();
                 }
             }
         }, CHECK_DELAY);
@@ -171,7 +171,7 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
             }
             mSugoAPI.track("退出", props);
             mSugoAPI.track("APP停留");
-            mSugoAPI.flush();
+            //mSugoAPI.flush();
         }
         mDisableActivities.remove(activity);
     }
