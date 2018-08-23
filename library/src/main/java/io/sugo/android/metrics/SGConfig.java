@@ -137,7 +137,9 @@ public class SGConfig {
     public static final String FIELD_FIRST_VISIT_TIME = "first_visit_time";
     public static final String FIELD_FIRST_LOGIN_TIME = "first_login_time";
 
-    static final String TIME_EVENT_TAG = "sugo_time_event_tag";
+    public static final String TIME_EVENT_TAG = "sugo_time_event_tag";
+    public static final String FIELD_LONGITUDE = "longitude";
+    public static final String FIELD_LATITUDE = "latitude";
 
     private String distinctId;
     private final String mToken;
@@ -169,6 +171,7 @@ public class SGConfig {
     private final boolean mAutoShowSugoUpdates;
     private final boolean mDisableDecideChecker;
     private final int mImageCacheMaxMemoryFactor;
+    private final boolean mEnableLocation;
     private String webRoot;
     // Mutable, with synchronized accessor and mutator
     private SSLSocketFactory mSSLSocketFactory;
@@ -252,7 +255,7 @@ public class SGConfig {
         mEnablePageEvent = metaData.getBoolean("io.sugo.android.SGConfig.EnablePageEvent", true);
         mFlushInterval = metaData.getInt("io.sugo.android.SGConfig.FlushInterval", 60 * 1000);
         mUpdateDecideInterval = metaData.getInt("io.sugo.android.SGConfig.UpdateDecideInterval", 60 * 60 * 1000);
-
+        mEnableLocation = metaData.getBoolean("io.sugo.android.SGConfig.EnableLocation", true);
         mBulkUploadLimit = metaData.getInt("io.sugo.android.SGConfig.BulkUploadLimit", 40); // 40 records default
         mDataExpiration = metaData.getInt("io.sugo.android.SGConfig.DataExpiration", 1000 * 60 * 60 * 24 * 5); // 5 days default
         mMinimumDatabaseLimit = metaData.getInt("io.sugo.android.SGConfig.MinimumDatabaseLimit", 20 * 1024 * 1024); // 20 Mb
@@ -581,6 +584,9 @@ public class SGConfig {
         return mImageCacheMaxMemoryFactor;
     }
 
+    public boolean ismEnableLocation() {
+        return mEnableLocation;
+    }
     public boolean isSugoEnable() {
         return sugoEnable;
     }
