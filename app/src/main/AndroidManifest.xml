@@ -59,7 +59,10 @@
         <meta-data
             android:name="io.sugo.android.SGConfig.ProjectId"
             android:value="com_H1bIzqK2SZ_project_r1HAty5zM" />
-
+        <meta-data
+            android:name="io.sugo.android.SGConfig.BulkUploadLimit"
+            android:value="5" />
+        t
         <!-- 设置 Token -->
         <meta-data
             android:name="io.sugo.android.SGConfig.token"
@@ -70,6 +73,10 @@
             android:name="io.sugo.android.SGConfig.APIHost"
             android:value="http://58.63.110.97:2270" />
 
+        <meta-data
+            android:name="io.sugo.android.SGConfig.DecideEndpoint"
+            android:value="http://58.63.110.97:2270/api/sdk/decide" />
+
         <!-- 设置可视化埋点地址 -->
         <meta-data
             android:name="io.sugo.android.SGConfig.EditorHost"
@@ -79,6 +86,9 @@
         <meta-data
             android:name="io.sugo.android.SGConfig.EventsHost"
             android:value="http://58.63.110.97:2271" />
+        <meta-data
+            android:name="io.sugo.android.SGConfig.EventsEndpoint"
+            android:value="http://58.63.110.97:2271/post?locate=com_H1bIzqK2SZ_project_r1HAty5zM" />
 
         <activity android:name=".activity.PrivateFuncActivity" />
         <activity android:name=".activity.DebugViewPagerActivity" />

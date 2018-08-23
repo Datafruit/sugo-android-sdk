@@ -495,6 +495,15 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                                 logAboutMessageToMixpanel("Successfully posted to " + url + ": \n" + rawMessage);
                                 logAboutMessageToMixpanel("Response was " + parsedResponse);
                             }
+                            try {
+                                String wrongEvent = eventsData[3];
+                                if (!wrongEvent.equals("[]")){
+                                    response = poster.performRawRequest(url + "_filter", Base64Coder.encodeString(wrongEvent), socketFactory);
+                                }
+                            } catch (Exception e){
+                                Log.e(LOGTAG, "Cannot post message to " + url + "_filter" + ".", e);
+                            }
+
                             break;
                         } catch (final OutOfMemoryError e) {
                             Log.e(LOGTAG, "Out of memory when posting to " + url + ".", e);

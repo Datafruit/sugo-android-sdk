@@ -204,6 +204,7 @@ public class SGConfig {
             Log.w(LOGTAG, "We do not support io.sugo.android.SGConfig.DebugFlushInterval anymore. There will only be one flush interval. Please, update your AndroidManifest.xml.");
         }
 
+        mMaxEventLimit = metaData.getInt("io.sugo.android.SGConfig.MaxEventLimit", 40);
         mBulkUploadLimit = metaData.getInt("io.sugo.android.SGConfig.BulkUploadLimit", 40); // 40 records default
         mFlushInterval = metaData.getInt("io.sugo.android.SGConfig.FlushInterval", 60 * 1000); // one minute default
         mUpdateDecideInterval = metaData.getInt("io.sugo.android.SGConfig.UpdateDecideInterval", 60 * 60 * 1000); // 60 minute default
@@ -379,6 +380,9 @@ public class SGConfig {
     public int getBulkUploadLimit() {
         return mBulkUploadLimit;
     }
+    public int getMaxEventLimit() {
+        return mMaxEventLimit;
+    }
 
     // Target max milliseconds between flushes. This is advisory.
     public int getFlushInterval() {
@@ -540,6 +544,7 @@ public class SGConfig {
     }
 
     private final int mBulkUploadLimit;
+    private final int mMaxEventLimit;
     private final int mFlushInterval;
     private final long mUpdateDecideInterval;
     private final int mDataExpiration;

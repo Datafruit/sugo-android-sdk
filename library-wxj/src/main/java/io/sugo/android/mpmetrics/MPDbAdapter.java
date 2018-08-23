@@ -118,6 +118,12 @@ import java.util.Set;
             return true;
         }
 
+        public boolean outOfLimit(int count) {
+
+            return count > mConfig.getMaxEventLimit();
+
+        }
+
         private final File mDatabaseFile;
         private final SGConfig mConfig;
     }
@@ -152,15 +158,21 @@ import java.util.Set;
 
         try {
             final SQLiteDatabase db = mDb.getWritableDatabase();
-
-            final ContentValues cv = new ContentValues();
-            cv.put(KEY_DATA, j.toString());
-            cv.put(KEY_CREATED_AT, System.currentTimeMillis());
-            db.insert(tableName, null, cv);
-
             c = db.rawQuery("SELECT COUNT(*) FROM " + tableName, null);
             c.moveToFirst();
             count = c.getInt(0);
+
+            if (!mDb.outOfLimit(count)){
+                final ContentValues cv = new ContentValues();
+                cv.put(KEY_DATA, j.toString());
+                cv.put(KEY_CREATED_AT, System.currentTimeMillis());
+                db.insert(tableName, null, cv);
+                count ++;
+            } else {
+                Log.i(LOGTAG, "events outOfLimit!!");
+                return DB_OUT_OF_MEMORY_ERROR;
+            }
+
         } catch (final SQLiteException e) {
             Log.e(LOGTAG, "Could not add Mixpanel data to table " + tableName + ". Re-initializing database.", e);
 
@@ -253,6 +265,7 @@ import java.util.Set;
         final String tableName = table.getName();
         final SQLiteDatabase db = mDb.getReadableDatabase();
 
+        JSONArray wrongEvents = new JSONArray();
         try {
             c = db.rawQuery("SELECT * FROM " + tableName  +
                     " ORDER BY " + KEY_CREATED_AT + " ASC LIMIT 50", null);
@@ -306,6 +319,7 @@ import java.util.Set;
                 for (int i = 0; i < length; i++) {
                     JSONObject event = arr.getJSONObject(i);
                     int dimCount = 0;
+                    boolean isWrongEvent = false;
                     for (String dimName : keySet) {
                         final String dimType = dimMap.get(dimName);
                         if (event.has(dimName)) {
@@ -318,6 +332,7 @@ import java.util.Set;
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                             value = 0;
+                                            isWrongEvent = true;
                                         }
                                     }
                                     break;
@@ -330,6 +345,9 @@ import java.util.Set;
                                             value = "";
                                         }
                                     }
+                                    if (value.toString().length() > 100){
+                                        value = ((String) value).substring(0,100);
+                                    }
                                     break;
                                 case "f":
                                     if (!(value instanceof Float)) {
@@ -338,6 +356,7 @@ import java.util.Set;
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                             value = 0;
+                                            isWrongEvent = true;
                                         }
                                     }
                                     break;
@@ -348,6 +367,7 @@ import java.util.Set;
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                             value = 0;
+                                            isWrongEvent = true;
                                         }
                                     }
                                     break;
@@ -358,6 +378,7 @@ import java.util.Set;
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                             value = 0;
+                                            isWrongEvent = true;
                                         }
                                     }
                                     break;
@@ -378,6 +399,9 @@ import java.util.Set;
                             buf.append('\001');
                         }
                         dimCount++;
+                    }
+                    if (isWrongEvent){
+                        wrongEvents.put(event);
                     }
                     buf.append('\002');
                 }
@@ -405,7 +429,7 @@ import java.util.Set;
         }
 
         if (last_id != null && data != null) {
-            final String[] ret = {last_id, data, queueCount};
+            final String[] ret = {last_id, data, queueCount, wrongEvents.toString()};
             return ret;
         }
         return null;
