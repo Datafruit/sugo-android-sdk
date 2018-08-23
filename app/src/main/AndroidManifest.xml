@@ -82,6 +82,10 @@
             android:name="io.sugo.android.SGConfig.EditorHost"
             android:value="ws://58.63.110.97:2227" />
 
+        <meta-data
+            android:name="io.sugo.android.SGConfig.EditorUrl"
+            android:value="ws://58.63.110.97:2227/connect/" />
+
         <!-- 设置数据上报地址 -->
         <meta-data
             android:name="io.sugo.android.SGConfig.EventsHost"
