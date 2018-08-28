@@ -212,6 +212,7 @@ public class SugoAPI {
         mSessionId = generateSessionId();
         SUGO_ENABLE = mConfig.isSugoEnable();
 
+        restorePositionConfig();
         restorePageInfo();
         restoreDimensions();
 
@@ -426,6 +427,14 @@ public class SugoAPI {
             }
         }
     }
+    private void restorePositionConfig() {
+        final String sharedPrefsName = ViewCrawler.SHARED_PREF_EDITS_FILE + mToken;
+        SharedPreferences preferences = mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
+        SGConfig.positionConfig = preferences.getInt(ViewCrawler.POSITION_CONFIG, -1);
+        SGConfig.lastReportLoaction = preferences.getLong(ViewCrawler.LAST_REPORT_LOCATION, -1);
+    }
+
+
 
 
     /**
@@ -596,11 +605,11 @@ public class SugoAPI {
         try {
             final JSONObject messageProps = new JSONObject();
 
-            if (mConfig.ismEnableLocation()){
-                double[] loc = getLngAndLat(mContext);
-                messageProps.put(SGConfig.FIELD_LONGITUDE,  loc[0]);
-                messageProps.put(SGConfig.FIELD_LATITUDE,  loc[1]);
-            }
+//            if (mConfig.ismEnableLocation()){
+//                double[] loc = getLngAndLat(mContext);
+//                messageProps.put(SGConfig.FIELD_LONGITUDE,  loc[0]);
+//                messageProps.put(SGConfig.FIELD_LATITUDE,  loc[1]);
+//            }
 
             messageProps.put(SGConfig.SESSION_ID, getCurrentSessionId());
             messageProps.put(SGConfig.FIELD_PAGE, SugoPageManager.getInstance().getCurrentPage(mContext));
@@ -1469,7 +1478,7 @@ public class SugoAPI {
      * @param context
      * @return
      */
-    private double[] getLngAndLat(Context context) {
+    public double[] getLngAndLat(Context context) {
         double latitude = 0.0;
         double longitude = 0.0;
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);

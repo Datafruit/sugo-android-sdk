@@ -250,7 +250,7 @@ public class SGConfig {
         mEventDecideEndpoint = apiHost + "/api/sdk/decide-event";
         mHeatMapEndpoint = apiHost + "/api/sdk/heat";
         mFirstLoginEndpoint = apiHost + "/api/sdk/get-first-login-time";
-        mEventsEndpoint = eventsHost + "/posts?locate=" + mProjectId;
+        mEventsEndpoint = eventsHost + "/post?locate=" + mProjectId;
         mEditorUrl = editorHost + "/connect/";
         mEnablePageEvent = metaData.getBoolean("io.sugo.android.SGConfig.EnablePageEvent", true);
         mFlushInterval = metaData.getInt("io.sugo.android.SGConfig.FlushInterval", 60 * 1000);

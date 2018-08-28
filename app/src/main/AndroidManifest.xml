@@ -26,7 +26,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
-                <data android:scheme="sugo.6c275a878890d2df224cf3f48385d27e" />
+                <data android:scheme="sugo.ff36a6fa8179d70cccc8dc81185d8ae6" />
 
                 <action android:name="android.intent.action.VIEW" />
 
@@ -58,41 +58,28 @@
         <!-- 设置ProjectId -->
         <meta-data
             android:name="io.sugo.android.SGConfig.ProjectId"
-            android:value="com_H1bIzqK2SZ_project_r1HAty5zM" />
-        <meta-data
-            android:name="io.sugo.android.SGConfig.BulkUploadLimit"
-            android:value="5" />
-        t
+            android:value="com_SJLnjowGe_project_SJI__AlDm" />
+
         <!-- 设置 Token -->
         <meta-data
             android:name="io.sugo.android.SGConfig.token"
-            android:value="6c275a878890d2df224cf3f48385d27e" />
+            android:value="ff36a6fa8179d70cccc8dc81185d8ae6" />
 
         <!-- 设置埋点配置地址 -->
         <meta-data
             android:name="io.sugo.android.SGConfig.APIHost"
-            android:value="http://58.63.110.97:2270" />
-
-        <meta-data
-            android:name="io.sugo.android.SGConfig.DecideEndpoint"
-            android:value="http://58.63.110.97:2270/api/sdk/decide" />
+            android:value="http://192.168.0.220:8000" />
 
         <!-- 设置可视化埋点地址 -->
         <meta-data
             android:name="io.sugo.android.SGConfig.EditorHost"
-            android:value="ws://58.63.110.97:2227" />
-
-        <meta-data
-            android:name="io.sugo.android.SGConfig.EditorUrl"
-            android:value="ws://58.63.110.97:2227/connect/" />
+            android:value="ws://192.168.0.220:8887" />
 
         <!-- 设置数据上报地址 -->
         <meta-data
             android:name="io.sugo.android.SGConfig.EventsHost"
-            android:value="http://58.63.110.97:2271" />
-        <meta-data
-            android:name="io.sugo.android.SGConfig.EventsEndpoint"
-            android:value="http://58.63.110.97:2271/post?locate=com_H1bIzqK2SZ_project_r1HAty5zM" />
+            android:value="http://192.168.0.220" />
+
 
         <activity android:name=".activity.PrivateFuncActivity" />
         <activity android:name=".activity.DebugViewPagerActivity" />

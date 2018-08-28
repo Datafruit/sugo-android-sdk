@@ -70,6 +70,8 @@ import io.sugo.android.util.RemoteService;
 @TargetApi(SGConfig.UI_FEATURES_MIN_API)
 public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisitor.OnLayoutErrorListener {
 
+
+
     public ViewCrawler(Context context, String token, SugoAPI mixpanel, Tweaks tweaks) {
         mConfig = SGConfig.getInstance(context);
 
@@ -282,6 +284,27 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
 
         @Override
         public void onActivityResumed(Activity activity) {
+            if (SGConfig.positionConfig > 0){
+                long now = System.currentTimeMillis();
+                if (now - SGConfig.lastReportLoaction > SGConfig.positionConfig * 60000) {
+                    try {
+                        JSONObject messageProps = new JSONObject();
+                        double[] loc = mMixpanel.getLngAndLat(mContext);
+                        messageProps.put(SGConfig.FIELD_LONGITUDE, loc[0]);
+                        messageProps.put(SGConfig.FIELD_LATITUDE, loc[1]);
+                        messageProps.put(SGConfig.FIELD_EVENT_TYPE, "位置");
+                        messageProps.put(SGConfig.FIELD_PAGE_NAME, "位置信息收集");
+                        mMixpanel.track("位置信息收集", messageProps);
+                        SGConfig.lastReportLoaction = now;
+                        SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + mMixpanel.getConfig().getToken(), Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = preferences.edit();
+                        editor.putLong(ViewCrawler.LAST_REPORT_LOCATION, now);
+                        editor.apply();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
             installConnectionSensor(activity);
             mEditState.add(activity);
             Uri data = activity.getIntent().getData();
@@ -1472,6 +1495,10 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
     public static final String SHARED_PREF_PAGE_INFO_KEY = "mixpanel.viewcrawler.page_info";
     public static final String SHARED_PREF_DIMENSIONS_KEY = "mixpanel.viewcrawler.dimensions";
     public static final String SP_EVENT_BINDING_VERSION = "sugo.event_bindings_version";
+    public static final String SP_DIMENSION_VERSION = "sugo.dimension_version";
+    public static final String SP_EVENT_BINDINGS_APP_VERSION = "sugo.event_bindings_app_version";
+    public static final String POSITION_CONFIG = "sugo_position_config";
+    public static final String LAST_REPORT_LOCATION = "sugo_last_report_location";
 
     private static final int MESSAGE_INITIALIZE_CHANGES = 0;
     private static final int MESSAGE_CONNECT_TO_EDITOR = 1;

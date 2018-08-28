@@ -99,6 +99,9 @@ public class SGConfig {
 
     public static boolean DEBUG = false;
 
+    public static int positionConfig = -1;
+    public static long lastReportLoaction = 0l;
+
     /**
      * Minimum API level for support of rich UI features, like Surveys, In-App notifications, and dynamic event binding.
      * Devices running OS versions below this level will still support tracking and push notification features.
@@ -204,7 +207,7 @@ public class SGConfig {
             Log.w(LOGTAG, "We do not support io.sugo.android.SGConfig.DebugFlushInterval anymore. There will only be one flush interval. Please, update your AndroidManifest.xml.");
         }
 
-        mMaxEventLimit = metaData.getInt("io.sugo.android.SGConfig.MaxEventLimit", 40);
+        mMaxEventLimit = metaData.getInt("io.sugo.android.SGConfig.MaxEventLimit", 200);
         mEnableLocation = metaData.getBoolean("io.sugo.android.SGConfig.EnableLocation", true);
         mBulkUploadLimit = metaData.getInt("io.sugo.android.SGConfig.BulkUploadLimit", 40); // 40 records default
         mFlushInterval = metaData.getInt("io.sugo.android.SGConfig.FlushInterval", 60 * 1000); // one minute default
@@ -239,8 +242,11 @@ public class SGConfig {
             Log.v("SGConfig ", "AndroidManifest 中未设置 Project Id, 可以在代码中添加");
         }
         mProjectId = projectId;
-        mEventsEndpoint = eventsEndpoint;
-
+        String apiHost = metaData.getString("io.sugo.android.SGConfig.APIHost");
+        String eventsHost = metaData.getString("io.sugo.android.SGConfig.EventsHost");
+        mEventsEndpoint = eventsHost + "/post?locate=" + mProjectId;
+        mDimDecideEndpoint = apiHost + "/api/sdk/decide-dimesion";
+        mEventDecideEndpoint = apiHost + "/api/sdk/decide-event";
         // 默认开启【页面事件】
         mEnablePageEvent = metaData.getBoolean("io.sugo.android.SGConfig.EnablePageEvent", true);
 
@@ -278,7 +284,9 @@ public class SGConfig {
         if (null == editorUrl) {
             editorUrl = "wss://switchboard.mixpanel.com/connect/";
         }
-        mEditorUrl = editorUrl;
+        String editorHost = metaData.getString("io.sugo.android.SGConfig.EditorHost");
+        mEditorUrl = editorHost + "/connect/";
+        //mEditorUrl = editorUrl;
 
         int resourceId = metaData.getInt("io.sugo.android.SGConfig.DisableViewCrawlerForProjects", -1);
         if (resourceId != -1) {
@@ -338,11 +346,12 @@ public class SGConfig {
                             "    TestMode " + getTestMode() + "\n" +
                             "    EventsEndpoint " + getEventsEndpoint() + "\n" +
                             "    PeopleEndpoint " + getPeopleEndpoint() + "\n" +
-                            "    DecideEndpoint " + getDecideEndpoint() + "\n" +
                             "    EventsFallbackEndpoint " + getEventsFallbackEndpoint() + "\n" +
                             "    PeopleFallbackEndpoint " + getPeopleFallbackEndpoint() + "\n" +
                             "    DecideFallbackEndpoint " + getDecideFallbackEndpoint() + "\n" +
                             "    EditorUrl " + getEditorUrl() + "\n" +
+                            "    DimDecideEndpoint " + getDimDecideEndpoint() + "\n" +
+                            "    EventDecideEndpoint " + getEventDecideEndpoint() + "\n" +
                             "    DisableDecideChecker " + getDisableDecideChecker() + "\n"
             );
         }
@@ -443,8 +452,11 @@ public class SGConfig {
     }
 
     // Preferred URL for pulling decide data
-    public String getDecideEndpoint() {
-        return mDecideEndpoint;
+    public String getDimDecideEndpoint() {
+         return mDimDecideEndpoint;
+    }
+    public String getEventDecideEndpoint() {
+        return mEventDecideEndpoint;
     }
 
     public String getHeatMapEndpoint(){
@@ -562,6 +574,8 @@ public class SGConfig {
     private final String[] mDisableViewCrawlerForProjects;
     private String mProjectId;
     private String mEventsEndpoint;
+    private final String mDimDecideEndpoint;
+    private final String mEventDecideEndpoint;
     private boolean mEnablePageEvent;
     private final String mEventsFallbackEndpoint;
     private final String mPeopleEndpoint;
@@ -621,7 +635,7 @@ public class SGConfig {
     public static final String FIELD_DEVICE_ID = "device_id";
     public static final String FIELD_PAGE_CATEGORY = "page_category";
     public static final String TIME_EVENT_TAG = "sugo_time_event_tag";
-    public static final String FIELD_LONGITUDE = "longitude";
-    public static final String FIELD_LATITUDE = "latitude";
+    public static final String FIELD_LONGITUDE = "sugo_longitude";
+    public static final String FIELD_LATITUDE = "sugo_latitude";
 
 }
