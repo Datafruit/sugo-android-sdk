@@ -284,6 +284,7 @@ public class SugoWebViewClient extends WebViewClient {
             "            var htmlNode = {};\n" +
             "            htmlNode.innerText = nodeChildren.innerText;\n" +
             "            htmlNode.path = childPath;\n" +
+            "            htmlNode.classList = nodeChildren.classList;\n" +
             "            var rect = nodeChildren.getBoundingClientRect();\n" +
             "            if (sugo.isElementInViewport(rect) === true) {\n" +
             "                var temp_rect = {\n" +
@@ -328,7 +329,7 @@ public class SugoWebViewClient extends WebViewClient {
             "                }\n" +
             "                var path = event.path.path;\n" +
             "                if (event.similar === true) {\n" +
-            "                    path = path.replace(/:nth-child\\([0-9]*\\)/g, '');\n" +
+            "                    path = event.similar_path ? event.similar_path : path.replace(/:nth-child\\([0-9]*\\)/g, '');\n" +
             "                }\n" +
             "                var eles = document.querySelectorAll(path);\n" +
             "                if (eles) {\n" +
