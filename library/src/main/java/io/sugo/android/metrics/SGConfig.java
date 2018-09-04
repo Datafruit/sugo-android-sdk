@@ -99,7 +99,7 @@ public class SGConfig {
      * we can't rely on BuildConfig.SUGO_VERSION existing, so this must
      * be hard-coded both in our gradle files and here in code.
      */
-    public static final String VERSION = "2.5.0";
+    public static final String VERSION = "2.5.2";
 
     public static final String FIELD_APP_BUILD_NUMBER = "app_build_number";
     public static final String FIELD_APP_VERSION_STRING = "app_version";
@@ -247,7 +247,7 @@ public class SGConfig {
         mEventDecideEndpoint = apiHost + "/api/sdk/decide-event";
         mHeatMapEndpoint = apiHost + "/api/sdk/heat";
         mFirstLoginEndpoint = apiHost + "/api/sdk/get-first-login-time";
-        mEventsEndpoint = eventsHost + "/posts?locate=" + mProjectId;
+        mEventsEndpoint = eventsHost + "/post?locate=" + mProjectId;
         mEditorUrl = editorHost + "/connect/";
         mEnablePageEvent = metaData.getBoolean("io.sugo.android.SGConfig.EnablePageEvent", true);
         mFlushInterval = metaData.getInt("io.sugo.android.SGConfig.FlushInterval", 60 * 1000);
