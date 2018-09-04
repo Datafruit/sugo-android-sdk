@@ -15,8 +15,10 @@ import org.json.JSONObject;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.regex.Pattern;
 
+import io.sugo.android.util.JSONUtils;
 import io.sugo.android.util.StringEscapeUtils;
 import io.sugo.android.viewcrawler.ViewCrawler;
 
@@ -40,11 +42,13 @@ public class SugoWebViewClient extends WebViewClient {
             "        sugo.track('停留', tmp_props);\n" +
             "    }\n" +
             "\n" +
+            "    sugo.single_code = '';\n" +
             "    sugo.relative_path = window.location.pathname.replace(/$sugo_webroot$/g, '');\n" +
             "    sugo.relative_path = sugo.relative_path.replace('$sugo_remove_path$', '');\n" +
             "    sugo.hash = window.location.hash;\n" +
             "    sugo.hash = sugo.hash.indexOf('?') < 0 ? sugo.hash : sugo.hash.substring(0, sugo.hash.indexOf('?'));\n" +
             "    sugo.relative_path += sugo.hash;\n" +
+            "    sugo.all_page_info = $all_page_info$;\n" +
             "    sugo.init = {\n" +
             "        \"code\": \"$sugo_init_code$\",\n" +
             "        \"page_name\": \"$sugo_init_page_name$\",\n" +
@@ -56,7 +60,12 @@ public class SugoWebViewClient extends WebViewClient {
             "        if (!props) {\n" +
             "            props = {};\n" +
             "        }\n" +
-            "        props.$sugo_path_name$ = sugo.relative_path;\n" +
+            "if(sugo.single_code) {\n" +
+            "          props.$sugo_path_name$ = sugo.relative_path + \"##\" + sugo.single_code;\n" +
+            "        } else {\n" +
+            "          props.$sugo_path_name$ = sugo.relative_path;\n" +
+            "        }\n" +
+
             "        if (!props.$sugo_page_name$ && sugo.init.page_name) {\n" +
             "            props.$sugo_page_name$ = sugo.init.page_name;\n" +
             "        }\n" +
@@ -148,7 +157,7 @@ public class SugoWebViewClient extends WebViewClient {
             "        sugo.clientHeight = (window.innerHeight || document.documentElement.clientHeight);\n" +
             "        sugo.handleNodeChild(childrens, nodeJSONArray, parent_path);\n" +
             "        if (window.sugoWebNodeReporter) {\n" +
-            "            window.sugoWebNodeReporter.reportNodes(sugo.relative_path, JSON.stringify(nodeJSONArray), sugo.clientWidth, sugo.clientHeight, document.title);\n" +
+            "            window.sugoWebNodeReporter.reportNodes(sugo.relative_path + (sugo.single_code ? '##' + sugo.single_code : ''), JSON.stringify(nodeJSONArray), sugo.clientWidth, sugo.clientHeight, document.title);\n" +
             "        }\n" +
             "    };\n" +
             "\n" +
@@ -275,6 +284,46 @@ public class SugoWebViewClient extends WebViewClient {
             "        sugo.showHeatMap();\n" +
             "    }\n" +
             "\n" +
+            "    sugo.load = function (code) {\n" +
+            "      sugo.unLoad();\n" +
+            "sugo.single_code = code;\n" +
+            "sugo.init_path();\n" +
+            "sugo.track('浏览');\n" +
+            "    };\n" +
+            "     sugo.unLoad = function () {\n" +
+            "  if(sugo.single_code){" +
+            "      var duration = (new Date().getTime() - sugo.enter_time) / 1000;\n" +
+            "      var tmp_props = JSON.parse(JSON.stringify(sugo.view_props));\n" +
+            "      tmp_props.duration = duration;\n" +
+            "      sugo.track('停留', tmp_props);\n" +
+            "    }};\n" +
+            "sugo.init_path = function () {\n" +
+            "           sugo.current_page = '$sugo_activity_name$::' + sugo.relative_path + (sugo.single_code ? '##' + sugo.single_code : '');\n" +
+            "           sugo.current_event_bindings = {};\n" +
+            "           for (var i = 0; i < sugo.h5_event_bindings.length; i++) {\n" +
+            "            var b_event = sugo.h5_event_bindings[i];\n" +
+            "            if (b_event.target_activity === sugo.current_page || b_event.cross_page) {\n" +
+            "                var b_key = JSON.stringify(b_event.path);\n" +
+            "                sugo.current_event_bindings[b_key] = b_event;\n" +
+            "            }\n" +
+            "          }\n" +
+            "          \n" +
+            "         var page_obj = sugo.all_page_info[sugo.relative_path + (sugo.single_code ? '##' + sugo.single_code : '')];\n" +
+            "         if(page_obj){\n" +
+            "         sugo.init = {\n" +
+            "            \"code\":page_obj.code,\n" +
+            "            \"page_name\": page_obj.page_name,\n" +
+            "            \"page_category\": page_obj.page_category\n" +
+            "        };\n" +
+            "        }else{\n" +
+            "            sugo.init = {\n" +
+            "                \"code\": '',\n" +
+            "                \"page_name\": '',\n" +
+            "                \"page_category\": ''\n" +
+            "            };\n" +
+            "        }" +
+
+            "    };" +
             "    window.sugo = sugo;\n" +
             "    window.sugoio = sugoio;\n" +
             "})(window.sugo || {});\n";
@@ -347,6 +396,7 @@ public class SugoWebViewClient extends WebViewClient {
         tempTrackJS = tempTrackJS.replace("$sugo_page_name$", SGConfig.FIELD_PAGE_NAME);
         tempTrackJS = tempTrackJS.replace("$sugo_page_category_key$", SGConfig.FIELD_PAGE_CATEGORY);
         tempTrackJS = tempTrackJS.replace("$sugo_h5_event_bindings$", bindingEvents);
+        tempTrackJS = tempTrackJS.replace("$all_page_info$", new JSONObject(getAllPageInfo()).toString());
 
         StringBuffer scriptBuf = new StringBuffer();
         scriptBuf.append(cssUtil);
@@ -377,6 +427,10 @@ public class SugoWebViewClient extends WebViewClient {
             e.printStackTrace();
         }
         return SugoPageManager.getInstance().getCurrentPageInfo(realPath);
+    }
+
+    private static HashMap<String, JSONObject> getAllPageInfo() {
+        return SugoPageManager.getInstance().getPageInfo();
     }
 
     private static String getBindingEvents(Activity activity) {

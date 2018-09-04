@@ -75,6 +75,10 @@ public class SugoPageManager {
         return null;
     }
 
+    public HashMap<String, JSONObject> getPageInfo() {
+        return mPageInfos;
+    }
+
     public String getCurrentPageName(Context context) {
         String currentPageName = "";
         JSONObject pageObj = getCurrentPageInfo(context);
