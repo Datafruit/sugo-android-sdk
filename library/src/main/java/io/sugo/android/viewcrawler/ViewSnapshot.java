@@ -166,7 +166,7 @@ class ViewSnapshot {
     }
 
     private void snapshotView(JsonWriter j, View view) throws IOException {
-        if (view.getVisibility() != View.VISIBLE) {
+        if (!SGConfig.isShowInvisibleView() && view.getVisibility() != View.VISIBLE) {
             return;
         }
         // 不处理 ScrollView 未显示的 item

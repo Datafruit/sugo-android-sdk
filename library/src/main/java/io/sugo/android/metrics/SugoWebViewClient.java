@@ -44,7 +44,7 @@ public class SugoWebViewClient extends WebViewClient {
             "\n" +
             "    sugo.single_code = '';\n" +
             "    sugo.relative_path = window.location.pathname.replace(/$sugo_webroot$/g, '');\n" +
-            "    sugo.relative_path = sugo.relative_path.replace('$sugo_remove_path$', '');\n" +
+            "    sugo.relative_path = sugo.relative_path.replace(/$sugo_remove_path$/g, '');\n" +
             "    sugo.hash = window.location.hash;\n" +
             "    sugo.hash = sugo.hash.indexOf('?') < 0 ? sugo.hash : sugo.hash.substring(0, sugo.hash.indexOf('?'));\n" +
             "    sugo.relative_path += sugo.hash;\n" +
@@ -273,7 +273,7 @@ public class SugoWebViewClient extends WebViewClient {
             "                    div.style.left = rect.left + 'px';\n" +
             "                    div.style.width = rect.width + 'px';\n" +
             "                    div.style.height = rect.height + 'px';\n" +
-            "                    div.style.background = `radial-gradient(rgb(${r_color}, ${g_color}, ${b_color}), white)`;\n" +
+            "                    div.style.background = 'radial-gradient(rgb(${r_color}, ${g_color}, ${b_color}), white)';\n" +
             "                    hmDiv.appendChild(div);\n" +
             "                }\n" +
             "            }\n" +
@@ -283,20 +283,23 @@ public class SugoWebViewClient extends WebViewClient {
             "    if (sugo.showHeatMap) {\n" +
             "        sugo.showHeatMap();\n" +
             "    }\n" +
-            "\n" +
-            "    sugo.load = function (code) {\n" +
-            "      sugo.unLoad();\n" +
-            "sugo.single_code = code;\n" +
-            "sugo.init_path();\n" +
-            "sugo.track('浏览');\n" +
-            "    };\n" +
-            "     sugo.unLoad = function () {\n" +
-            "  if(sugo.single_code){" +
-            "      var duration = (new Date().getTime() - sugo.enter_time) / 1000;\n" +
-            "      var tmp_props = JSON.parse(JSON.stringify(sugo.view_props));\n" +
-            "      tmp_props.duration = duration;\n" +
-            "      sugo.track('停留', tmp_props);\n" +
-            "    }};\n" +
+            "" +
+            "sugo.load = function(code) {\n" +
+            "    sugo.unLoad();\n" +
+            "    sugo.single_code = code;\n" +
+            "    sugo.init_path();\n" +
+            "    sugo.track('浏览', sugo.view_props);\n" +
+            "    sugo.enter_time = new Date().getTime();\n" +
+            "};\n" +
+            "sugo.unLoad = function() {\n" +
+            "    if (sugo.single_code && sugo.enter_time) {\n" +
+            "        var duration = (new Date().getTime() - sugo.enter_time) / 1000;\n" +
+            "        var tmp_props = JSON.parse(JSON.stringify(sugo.view_props));\n" +
+            "        tmp_props.duration = duration;\n" +
+            "        sugo.track('停留', tmp_props);\n" +
+            "        sugo.enter_time = null;\n" +
+            "    }\n" +
+            "};\n" +
             "sugo.init_path = function () {\n" +
             "           sugo.current_page = '$sugo_activity_name$::' + sugo.relative_path + (sugo.single_code ? '##' + sugo.single_code : '');\n" +
             "           sugo.current_event_bindings = {};\n" +
@@ -387,7 +390,7 @@ public class SugoWebViewClient extends WebViewClient {
         String tempTrackJS = trackJS;
         tempTrackJS = tempTrackJS.replace("$sugo_enable_page_event$", sugoAPI.getConfig().isEnablePageEvent() + "");
         tempTrackJS = tempTrackJS.replace("$sugo_webroot$", webRoot);
-        tempTrackJS = tempTrackJS.replace("$sugo_remove_path$", sugoRemovePath);
+        tempTrackJS = tempTrackJS.replace("$sugo_remove_path$", sugoRemovePath.replace("/", "\\/"));
         tempTrackJS = tempTrackJS.replace("$sugo_init_code$", initCode);
         tempTrackJS = tempTrackJS.replace("$sugo_init_page_name$", pageName);
         tempTrackJS = tempTrackJS.replace("$sugo_init_page_category$", pageCategory);

@@ -99,7 +99,7 @@ public class SGConfig {
      * we can't rely on BuildConfig.SUGO_VERSION existing, so this must
      * be hard-coded both in our gradle files and here in code.
      */
-    public static final String VERSION = "2.5.2";
+    public static final String VERSION = "2.5.3";
 
     public static final String FIELD_APP_BUILD_NUMBER = "app_build_number";
     public static final String FIELD_APP_VERSION_STRING = "app_version";
@@ -170,6 +170,7 @@ public class SGConfig {
     private final boolean mDisableDecideChecker;
     private final int mImageCacheMaxMemoryFactor;
     private String webRoot;
+    private static boolean showInvisibleView;
     // Mutable, with synchronized accessor and mutator
     private SSLSocketFactory mSSLSocketFactory;
     private OfflineMode mOfflineMode;
@@ -265,6 +266,7 @@ public class SGConfig {
         mDisableDecideChecker = metaData.getBoolean("io.sugo.android.SGConfig.DisableDecideChecker", false);
         mImageCacheMaxMemoryFactor = metaData.getInt("io.sugo.android.SGConfig.ImageCacheMaxMemoryFactor", 10);
         webRoot = metaData.getString("io.sugo.android.SGConfig.webRoot");
+        showInvisibleView = metaData.getBoolean("io.sugo.android.SGConfig.showInvisibleView", false);
         // Disable if EITHER of these is present and false, otherwise enable
         final boolean surveysAutoCheck = metaData.getBoolean("io.sugo.android.SGConfig.AutoCheckForSurveys", true);
         final boolean sugoUpdatesAutoShow = metaData.getBoolean("io.sugo.android.SGConfig.AutoShowSugoUpdates", true);
@@ -517,6 +519,10 @@ public class SGConfig {
         return webRoot;
     }
 
+
+    public static boolean isShowInvisibleView(){
+        return showInvisibleView;
+    }
     public String getToken() {
         return mToken;
     }
