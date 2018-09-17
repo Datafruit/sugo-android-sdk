@@ -95,7 +95,8 @@ public class SugoWebViewClient extends WebViewClient {
             "        }\n" +
             "    }\n" +
             "    if (sugo.enable_page_event) {\n" +
-            "        sugo.track('浏览', sugo.view_props);\n" +
+            "        var tmp_props = JSON.parse(JSON.stringify(sugo.view_props));\n" +
+            "        sugo.track('浏览', tmp_props);\n" +
             "    }\n" +
             "    sugo.enter_time = new Date().getTime();\n" +
             "\n" +
@@ -283,23 +284,46 @@ public class SugoWebViewClient extends WebViewClient {
             "    if (sugo.showHeatMap) {\n" +
             "        sugo.showHeatMap();\n" +
             "    }\n" +
-            "" +
-            "sugo.load = function(code) {\n" +
-            "    sugo.unLoad();\n" +
-            "    sugo.single_code = code;\n" +
-            "    sugo.init_path();\n" +
-            "    sugo.track('浏览', sugo.view_props);\n" +
-            "    sugo.enter_time = new Date().getTime();\n" +
-            "};\n" +
-            "sugo.unLoad = function() {\n" +
-            "    if (sugo.single_code && sugo.enter_time) {\n" +
-            "        var duration = (new Date().getTime() - sugo.enter_time) / 1000;\n" +
-            "        var tmp_props = JSON.parse(JSON.stringify(sugo.view_props));\n" +
-            "        tmp_props.duration = duration;\n" +
-            "        sugo.track('停留', tmp_props);\n" +
-            "        sugo.enter_time = null;\n" +
+            "sugo.load = function(code,cite) {\n" +
+            "        sugo.unLoad();\n" +
+            "         if(cite.options && cite.options.openPolicy === 1) {\n" +
+            "        if(sugo.appendHistory && sugo.appendHistory.length) {\n" +
+            "            sugo.appendHistory.push(code);\n" +
+            "        } else {\n" +
+            "            sugo.appendHistory = [sugo.single_code, code];\n" +
+            "        }\n" +
+            "    } else {\n" +
+            "        sugo.appendHistory = null;\n" +
             "    }\n" +
-            "};\n" +
+            "        sugo.single_code = code;\n" +
+            "        sugo.init_path();\n" +
+            "        var tmp_props = JSON.parse(JSON.stringify(sugo.view_props));\n" +
+            "        sugo.track('浏览', tmp_props);\n" +
+            "        sugo.enter_time = new Date().getTime();\n" +
+            "    }\n" +
+            "    ;\n" +
+            "    sugo.unLoad = function() {\n" +
+            "        if (sugo.single_code && sugo.enter_time) {\n" +
+            "            var duration = (new Date().getTime() - sugo.enter_time) / 1000;\n" +
+            "            var tmp_props = JSON.parse(JSON.stringify(sugo.view_props));\n" +
+            "            tmp_props.duration = duration;\n" +
+            "            sugo.track('停留', tmp_props);\n" +
+            "            sugo.enter_time = null ;\n" +
+            "        }\n" +
+            "    };\n" +
+            "    \n" +
+            "    sugo.unMount = function(code, cite) {\n" +
+            "        if(cite.options && cite.options.openPolicy === 1) {\n" +
+            "            if(sugo.appendHistory && sugo.appendHistory.length) {\n" +
+            "        var hLenght = sugo.appendHistory.findIndex(function(x) { return x === code});\n" +
+            "        sugo.appendHistory = sugo.appendHistory.slice(0, hLenght > 0 ? hLenght : 0);\n" +
+            "        if (sugo.appendHistory.length > 0) {\n" +
+            "            var single_code = sugo.appendHistory[sugo.appendHistory.length - 1];\n" +
+            "            sugo.load(single_code, {});\n" +
+            "        }\n" +
+            "        }\n" +
+            "      }\n" +
+            "    };\n" +
             "sugo.init_path = function () {\n" +
             "           sugo.current_page = '$sugo_activity_name$::' + sugo.relative_path + (sugo.single_code ? '##' + sugo.single_code : '');\n" +
             "           sugo.current_event_bindings = {};\n" +
