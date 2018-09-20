@@ -204,6 +204,7 @@ public class SGConfig {
             Log.w(LOGTAG, "We do not support io.sugo.android.SGConfig.DebugFlushInterval anymore. There will only be one flush interval. Please, update your AndroidManifest.xml.");
         }
 
+        mEnableLocation = metaData.getBoolean("io.sugo.android.SGConfig.EnableLocation", true);
         mBulkUploadLimit = metaData.getInt("io.sugo.android.SGConfig.BulkUploadLimit", 40); // 40 records default
         mFlushInterval = metaData.getInt("io.sugo.android.SGConfig.FlushInterval", 60 * 1000); // one minute default
         mUpdateDecideInterval = metaData.getInt("io.sugo.android.SGConfig.UpdateDecideInterval", 60 * 60 * 1000); // 60 minute default
@@ -511,6 +512,9 @@ public class SGConfig {
     public int getImageCacheMaxMemoryFactor() {
         return mImageCacheMaxMemoryFactor;
     }
+    public boolean ismEnableLocation() {
+        return mEnableLocation;
+    }
 
     ///////////////////////////////////////////////
 
@@ -564,6 +568,7 @@ public class SGConfig {
     private final String mResourcePackageName;
     private final boolean mDisableDecideChecker;
     private final int mImageCacheMaxMemoryFactor;
+    private final boolean mEnableLocation;
     private String mToken;
     private String webRoot;
     // Mutable, with synchronized accessor and mutator
@@ -611,5 +616,7 @@ public class SGConfig {
     public static final String FIELD_DEVICE_ID = "device_id";
     public static final String FIELD_PAGE_CATEGORY = "page_category";
     public static final String TIME_EVENT_TAG = "sugo_time_event_tag";
+    public static final String FIELD_LONGITUDE = "longitude";
+    public static final String FIELD_LATITUDE = "latitude";
 
 }
