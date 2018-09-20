@@ -708,6 +708,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
         private void sendSnapshot(JSONObject message) {
             final long startSnapshot = System.currentTimeMillis();
             String bitmapHash = null;
+            boolean shouldCompressed = false;
             try {
                 final JSONObject payload = message.getJSONObject("payload");
                 if (payload.has("config")) {
@@ -723,6 +724,10 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                 }
                 if (payload.has("image_hash")) {
                     bitmapHash = payload.getString("image_hash");
+                }
+
+                if (payload.has("should_compressed")) {
+                    shouldCompressed = payload.getInt("should_compressed") > 0;
                 }
             } catch (final JSONException e) {
                 Log.e(LOGTAG, "Payload with snapshot config required with snapshot request", e);
@@ -751,7 +756,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                 {
                     writer.write("\"activities\":");
                     writer.flush();
-                    mSnapshot.snapshots(mBindingState, out, bitmapHash);
+                    mSnapshot.snapshots(mBindingState, out, bitmapHash, shouldCompressed);
                 }
 
                 final long snapshotTime = System.currentTimeMillis() - startSnapshot;
