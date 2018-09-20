@@ -32,10 +32,14 @@ import android.widget.ScrollView;
 
 import org.json.JSONObject;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.MessageDigest;
@@ -50,6 +54,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.zip.GZIPOutputStream;
 
 import io.sugo.android.metrics.ResourceIds;
 import io.sugo.android.metrics.SGConfig;
@@ -61,7 +66,7 @@ class ViewSnapshot {
 
     @SuppressWarnings("unused")
     private static final String LOGTAG = "SugoAPI.Snapshot";
-
+    private static final int BUFFER = 10240 ;
     private final RootViewFinder mRootViewFinder;
     private final List<PropertyDescription> mProperties;
     private final ClassNameCache mClassnameCache;
@@ -83,7 +88,7 @@ class ViewSnapshot {
      * on the main UI thread, and should contain a set with elements for every activity to be
      * snapshotted. Given stream out will be written on the calling thread.
      */
-    void snapshots(UIThreadSet<Activity> liveActivities, OutputStream out, String bitmapHash) throws IOException {
+    void snapshots(UIThreadSet<Activity> liveActivities, OutputStream out, String bitmapHash, boolean shouldCompressed) throws IOException {
         mRootViewFinder.findInActivities(liveActivities);
         final FutureTask<List<RootViewInfo>> infoFuture = new FutureTask<List<RootViewInfo>>(mRootViewFinder);
         mMainThreadHandler.post(infoFuture);
@@ -132,9 +137,17 @@ class ViewSnapshot {
             writer.write(String.format("\"%s\"", imageHash));
             if (bitmapHash == null || !bitmapHash.equals(imageHash)) {
                 writer.write(",");
-                writer.write("\"serialized_objects\":");
+                Writer soWriter;
+                if (shouldCompressed){
+                    writer.write("\"compressed_serialized_objects\":\"");
+                    soWriter = new StringWriter();
+                } else {
+                    writer.write("\"serialized_objects\":");
+                    soWriter = writer;
+                }
+
                 {
-                    final JsonWriter j = new JsonWriter(writer);
+                    final JsonWriter j = new JsonWriter(soWriter);
                     j.beginObject();
                     j.name("rootObject").value(info.rootView.hashCode());
                     j.name("objects");
@@ -142,16 +155,52 @@ class ViewSnapshot {
                     j.endObject();
                     j.flush();
                 }
+
+                if (shouldCompressed){
+                    String serializedObjects = ((StringWriter)soWriter).toString();
+                    try {
+                        String charSet = "UTF-8";
+                        byte[] values = compress(serializedObjects.getBytes(charSet));
+                       // String str = new String(values,charSet) ;
+                        writer.write(io.sugo.android.java_websocket.util.Base64.encodeBytes(values));
+                        writer.write("\"");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
                 writer.write(",");
                 writer.write("\"screenshot\":");
                 writer.flush();
-                info.screenshot.writeBitmapJSON(Bitmap.CompressFormat.JPEG, 100, out);
+                info.screenshot.writeBitmapJSON(Bitmap.CompressFormat.JPEG, 80, out);
             }
             writer.write("}");
         }
 
         writer.write("]");
         writer.flush();
+    }
+
+    public static byte[] compress(byte[] data) throws Exception {
+        ByteArrayInputStream bais = new ByteArrayInputStream(data);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        compress(bais, baos);
+        byte[] output = baos.toByteArray();
+        baos.flush();
+        baos.close();
+        bais.close();
+        return output;
+    }
+    public static void compress(InputStream is, OutputStream os)
+            throws Exception {
+        GZIPOutputStream gos = new GZIPOutputStream(os);
+        int count;
+        byte data[] = new byte[BUFFER];
+        while ((count = is.read(data, 0, BUFFER)) != -1) {
+            gos.write(data, 0, count);
+        }
+        gos.finish();
+        gos.flush();
+        gos.close();
     }
 
     // For testing only
@@ -636,7 +685,7 @@ class ViewSnapshot {
             } else {
                 out.write('"');
                 final Base64OutputStream imageOut = new Base64OutputStream(out, Base64.NO_WRAP);
-                mCached.compress(Bitmap.CompressFormat.JPEG, 100, imageOut);
+                mCached.compress(format, quality, imageOut);
                 imageOut.flush();
                 out.write('"');
             }
