@@ -293,8 +293,15 @@ import java.util.Set;
             if (length > 0) {
                 Map<String, String> dimMap = new HashMap<>();
                 Map<String, String> configDimMap = new HashMap<>(SugoDimensionManager.getInstance().getDimensionTypes());
+
+                String lastEventName = "";
                 for (int i = 0; i < length; i++) {
                     JSONObject event = arr.getJSONObject(i);
+                    String eventName = event.getString(SGConfig.FIELD_EVENT_NAME);
+                    if(eventName.equals("启动") && eventName.equals(lastEventName)){
+                        continue;
+                    }
+                    lastEventName = eventName;
                     for (final Iterator<?> iter = event.keys(); iter.hasNext(); ) {
                         final String dimName = (String) iter.next();
                         final String dimType = configDimMap.get(dimName);
