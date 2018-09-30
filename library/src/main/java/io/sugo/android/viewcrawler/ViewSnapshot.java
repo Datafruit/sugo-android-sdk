@@ -171,7 +171,7 @@ class ViewSnapshot {
                 writer.write(",");
                 writer.write("\"screenshot\":");
                 writer.flush();
-                info.screenshot.writeBitmapJSON(Bitmap.CompressFormat.JPEG, 80, out);
+                info.screenshot.writeBitmapJSON(Bitmap.CompressFormat.JPEG, 60, out);
             }
             writer.write("}");
         }
@@ -345,7 +345,7 @@ class ViewSnapshot {
                         webView.loadUrl("javascript:if(typeof sugo === 'object' && typeof sugo.reportNodes === 'function'){sugo.reportNodes();}");
                     }
                 });
-                int max_attempt = 40;
+                int max_attempt = 10;
                 int count = 0;
                 while (oldVersion == sugoWebNodeReporter.version && count < max_attempt) {
                     try {
