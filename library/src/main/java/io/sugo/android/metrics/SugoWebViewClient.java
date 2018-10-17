@@ -127,6 +127,10 @@ public class SugoWebViewClient extends WebViewClient {
             "    sugo.handleNodeChild = function (childrens, nodeJSONArray, parent_path) {\n" +
             "        for (var i = 0; i < childrens.length; i++) {\n" +
             "            var nodeChildren = childrens[i];\n" +
+            "            var path = UTILS.optimized(children);\n" +
+            "            if (path.indexOf(\":\") > 0) {\n" +
+            "                continue;\n" +
+            "            }" +
             "            var childPath = sugoioKit.cssPath(nodeChildren);\n" +
             "            var htmlNode = {};\n" +
             "            htmlNode.innerText = nodeChildren.innerText;\n" +
