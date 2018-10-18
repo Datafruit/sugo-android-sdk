@@ -124,35 +124,34 @@ public class SugoWebViewClient extends WebViewClient {
             "        return ( rect.top >= 0 && rect.left >= 0 && rect.bottom <= sugo.clientHeight && rect.right <= sugo.clientWidth);\n" +
             "    };\n" +
             "\n" +
-            "    sugo.handleNodeChild = function (childrens, nodeJSONArray, parent_path) {\n" +
+            "" +
+            "sugo.handleNodeChild = function(childrens, nodeJSONArray, parent_path) {\n" +
             "        for (var i = 0; i < childrens.length; i++) {\n" +
             "            var nodeChildren = childrens[i];\n" +
-            "            var path = UTILS.optimized(children);\n" +
-            "            if (path.indexOf(\":\") > 0) {\n" +
-            "                continue;\n" +
-            "            }" +
-            "            var childPath = sugoioKit.cssPath(nodeChildren);\n" +
-            "            var htmlNode = {};\n" +
-            "            htmlNode.innerText = nodeChildren.innerText;\n" +
-            "            htmlNode.path = childPath;\n" +
-            "            htmlNode.classList = nodeChildren.classList;\n" +
             "            var rect = nodeChildren.getBoundingClientRect();\n" +
-            "            if (sugo.isElementInViewport(rect) === true) {\n" +
-            "                var temp_rect = {\n" +
+            "            if (sugo.isElementInViewport(rect) !== true) {\n" +
+            "                continue;\n" +
+            "            }\n" +
+            "            var temp_rect = {\n" +
             "                    top: rect.top,\n" +
             "                    left: rect.left,\n" +
             "                    width: rect.width,\n" +
             "                    height: rect.height\n" +
-            "                };\n" +
-            "                htmlNode.rect = temp_rect;\n" +
-            "                nodeJSONArray.push(htmlNode);\n" +
-            "            }\n" +
+            "            };\n" +
+            "            htmlNode.rect = temp_rect;\n" +
+            "            var childPath = UTILS.cssPath(nodeChildren);\n" +
+            "            var htmlNode = {};\n" +
+            "            htmlNode.innerText = nodeChildren.innerText;\n" +
+            "            htmlNode.path = childPath;\n" +
+            "            htmlNode.classList = nodeChildren.classList;\n" +
+            "            \n" +
+            "            nodeJSONArray.push(htmlNode);\n" +
             "            if (nodeChildren.children) {\n" +
             "                sugo.handleNodeChild(nodeChildren.children, nodeJSONArray, childPath);\n" +
             "            }\n" +
             "        }\n" +
-            "    };\n" +
-            "\n" +
+            "    };" +
+            ""  +
             "    sugo.reportNodes = function () {\n" +
             "        var nodeJSONArray = [];\n" +
             "        var body = document.getElementsByTagName('body')[0];\n" +
