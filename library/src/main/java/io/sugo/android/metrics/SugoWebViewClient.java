@@ -355,7 +355,6 @@ public class SugoWebViewClient extends WebViewClient {
 
             "    };" +
             "    window.sugo = sugo;\n" +
-            "    window.sugoio = sugoio;\n" +
             "})(window.sugo || {});\n";
 
     @Override
