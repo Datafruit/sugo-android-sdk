@@ -125,13 +125,15 @@ public class SugoWebViewClient extends WebViewClient {
             "    };\n" +
             "\n" +
             "" +
+            "sugo.excludeControl = ['symbol', 'SCRIPT'];\n" +
             "sugo.handleNodeChild = function(childrens, nodeJSONArray, parent_path) {\n" +
             "        for (var i = 0; i < childrens.length; i++) {\n" +
             "            var nodeChildren = childrens[i];\n" +
+            "if(sugo.excludeControl.includes(nodeChildren.tagName)) {\n" +
+            "   continue;\n" +
+            "} " +
             "            var rect = nodeChildren.getBoundingClientRect();\n" +
-            "            if (sugo.isElementInViewport(rect) !== true) {\n" +
-            "                continue;\n" +
-            "            }\n" +
+            "            var htmlNode = {};\n" +
             "            var temp_rect = {\n" +
             "                    top: rect.top,\n" +
             "                    left: rect.left,\n" +
@@ -139,8 +141,7 @@ public class SugoWebViewClient extends WebViewClient {
             "                    height: rect.height\n" +
             "            };\n" +
             "            htmlNode.rect = temp_rect;\n" +
-            "            var childPath = UTILS.cssPath(nodeChildren);\n" +
-            "            var htmlNode = {};\n" +
+            "            var childPath = sugoioKit.cssPath(nodeChildren);\n" +
             "            htmlNode.innerText = nodeChildren.innerText;\n" +
             "            htmlNode.path = childPath;\n" +
             "            htmlNode.classList = nodeChildren.classList;\n" +
