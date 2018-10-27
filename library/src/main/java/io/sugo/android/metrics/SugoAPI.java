@@ -850,7 +850,7 @@ public class SugoAPI {
     }
 
     public void addWebViewJavascriptInterface(WebView webView) {
-        webView.addJavascriptInterface(new SugoWebEventListener(this), "sugoEventListener");
+        webView.addJavascriptInterface(new SugoWebEventListener(this, webView), "sugoEventListener");
         SugoWebNodeReporter reporter = new SugoWebNodeReporter();
         webView.addJavascriptInterface(reporter, "sugoWebNodeReporter");
         setSugoWebNodeReporter(webView, reporter);

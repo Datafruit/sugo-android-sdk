@@ -27,6 +27,7 @@ import io.sugo.android.viewcrawler.SugoHeatMap;
 
 public class SugoWebEventListener {
     protected final SugoAPI sugoAPI;
+    protected WebView webView;
     protected static Map<String, JSONArray> eventBindingsMap = new HashMap<String, JSONArray>();
     protected static HashSet<WebView> sCurrentWebView = new HashSet<>();
 
@@ -38,6 +39,12 @@ public class SugoWebEventListener {
 
     public SugoWebEventListener(SugoAPI sugoAPI) {
         this.sugoAPI = sugoAPI;
+    }
+
+
+    public SugoWebEventListener(SugoAPI sugoAPI, WebView webView) {
+        this.sugoAPI = sugoAPI;
+        this.webView = webView;
     }
 
     @JavascriptInterface
@@ -63,6 +70,21 @@ public class SugoWebEventListener {
 
     }
 
+
+    @JavascriptInterface
+    public void pageFinish(String url) {
+        if(webView == null){
+            return ;
+        }
+        final String finalUrl = url;
+        Activity activity = (Activity) webView.getContext();
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                SugoWebViewClient.handlePageFinished(webView, finalUrl);
+            }
+        });
+    }
     @JavascriptInterface
     public void timeEvent(String eventName) {
         sugoAPI.timeEvent(eventName);
