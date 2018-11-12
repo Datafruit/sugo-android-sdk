@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Environment;
 import android.text.TextUtils;
+import android.util.Log;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -43,11 +44,7 @@ public class SugoWebViewClient extends WebViewClient {
             "    }\n" +
             "\n" +
             "    sugo.single_code = '';\n" +
-            "    sugo.relative_path = window.location.pathname.replace(/$sugo_webroot$/g, '');\n" +
-            "    sugo.relative_path = sugo.relative_path.replace(/$sugo_remove_path$/g, '');\n" +
-            "    sugo.hash = window.location.hash;\n" +
-            "    sugo.hash = sugo.hash.indexOf('?') < 0 ? sugo.hash : sugo.hash.substring(0, sugo.hash.indexOf('?'));\n" +
-            "    sugo.relative_path += sugo.hash;\n" +
+            "    sugo.relative_path = '$sugo_relative_path$';\n" +
             "    sugo.all_page_info = $all_page_info$;\n" +
             "    sugo.init = {\n" +
             "        \"code\": \"$sugo_init_code$\",\n" +
@@ -80,7 +77,9 @@ public class SugoWebViewClient extends WebViewClient {
             "    sugo.timeEvent = function (event_name) {\n" +
             "        window.sugoEventListener.timeEvent(event_name);\n" +
             "    };\n" +
-            "\n" +
+            "    sugo.registerSuperProperties = function (props) {\n" +
+            "        window.sugoEventListener.registerSuperProperties(JSON.stringify(props));\n" +
+            "    };" +
             "    var sugoio = {\n" +
             "        track: sugo.track,\n" +
             "        time_event: sugo.timeEvent\n" +
@@ -384,21 +383,43 @@ public class SugoWebViewClient extends WebViewClient {
         delegate.loadUrl("javascript:" + script);
     }
 
-    public static String getInjectScript(Activity activity, String url) {
+    private static String getRealUrl(Activity activity, String url){
         SugoAPI sugoAPI = SugoAPI.getInstance(activity);
 
+        try {
+            URL urlObj = new URL(url);
+            url = urlObj.getPath();
+            String ref = urlObj.getRef();
+            if (!TextUtils.isEmpty(ref)) {
+                if (ref.contains("?")) {
+                    int qIndex = ref.indexOf("?");
+                    ref = ref.substring(0, qIndex);
+                }
+                url = url + "#" + ref;
+            }
+        } catch (MalformedURLException e) {
+            Log.e("SugoWebViewClient", "not a valid url: " + url, e);
+            return "";
+        }
         String webRoot = sugoAPI.getConfig().getWebRoot();
+        url = url.replaceFirst(webRoot, "");
 
         String filePath = activity.getFilesDir().getPath(); // /data/user/0/io.sugo.xxx/files
         String dataPkgPath = filePath.substring(0, filePath.indexOf("/files"));      // /data/user/0/io.sugo.xxx
 
-        String sugoRemovePath = dataPkgPath;
+        url = url.replaceFirst(dataPkgPath, "");
 
         String esPath = Environment.getExternalStorageDirectory().getPath();
-        if (url.contains(esPath)){
-            sugoRemovePath = esPath;
-        }
-        JSONObject pageInfo = getPageInfo(activity, url, dataPkgPath);
+        url = url.replaceFirst(esPath, "");
+
+        return url;
+    }
+    public static String getInjectScript(Activity activity, String url) {
+        SugoAPI sugoAPI = SugoAPI.getInstance(activity);
+
+        String realPath = getRealUrl(activity, url);
+
+        JSONObject pageInfo = getPageInfo(activity, realPath);
         String initCode = "";
         String pageName = "";
         String pageCategory = "";
@@ -416,8 +437,8 @@ public class SugoWebViewClient extends WebViewClient {
 
         String tempTrackJS = trackJS;
         tempTrackJS = tempTrackJS.replace("$sugo_enable_page_event$", sugoAPI.getConfig().isEnablePageEvent() + "");
-        tempTrackJS = tempTrackJS.replace("$sugo_webroot$", webRoot);
-        tempTrackJS = tempTrackJS.replace("$sugo_remove_path$", sugoRemovePath.replace("/", "\\/"));
+
+        tempTrackJS = tempTrackJS.replace("$sugo_relative_path$", realPath);
         tempTrackJS = tempTrackJS.replace("$sugo_init_code$", initCode);
         tempTrackJS = tempTrackJS.replace("$sugo_init_page_name$", pageName);
         tempTrackJS = tempTrackJS.replace("$sugo_init_page_category$", pageCategory);
@@ -434,29 +455,34 @@ public class SugoWebViewClient extends WebViewClient {
         return scriptBuf.toString();
     }
 
-    private static JSONObject getPageInfo(Activity activity, String url, String dataPkgPath) {
+//    private static JSONObject getPageInfo(Activity activity, String url, String dataPkgPath) {
+//        SugoAPI sugoAPI = SugoAPI.getInstance(activity.getApplicationContext());
+//        String realPath = "";
+//        try {
+//            Pattern pattern = Pattern.compile("^[A-Za-z0-9]*://.*", Pattern.CASE_INSENSITIVE);
+//            if (pattern.matcher(url).matches()) {
+//                URL urlObj = new URL(url);
+//                realPath = urlObj.getPath();
+//                realPath = realPath.replaceFirst(dataPkgPath, "");
+//                String ref = urlObj.getRef();
+//                if (!TextUtils.isEmpty(ref)) {
+//                    if (ref.contains("?")) {
+//                        int qIndex = ref.indexOf("?");
+//                        ref = ref.substring(0, qIndex);
+//                    }
+//                    realPath = realPath + "#" + ref;
+//                }
+//            }
+//            realPath = realPath.replace(sugoAPI.getConfig().getWebRoot(), "");
+//        } catch (MalformedURLException e) {
+//            e.printStackTrace();
+//        }
+//        return SugoPageManager.getInstance().getCurrentPageInfo(realPath);
+//    }
+
+    private static JSONObject getPageInfo(Activity activity, String url) {
         SugoAPI sugoAPI = SugoAPI.getInstance(activity.getApplicationContext());
-        String realPath = "";
-        try {
-            Pattern pattern = Pattern.compile("^[A-Za-z0-9]*://.*", Pattern.CASE_INSENSITIVE);
-            if (pattern.matcher(url).matches()) {
-                URL urlObj = new URL(url);
-                realPath = urlObj.getPath();
-                realPath = realPath.replaceFirst(dataPkgPath, "");
-                String ref = urlObj.getRef();
-                if (!TextUtils.isEmpty(ref)) {
-                    if (ref.contains("?")) {
-                        int qIndex = ref.indexOf("?");
-                        ref = ref.substring(0, qIndex);
-                    }
-                    realPath = realPath + "#" + ref;
-                }
-            }
-            realPath = realPath.replace(sugoAPI.getConfig().getWebRoot(), "");
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-        return SugoPageManager.getInstance().getCurrentPageInfo(realPath);
+        return SugoPageManager.getInstance().getCurrentPageInfo(url);
     }
 
     private static HashMap<String, JSONObject> getAllPageInfo() {

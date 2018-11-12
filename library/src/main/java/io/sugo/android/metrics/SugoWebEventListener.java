@@ -70,6 +70,23 @@ public class SugoWebEventListener {
 
     }
 
+    @JavascriptInterface
+    public void registerSuperProperties(String props) {
+        try {
+            JSONObject jsonObject = new JSONObject(props);
+            sugoAPI.registerSuperProperties(jsonObject);
+        } catch (JSONException e) {
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put(SGConfig.FIELD_TEXT, e.toString());
+            } catch (JSONException e1) {
+                e1.printStackTrace();
+            }
+            sugoAPI.track("Exception", jsonObject);
+        }
+
+    }
+
 
     @JavascriptInterface
     public void pageFinish(String url) {
