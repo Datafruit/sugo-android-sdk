@@ -86,7 +86,14 @@ public class SugoWebEventListener {
         }
 
     }
-
+    @JavascriptInterface
+    public void login(String key, String value) {
+        sugoAPI.login(key ,value);
+    }
+    @JavascriptInterface
+    public void loginout() {
+        sugoAPI.logout();
+    }
 
     @JavascriptInterface
     public void pageFinish(String url) {
