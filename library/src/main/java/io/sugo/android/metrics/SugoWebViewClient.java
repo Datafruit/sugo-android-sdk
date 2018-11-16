@@ -80,11 +80,16 @@ public class SugoWebViewClient extends WebViewClient {
             "    sugo.registerSuperProperties = function (props) {\n" +
             "        window.sugoEventListener.registerSuperProperties(JSON.stringify(props));\n" +
             "    };" +
+            "sugo.login = function (key, value) { \n" +
+            "    window.sugoEventListener.login(key, value) \n" +
+            "};\n" +
+            "sugo.logout = function (key, value) { \n" +
+            "    window.sugoEventListener.logout() \n" +
+            "};" +
             "    var sugoio = {\n" +
             "        track: sugo.track,\n" +
             "        time_event: sugo.timeEvent\n" +
             "    };\n" +
-            "\n" +
             "    if (sugo.init.code) {\n" +
             "        try {\n" +
             "            var sugo_init_code = new Function('sugo', sugo.init.code);\n" +
