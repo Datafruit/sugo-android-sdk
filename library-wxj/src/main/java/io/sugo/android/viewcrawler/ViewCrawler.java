@@ -295,6 +295,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                         messageProps.put(SGConfig.FIELD_EVENT_TYPE, "位置");
                         messageProps.put(SGConfig.FIELD_PAGE_NAME, "位置信息收集");
                         mMixpanel.track("位置信息收集", messageProps);
+                        mMixpanel.flush();
                         SGConfig.lastReportLoaction = now;
                         SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + mMixpanel.getConfig().getToken(), Context.MODE_PRIVATE);
                         SharedPreferences.Editor editor = preferences.edit();
