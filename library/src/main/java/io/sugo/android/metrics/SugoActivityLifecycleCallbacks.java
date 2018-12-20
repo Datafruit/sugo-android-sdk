@@ -3,10 +3,20 @@ package io.sugo.android.metrics;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
+import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
+import android.view.Gravity;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager.LayoutParams;
+import android.view.WindowManager;
+import android.widget.LinearLayout;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -53,6 +63,34 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
 
     @Override
     public void onActivityResumed(Activity activity) {
+        LayoutParams params = new LayoutParams(
+                1, /* width */
+                1, /* height */
+                LayoutParams.TYPE_PHONE,
+                LayoutParams.FLAG_NOT_FOCUSABLE |
+                        LayoutParams.FLAG_NOT_TOUCH_MODAL |
+                        LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                PixelFormat.TRANSPARENT
+        );
+        params.gravity = Gravity.LEFT | Gravity.TOP;
+        WindowManager mWindowManager = (WindowManager) activity.getApplication().getSystemService(Context.WINDOW_SERVICE);
+        View mDummyView = new LinearLayout(activity.getApplication());
+
+        //LayoutParams params = new LayoutParams(1, LayoutParams.MATCH_PARENT);
+        mDummyView.setLayoutParams(params);
+        mDummyView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                Log.d("tag===", "Touch event: " + event.toString());
+
+                // log it
+
+                return false;
+            }
+        });
+        mWindowManager.addView(mDummyView, params);
+
+
         mPaused = false;
         boolean wasBackground = !mIsForeground;
         mIsForeground = true;
