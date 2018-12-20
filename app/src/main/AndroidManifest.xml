@@ -11,7 +11,8 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
-
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.SYSTEM_OVERLAY_WINDOW" />
     <application
         android:name=".App"
         android:allowBackup="true"
@@ -26,7 +27,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
-                <data android:scheme="sugo.6c275a878890d2df224cf3f48385d27e" />
+                <data android:scheme="sugo.ff36a6fa8179d70cccc8dc81185d8ae6" />
 
                 <action android:name="android.intent.action.VIEW" />
 
@@ -58,27 +59,28 @@
         <!-- 设置ProjectId -->
         <meta-data
             android:name="io.sugo.android.SGConfig.ProjectId"
-            android:value="com_H1bIzqK2SZ_project_r1HAty5zM" />
+            android:value="com_SJLnjowGe_project_SJI__AlDm" />
 
         <!-- 设置 Token -->
         <meta-data
             android:name="io.sugo.android.SGConfig.token"
-            android:value="6c275a878890d2df224cf3f48385d27e" />
+            android:value="ff36a6fa8179d70cccc8dc81185d8ae6" />
 
         <!-- 设置埋点配置地址 -->
         <meta-data
             android:name="io.sugo.android.SGConfig.APIHost"
-            android:value="http://58.63.110.97:2270" />
+            android:value="http://192.168.0.220:8000" />
 
         <!-- 设置可视化埋点地址 -->
         <meta-data
             android:name="io.sugo.android.SGConfig.EditorHost"
-            android:value="ws://58.63.110.97:2227" />
+            android:value="ws://192.168.0.220:8887" />
 
         <!-- 设置数据上报地址 -->
         <meta-data
             android:name="io.sugo.android.SGConfig.EventsHost"
-            android:value="http://58.63.110.97:2271" />
+            android:value="http://192.168.0.220" />
+
 
         <activity android:name=".activity.PrivateFuncActivity" />
         <activity android:name=".activity.DebugViewPagerActivity" />

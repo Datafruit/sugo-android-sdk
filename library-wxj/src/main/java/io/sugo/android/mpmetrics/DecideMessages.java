@@ -53,14 +53,16 @@ import io.sugo.android.viewcrawler.UpdatesFromMixpanel;
         return mDistinctId;
     }
 
+    public synchronized void reportDims(JSONArray dimensions) {
+        mUpdatesFromMixpanel.setDimensions(dimensions);
+    }
     public synchronized void reportResults(
             List<Survey> newSurveys, List<InAppNotification> newNotifications, JSONArray eventBindings,
-            JSONArray h5EventBindings, JSONArray variants, JSONArray pageInfos, JSONArray dimensions) {
+            JSONArray h5EventBindings, JSONArray variants, JSONArray pageInfos) {
         boolean newContent = false;
         mUpdatesFromMixpanel.setEventBindings(eventBindings);
         mUpdatesFromMixpanel.setH5EventBindings(h5EventBindings);
         mUpdatesFromMixpanel.setPageInfos(pageInfos);
-        mUpdatesFromMixpanel.setDimensions(dimensions);
         for (final Survey s : newSurveys) {
             final int id = s.getId();
             if (! mSurveyIds.contains(id)) {
