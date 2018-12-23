@@ -13,6 +13,11 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <uses-permission android:name="android.permission.SYSTEM_OVERLAY_WINDOW" />
+    <uses-permission android:name="android.permission.GET_TASKS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
+
+
     <application
         android:name=".App"
         android:allowBackup="true"
@@ -27,12 +32,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
-                <data android:scheme="sugo.ff36a6fa8179d70cccc8dc81185d8ae6" />
+                <data android:scheme="sugo.d978ffaca358a5370e3c5670be9134ad"/>
+                <action android:name="android.intent.action.VIEW"/>
 
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
             </intent-filter>
         </activity>
         <activity
@@ -59,28 +63,27 @@
         <!-- 设置ProjectId -->
         <meta-data
             android:name="io.sugo.android.SGConfig.ProjectId"
-            android:value="com_SJLnjowGe_project_SJI__AlDm" />
+            android:value="tindex_H1bIzqK2SZ_project_85WDl0Vfq" />
 
         <!-- 设置 Token -->
         <meta-data
             android:name="io.sugo.android.SGConfig.token"
-            android:value="ff36a6fa8179d70cccc8dc81185d8ae6" />
+            android:value="d978ffaca358a5370e3c5670be9134ad" />
 
         <!-- 设置埋点配置地址 -->
         <meta-data
             android:name="io.sugo.android.SGConfig.APIHost"
-            android:value="http://192.168.0.220:8000" />
+            android:value="http://58.63.110.97:2270" />
 
         <!-- 设置可视化埋点地址 -->
         <meta-data
             android:name="io.sugo.android.SGConfig.EditorHost"
-            android:value="ws://192.168.0.220:8887" />
+            android:value="ws://58.63.110.97:2227" />
 
         <!-- 设置数据上报地址 -->
         <meta-data
             android:name="io.sugo.android.SGConfig.EventsHost"
-            android:value="http://192.168.0.220" />
-
+            android:value="http://58.63.110.97:2271" />
 
         <activity android:name=".activity.PrivateFuncActivity" />
         <activity android:name=".activity.DebugViewPagerActivity" />

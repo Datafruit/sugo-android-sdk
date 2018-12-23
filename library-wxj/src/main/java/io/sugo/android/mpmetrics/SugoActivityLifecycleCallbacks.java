@@ -9,7 +9,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.ContactsContract;
+import android.renderscript.Sampler;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -18,8 +22,10 @@ import android.widget.LinearLayout;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
+import java.sql.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 /* package */ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
@@ -63,12 +69,24 @@ import java.util.HashSet;
         }
     }
 
+//    public static int getDeviceHeight(Context context){
+//        return context.getResources().getDisplayMetrics().heightPixels;
+//        Display display =getWindowManager().getDefaultDisplay();
+//    }
+//    public static int getDeviceWdith(Context context){
+//        return context.getResources().getDisplayMetrics().widthPixels;
+//    }
     @Override
-    public void onActivityResumed(Activity activity) {
+    public void onActivityResumed(final Activity activity) {
+
+
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 1, /* width */
                 1, /* height */
-                WindowManager.LayoutParams.TYPE_PHONE,
+//                WindowManager.LayoutParams.TYPE_PHONE,
+                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                        ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                        : WindowManager.LayoutParams.TYPE_PHONE),
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
                         WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
                         WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
@@ -78,26 +96,83 @@ import java.util.HashSet;
         WindowManager mWindowManager = (WindowManager) activity.getApplication().getSystemService(Context.WINDOW_SERVICE);
         View mDummyView = new LinearLayout(activity.getApplication());
 
-        //LayoutParams params = new LayoutParams(1, LayoutParams.MATCH_PARENT);
+        SystemInformation msystemInformation =new SystemInformation(activity.getApplication());
+        final DisplayMetrics displayMetrics = msystemInformation.getDisplayMetrics();
+        final int h=displayMetrics.heightPixels;
+        final int w=displayMetrics.widthPixels;
+        final double a=h/32;
+        final double b=w/16;
+
         mDummyView.setLayoutParams(params);
-        mDummyView.setOnTouchListener(new View.OnTouchListener() {
+        mDummyView.setOnTouchListener(
+                new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                Log.d("tag===", "Touch event: " + event.toString());
-
-                // log it
-
-                return false;
+//                Log.d("tag===", "Touch event: " + event.toString());
+              float  x = event.getX();
+              float  y = event.getY();
+              double c;
+                if (y/a>1){
+                    c = (Math.ceil((y/a)-1))*16+Math.ceil(x/b);
+                    Log.d("","...............5"+c);
+                }else{
+                    c=Math.ceil(x/b);
+                    Log.d("","...............4"+c);
+                }
+                SugoAPI sugoAPI = SugoAPI.getInstance( activity);
+                Map<String, Object> values=new HashMap<String,Object>();
+                values.put("onclick_point",c);//对应底部按钮标签名
+                sugoAPI.trackMap("屏幕点击", values);
+                return true;
             }
-        });
+                });
+
+//                if (event.getAction()==MotionEvent.ACTION_OUTSIDE) {
+//                    // App is in foreground now
+//                    // App 从 background 状态回来，是被唤醒
+//                    JSONObject props = new JSONObject();
+//                    try {
+//                        props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
+//                        props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
+//                                .getCurrentPageName(activity.getClass().getCanonicalName()));
+//                        props.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance()
+//                                .getCurrentPageCategory(activity.getClass().getCanonicalName()));
+//                        props.put(SGConfig.FIELD_CLICK_POINT, c);
+//
+//                    } catch (JSONException e) {
+//                        e.printStackTrace();
+//                    }
+//                    mSugoAPI.track("屏幕点击", props);
+//
+//                }
+
         mWindowManager.addView(mDummyView, params);
         mPaused = false;
         boolean wasBackground = !mIsForeground;
         mIsForeground = true;
-
+//        JSONObject props = new JSONObject();
+//        props.put(SGConfig.FIELD_CLICK_POINT,C);
         if (mCheckInBackground != null) {
             mHandler.removeCallbacks(mCheckInBackground);
         }
+
+//        if (){
+//            JSONObject props = new JSONObject();
+//            try {
+//                props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
+//                props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
+//                        .getCurrentPageName(activity.getClass().getCanonicalName()));
+//                props.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance()
+//                        .getCurrentPageCategory(activity.getClass().getCanonicalName()));
+//                props.put(SGConfig.FIELD_CLICK_POINT,C);
+//                props.put(SGConfig.FIELD_PAGE_NAME, "屏幕点击");
+//                props.put(SGConfig.FIELD_CLICK_POINT,C);
+//            } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
+//        mSugoAPI.track("屏幕点击", props);
+//        mSugoAPI.timeEvent("屏幕点击");
+//        }
 
         if (wasBackground && !mIsLaunching) {
             // App is in foreground now
@@ -108,6 +183,7 @@ import java.util.HashSet;
                 props.put(SGConfig.FIELD_PAGE_NAME, "唤醒");
                 props.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance()
                         .getCurrentPageCategory(activity.getClass().getCanonicalName()));
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }
