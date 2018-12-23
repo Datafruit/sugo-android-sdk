@@ -36,6 +36,7 @@ import java.util.Map;
     public static final int CHECK_DELAY = 1000;
     private final SugoAPI mSugoAPI;
     private final SGConfig mConfig;
+    private View mDummyView;//虚拟视图
 
     private boolean mIsLaunching = true;     // 是否启动中
     private HashSet<Activity> mDisableActivities;
@@ -78,75 +79,6 @@ import java.util.Map;
 //    }
     @Override
     public void onActivityResumed(final Activity activity) {
-
-
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                1, /* width */
-                1, /* height */
-//                WindowManager.LayoutParams.TYPE_PHONE,
-                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-                        ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-                        : WindowManager.LayoutParams.TYPE_PHONE),
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
-                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
-                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                PixelFormat.TRANSPARENT
-        );
-        params.gravity = Gravity.LEFT | Gravity.TOP;
-        WindowManager mWindowManager = (WindowManager) activity.getApplication().getSystemService(Context.WINDOW_SERVICE);
-        View mDummyView = new LinearLayout(activity.getApplication());
-
-        SystemInformation msystemInformation =new SystemInformation(activity.getApplication());
-        final DisplayMetrics displayMetrics = msystemInformation.getDisplayMetrics();
-        final int h=displayMetrics.heightPixels;
-        final int w=displayMetrics.widthPixels;
-        final double a=h/32;
-        final double b=w/16;
-
-        mDummyView.setLayoutParams(params);
-        mDummyView.setOnTouchListener(
-                new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-//                Log.d("tag===", "Touch event: " + event.toString());
-              float  x = event.getX();
-              float  y = event.getY();
-              double c;
-                if (y/a>1){
-                    c = (Math.ceil((y/a)-1))*16+Math.ceil(x/b);
-                    Log.d("","...............5"+c);
-                }else{
-                    c=Math.ceil(x/b);
-                    Log.d("","...............4"+c);
-                }
-                SugoAPI sugoAPI = SugoAPI.getInstance( activity);
-                Map<String, Object> values=new HashMap<String,Object>();
-                values.put("onclick_point",c);//对应底部按钮标签名
-                sugoAPI.trackMap("屏幕点击", values);
-                return true;
-            }
-                });
-
-//                if (event.getAction()==MotionEvent.ACTION_OUTSIDE) {
-//                    // App is in foreground now
-//                    // App 从 background 状态回来，是被唤醒
-//                    JSONObject props = new JSONObject();
-//                    try {
-//                        props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
-//                        props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
-//                                .getCurrentPageName(activity.getClass().getCanonicalName()));
-//                        props.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance()
-//                                .getCurrentPageCategory(activity.getClass().getCanonicalName()));
-//                        props.put(SGConfig.FIELD_CLICK_POINT, c);
-//
-//                    } catch (JSONException e) {
-//                        e.printStackTrace();
-//                    }
-//                    mSugoAPI.track("屏幕点击", props);
-//
-//                }
-
-        mWindowManager.addView(mDummyView, params);
         mPaused = false;
         boolean wasBackground = !mIsForeground;
         mIsForeground = true;
@@ -155,25 +87,6 @@ import java.util.Map;
         if (mCheckInBackground != null) {
             mHandler.removeCallbacks(mCheckInBackground);
         }
-
-//        if (){
-//            JSONObject props = new JSONObject();
-//            try {
-//                props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
-//                props.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance()
-//                        .getCurrentPageName(activity.getClass().getCanonicalName()));
-//                props.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance()
-//                        .getCurrentPageCategory(activity.getClass().getCanonicalName()));
-//                props.put(SGConfig.FIELD_CLICK_POINT,C);
-//                props.put(SGConfig.FIELD_PAGE_NAME, "屏幕点击");
-//                props.put(SGConfig.FIELD_CLICK_POINT,C);
-//            } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
-//        mSugoAPI.track("屏幕点击", props);
-//        mSugoAPI.timeEvent("屏幕点击");
-//        }
-
         if (wasBackground && !mIsLaunching) {
             // App is in foreground now
             // App 从 background 状态回来，是被唤醒
@@ -207,12 +120,70 @@ import java.util.Map;
         }
 
         if (mIsLaunching) {
-            mIsLaunching = false;    // 第一个界面已经显示完毕
+            mIsLaunching = false;
+//            mDummyView.onFinishTemporaryDetach();
+//            ((LinearLayout) mDummyView).removeView(mDummyView);
+//            mWindowManager.removeView(mDummyView);
+            // 第一个界面已经显示完毕
         }
+
+        if (mDummyView != null){
+            return ;
+        }
+        mDummyView = new LinearLayout(activity.getApplication());
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                1, /* width */
+                1, /* height */
+//                WindowManager.LayoutParams.TYPE_PHONE,
+                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                        ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                        : WindowManager.LayoutParams.TYPE_PHONE),
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
+                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                PixelFormat.TRANSPARENT
+        );
+        params.gravity = Gravity.LEFT | Gravity.TOP;
+
+        WindowManager mWindowManager = (WindowManager) activity.getApplication().getSystemService(Context.WINDOW_SERVICE);
+        SystemInformation msystemInformation = new SystemInformation(activity.getApplication());
+        final DisplayMetrics displayMetrics = msystemInformation.getDisplayMetrics();
+        final int h = displayMetrics.heightPixels;
+        final int w = displayMetrics.widthPixels;
+        final double a = h / 32;
+        final double b = w / 16;
+
+        mDummyView.setLayoutParams(params);
+        mDummyView.setOnTouchListener(
+                new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        Log.d("tag===", "Touch event: " + event.toString());
+                        float x = event.getX();
+                        float y = event.getY();
+                        double c;
+                        if (y / a > 1) {
+                            c = (Math.ceil((y / a) - 1)) * 16 + Math.ceil(x / b);
+                        } else {
+                            c = Math.ceil(x / b);
+                        }
+                        SugoAPI sugoAPI = SugoAPI.getInstance(activity);
+                        Map<String, Object> values = new HashMap<String, Object>();
+                        values.put("onclick_point", c);//对应底部按钮标签名
+                        sugoAPI.trackMap("屏幕点击", values);
+                        return false;
+                    }
+                });
+
+        mWindowManager.addView(mDummyView, params);
     }
 
     @Override
     public void onActivityPaused(final Activity activity) {
+        if (mDummyView !=null){
+            mDummyView.setOnTouchListener(null);
+            mDummyView = null;
+        }
         mPaused = true;
         if (mCheckInBackground != null) {
             mHandler.removeCallbacks(mCheckInBackground);
