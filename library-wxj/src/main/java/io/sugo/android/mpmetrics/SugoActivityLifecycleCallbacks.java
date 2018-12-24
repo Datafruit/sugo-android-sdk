@@ -37,6 +37,7 @@ import java.util.Map;
     private final SugoAPI mSugoAPI;
     private final SGConfig mConfig;
     private View mDummyView;//虚拟视图
+    private WindowManager.LayoutParams params;//
 
     private boolean mIsLaunching = true;     // 是否启动中
     private HashSet<Activity> mDisableActivities;
@@ -70,13 +71,26 @@ import java.util.Map;
         }
     }
 
-//    public static int getDeviceHeight(Context context){
-//        return context.getResources().getDisplayMetrics().heightPixels;
-//        Display display =getWindowManager().getDefaultDisplay();
-//    }
-//    public static int getDeviceWdith(Context context){
-//        return context.getResources().getDisplayMetrics().widthPixels;
-//    }
+     class SystemInfo {   //获取设备划分区域的宽高
+        final double itemHeight ;
+        final double itemWidth ;
+         SystemInfo( final Activity activity){
+            SystemInformation msystemInformation = new SystemInformation(activity.getApplication());
+            final DisplayMetrics displayMetrics = msystemInformation.getDisplayMetrics();
+            float h = displayMetrics.heightPixels;
+            float w = displayMetrics.widthPixels;
+             itemHeight = h / 32;
+             itemWidth = w / 16;
+        }
+         public double getItemHeight() {
+             return itemHeight;
+         }
+
+         public double getItemWidth() {
+             return itemWidth;
+         }
+     }
+
     @Override
     public void onActivityResumed(final Activity activity) {
         mPaused = false;
@@ -121,10 +135,10 @@ import java.util.Map;
             mIsLaunching = false;
         }
 
-        if (mDummyView != null){
-            return ;
+        if (mDummyView == null){
+            mDummyView = new LinearLayout(activity.getApplication());
+//            createView(activity);
         }
-        mDummyView = new LinearLayout(activity.getApplication());
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 1, /* width */
                 1, /* height */
@@ -138,26 +152,22 @@ import java.util.Map;
         );
         params.gravity = Gravity.LEFT | Gravity.TOP;
         WindowManager mWindowManager = (WindowManager) activity.getApplication().getSystemService(Context.WINDOW_SERVICE);
-        SystemInformation msystemInformation = new SystemInformation(activity.getApplication());
-        final DisplayMetrics displayMetrics = msystemInformation.getDisplayMetrics();
-        final int h = displayMetrics.heightPixels;
-        final int w = displayMetrics.widthPixels;
-        final double a = h / 32;
-        final double b = w / 16;
-
+        SystemInfo ifo = new SystemInfo(activity);
+        final double itemHeight = ifo.getItemHeight();
+        final double itemWidth =ifo.getItemWidth();
         mDummyView.setLayoutParams(params);
         mDummyView.setOnTouchListener(
                 new View.OnTouchListener() {
                     @Override
                     public boolean onTouch(View v, MotionEvent event) {
                         Log.d("tag===", "Touch event: " + event.toString());
-                        float x = event.getX();
-                        float y = event.getY();
+                        double x = event.getX();
+                        double y = event.getY();
                         double c;
-                        if (y / a > 1) {
-                            c = (Math.ceil((y / a) - 1)) * 16 + Math.ceil(x / b);
+                        if (y / itemHeight > 1) {
+                            c = (Math.ceil((y / itemHeight) - 1)) * 16 + Math.ceil(x / itemWidth);
                         } else {
-                            c = Math.ceil(x / b);
+                            c = Math.ceil(x / itemWidth);
                         }
                         SugoAPI sugoAPI = SugoAPI.getInstance(activity);
                         Map<String, Object> values = new HashMap<String, Object>();
@@ -172,9 +182,12 @@ import java.util.Map;
 
     @Override
     public void onActivityPaused(final Activity activity) {
+        WindowManager mWindowManager = (WindowManager) activity.getApplication().getSystemService(Context.WINDOW_SERVICE);
         if (mDummyView !=null){
-            mDummyView.setOnTouchListener(null);
-            mDummyView = null;
+//            mDummyView.setOnTouchListener(null);
+//            mDummyView = null;
+//            mWindowManager.removeView(mDummyView);
+            mWindowManager.removeViewImmediate(mDummyView);
         }
         mPaused = true;
         if (mCheckInBackground != null) {
