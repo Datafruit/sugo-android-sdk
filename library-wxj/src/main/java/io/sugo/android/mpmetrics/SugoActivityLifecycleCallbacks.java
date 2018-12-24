@@ -103,7 +103,6 @@ import java.util.Map;
             mSugoAPI.track("唤醒", props);
             mSugoAPI.timeEvent("APP停留");
         }
-
         if (!mDisableActivities.contains(activity) && mSugoAPI.getConfig().isEnablePageEvent()) {
             try {
                 JSONObject props = new JSONObject();
@@ -118,13 +117,8 @@ import java.util.Map;
                 e.printStackTrace();
             }
         }
-
         if (mIsLaunching) {
             mIsLaunching = false;
-//            mDummyView.onFinishTemporaryDetach();
-//            ((LinearLayout) mDummyView).removeView(mDummyView);
-//            mWindowManager.removeView(mDummyView);
-            // 第一个界面已经显示完毕
         }
 
         if (mDummyView != null){
@@ -134,7 +128,6 @@ import java.util.Map;
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 1, /* width */
                 1, /* height */
-//                WindowManager.LayoutParams.TYPE_PHONE,
                 (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
                         ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
                         : WindowManager.LayoutParams.TYPE_PHONE),
@@ -144,7 +137,6 @@ import java.util.Map;
                 PixelFormat.TRANSPARENT
         );
         params.gravity = Gravity.LEFT | Gravity.TOP;
-
         WindowManager mWindowManager = (WindowManager) activity.getApplication().getSystemService(Context.WINDOW_SERVICE);
         SystemInformation msystemInformation = new SystemInformation(activity.getApplication());
         final DisplayMetrics displayMetrics = msystemInformation.getDisplayMetrics();
