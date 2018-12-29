@@ -39,6 +39,7 @@ import java.util.Map;
 
     private boolean mIsLaunching = true;     // 是否启动中
     private HashSet<Activity> mDisableActivities;
+    private LinearLayout mDummyView;
 
     public SugoActivityLifecycleCallbacks(SugoAPI sugoAPI, SGConfig config) {
         mSugoAPI = sugoAPI;
@@ -159,7 +160,6 @@ import java.util.Map;
                 new View.OnTouchListener() {
                     @Override
                     public boolean onTouch(View v, MotionEvent event) {
-                        Log.d("tag===", "Touch event: " + event.toString());
                         double x = event.getX();
                         double y = event.getY();
                         double c;
@@ -169,10 +169,8 @@ import java.util.Map;
                             }else{
                                 c = Math.ceil(y / itemHeight) * 18 + Math.ceil(x / itemWidth);
                             }
-                            Log.d("....", "onTouch:============= "+c);
                         } else {
                             c = Math.ceil(x / itemWidth);
-                            Log.d("....", "onTouch:============= "+c);
                         }
                         SugoAPI sugoAPI = SugoAPI.getInstance(activity);
                         Map<String, Object> values = new HashMap<String, Object>();
