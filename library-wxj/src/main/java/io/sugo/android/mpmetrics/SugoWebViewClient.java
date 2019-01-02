@@ -436,8 +436,23 @@ public class SugoWebViewClient extends WebViewClient {
             "        sugo.showHeatMap();\n" +
             "    }\n" +
             "\n" +
+
+            "   sugo.registerPathName = function(){\n"+
+            "        var props = {};\n"+
+            "        if(sugo.single_code) {\n"+
+            "            props.path_name = sugo.relative_path + \"##\" + sugo.single_code;\n"+
+            "        } else {\n"+
+            "            props.path_name = sugo.relative_path;\n"+
+            "        }\n"+
+            "        var path_event = {\n"+
+            "            'path_name': props.path_name,\n"+
+            "        };\n"+
+            "        var tmp_props = JSON.parse(JSON.stringify(path_event));\n"+
+            "        sugo.track('path_switching', tmp_props);\n"+
+            "    };\n"+
+            "    sugo.registerPathName();\n"+
+
             "    window.sugo = sugo;\n" +
-            "    window.sugoio = sugoio;\n" +
             "})(window.sugo || {});\n";
 
     @Override

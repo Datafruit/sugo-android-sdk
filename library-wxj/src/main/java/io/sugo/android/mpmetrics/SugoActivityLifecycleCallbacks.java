@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.Bundle;
@@ -59,6 +60,8 @@ import java.util.Map;
 
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+        //当activity重新载入时，清除url路径
+        SugoWebEventListener.webViewUrl=null;
     }
 
     @Override
@@ -139,6 +142,7 @@ import java.util.Map;
             mDummyView = new LinearLayout(activity.getApplication());
 //            createView(activity);
         }
+
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 1, /* width */
                 1, /* height */
@@ -175,11 +179,19 @@ import java.util.Map;
                         SugoAPI sugoAPI = SugoAPI.getInstance(activity);
                         Map<String, Object> values = new HashMap<String, Object>();
                         values.put("onclick_point", c);//对应底部按钮标签名
+                        String activityname=null;
+                        if (SugoWebEventListener.webViewUrl!=null){
+                             activityname=SugoWebEventListener.webViewUrl;
+                        }else{
+                            activityname=activity.getClass().getName();
+                        }
+
+                        values.put("path_name", activityname);
                         sugoAPI.trackMap("屏幕点击", values);
+
                         return false;
                     }
                 });
-
         mWindowManager.addView(mDummyView, params);
     }
 
@@ -243,6 +255,7 @@ import java.util.Map;
 
     @Override
     public void onActivityDestroyed(Activity activity) {
+        SugoWebEventListener.webViewUrl=null;
         mDisableActivities.remove(activity);
 //         // 无限极使用了 代码埋点 ，所以这里注释掉
 //        String runningPage = SugoPageManager.getInstance().getCurrentPage(activity.getApplicationContext());
