@@ -692,6 +692,9 @@ class ViewSnapshot {
         }
 
         public synchronized String getBitmapHash() {
+            if(mCached == null){
+                return "";
+            }
             String mCachedHash = null;
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
             mCached.compress(Bitmap.CompressFormat.PNG, 100, stream);

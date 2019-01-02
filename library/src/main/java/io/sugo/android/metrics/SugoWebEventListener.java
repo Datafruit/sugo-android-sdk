@@ -27,6 +27,7 @@ import io.sugo.android.viewcrawler.SugoHeatMap;
 
 public class SugoWebEventListener {
     protected final SugoAPI sugoAPI;
+    protected WebView webView;
     protected static Map<String, JSONArray> eventBindingsMap = new HashMap<String, JSONArray>();
     protected static HashSet<WebView> sCurrentWebView = new HashSet<>();
 
@@ -38,6 +39,12 @@ public class SugoWebEventListener {
 
     public SugoWebEventListener(SugoAPI sugoAPI) {
         this.sugoAPI = sugoAPI;
+    }
+
+
+    public SugoWebEventListener(SugoAPI sugoAPI, WebView webView) {
+        this.sugoAPI = sugoAPI;
+        this.webView = webView;
     }
 
     @JavascriptInterface
@@ -63,6 +70,45 @@ public class SugoWebEventListener {
 
     }
 
+    @JavascriptInterface
+    public void registerSuperProperties(String props) {
+        try {
+            JSONObject jsonObject = new JSONObject(props);
+            sugoAPI.registerSuperProperties(jsonObject);
+        } catch (JSONException e) {
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put(SGConfig.FIELD_TEXT, e.toString());
+            } catch (JSONException e1) {
+                e1.printStackTrace();
+            }
+            sugoAPI.track("Exception", jsonObject);
+        }
+
+    }
+    @JavascriptInterface
+    public void login(String key, String value) {
+        sugoAPI.login(key ,value);
+    }
+    @JavascriptInterface
+    public void loginout() {
+        sugoAPI.logout();
+    }
+
+    @JavascriptInterface
+    public void pageFinish(String url) {
+        if(webView == null){
+            return ;
+        }
+        final String finalUrl = url;
+        Activity activity = (Activity) webView.getContext();
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                SugoWebViewClient.handlePageFinished(webView, finalUrl);
+            }
+        });
+    }
     @JavascriptInterface
     public void timeEvent(String eventName) {
         sugoAPI.timeEvent(eventName);

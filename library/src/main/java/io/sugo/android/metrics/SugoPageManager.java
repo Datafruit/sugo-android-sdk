@@ -19,7 +19,7 @@ import java.util.List;
 public class SugoPageManager {
 
     private static SugoPageManager sInstance = new SugoPageManager();
-    private HashMap<String, JSONObject> mPageInfos;
+    private HashMap<String, JSONObject> mPageInfos = new HashMap<>();
 
     private SugoPageManager() {
 
@@ -33,11 +33,8 @@ public class SugoPageManager {
         if (pageInfos == null) {
             return;
         }
-        if (mPageInfos == null) {
-            mPageInfos = new HashMap<>();
-        } else {
-            mPageInfos.clear();
-        }
+
+        mPageInfos.clear();
         JSONObject pageObj = null;
         for (int i = 0; i < pageInfos.length(); i++) {
             try {
@@ -69,7 +66,7 @@ public class SugoPageManager {
     }
 
     public JSONObject getCurrentPageInfo(String currentPage) {
-        if (mPageInfos != null && (mPageInfos.size() != 0)) {
+        if (mPageInfos.size() > 0) {
             return mPageInfos.get(currentPage);
         }
         return null;
@@ -99,7 +96,7 @@ public class SugoPageManager {
 
     private JSONObject getCurrentPageInfo(Context context) {
         String currentPage = getCurrentPage(context);
-        if (mPageInfos != null && (mPageInfos.size() != 0)) {
+        if (mPageInfos.size() > 0) {
             return mPageInfos.get(currentPage);
         }
         return null;
