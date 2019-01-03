@@ -7,6 +7,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
 
 import java.security.GeneralSecurityException;
@@ -558,7 +559,6 @@ public class SGConfig {
         SGConfig.sugoEnable = sugoEnable;
         return this;
     }
-
     private final int mBulkUploadLimit;
     private final int mMaxEventLimit;
     private final int mFlushInterval;
@@ -637,5 +637,6 @@ public class SGConfig {
     public static final String TIME_EVENT_TAG = "sugo_time_event_tag";
     public static final String FIELD_LONGITUDE = "sugo_longitude";
     public static final String FIELD_LATITUDE = "sugo_latitude";
+    public static final String FIELD_CLICK_POINT="click_point";
 
 }

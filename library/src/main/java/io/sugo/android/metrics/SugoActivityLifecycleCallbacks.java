@@ -63,16 +63,18 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
 
     @Override
     public void onActivityResumed(Activity activity) {
-        LayoutParams params = new LayoutParams(
-                1, /* width */
-                1, /* height */
-                LayoutParams.TYPE_PHONE,
-                LayoutParams.FLAG_NOT_FOCUSABLE |
-                        LayoutParams.FLAG_NOT_TOUCH_MODAL |
-                        LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                1,
+                1,
+                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                        ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                        : WindowManager.LayoutParams.TYPE_PHONE),
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
+                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
                 PixelFormat.TRANSPARENT
         );
-        params.gravity = Gravity.LEFT | Gravity.TOP;
+        params.gravity = Gravity.START | Gravity.TOP;
         WindowManager mWindowManager = (WindowManager) activity.getApplication().getSystemService(Context.WINDOW_SERVICE);
         View mDummyView = new LinearLayout(activity.getApplication());
 
@@ -82,6 +84,10 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 Log.d("tag===", "Touch event: " + event.toString());
+                float x = event.getX();
+                float y = event.getY();
+                Log.d("touch==", "x坐标" + x);
+                Log.d("touch==", "y坐标" + y);
 
                 // log it
 

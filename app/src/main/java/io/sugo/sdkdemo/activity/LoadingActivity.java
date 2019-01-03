@@ -3,6 +3,7 @@ package io.sugo.sdkdemo.activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 
 import io.sugo.sdkdemo.R;
 
@@ -25,5 +26,6 @@ public class LoadingActivity extends AppCompatActivity {
         startActivity(new Intent(this, MainActivity.class));
         finish();
     }
+
 
 }
