@@ -27,8 +27,6 @@ import io.sugo.android.viewcrawler.ViewCrawler;
 
 public class SugoWebViewClient extends WebViewClient {
 
-<<<<<<< HEAD
-=======
     private static String cssUtil = "var UTILS = {};\n" +
             "UTILS.cssPath = function(node, optimized)\n" +
             "{\n" +
@@ -457,8 +455,6 @@ public class SugoWebViewClient extends WebViewClient {
 
             "    window.sugo = sugo;\n" +
             "})(window.sugo || {});\n";
-
->>>>>>> tu
     @Override
     public void onPageFinished(WebView view, String url) {
         super.onPageFinished(view, url);
