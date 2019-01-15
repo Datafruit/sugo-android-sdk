@@ -62,9 +62,6 @@ public class SugoWebEventListener {
             } else {
                 sugoAPI.track(eventId, eventName, jsonObject);
             }
-
-
-
         } catch (JSONException e) {
             JSONObject jsonObject = new JSONObject();
             try {

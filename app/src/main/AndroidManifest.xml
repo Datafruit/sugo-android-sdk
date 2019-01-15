@@ -11,10 +11,6 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
-    <uses-permission android:name="android.permission.SYSTEM_OVERLAY_WINDOW" />
-    <uses-permission android:name="android.permission.GET_TASKS" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <application
         android:name=".App"
@@ -30,11 +26,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
-                <data android:scheme="sugo.d3a66ce81be70e5e0ce841bcc62f0c67"/>
-                <action android:name="android.intent.action.VIEW"/>
+                <data android:scheme="sugo.ff36a6fa8179d70cccc8dc81185d8ae6" />
 
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
             </intent-filter>
         </activity>
         <activity
@@ -58,16 +55,15 @@
             android:name="io.sugo.android.SGConfig.EnableDebugLogging"
             android:value="true" />
 
-
         <!-- 设置ProjectId -->
         <meta-data
             android:name="io.sugo.android.SGConfig.ProjectId"
-            android:value="com_SJLnjowGe_project_HyErw0VBW" />
+            android:value="com_SJLnjowGe_project_SJI__AlDm" />
 
         <!-- 设置 Token -->
         <meta-data
             android:name="io.sugo.android.SGConfig.token"
-            android:value="d3a66ce81be70e5e0ce841bcc62f0c67" />
+            android:value="ff36a6fa8179d70cccc8dc81185d8ae6" />
 
         <!-- 设置埋点配置地址 -->
         <meta-data

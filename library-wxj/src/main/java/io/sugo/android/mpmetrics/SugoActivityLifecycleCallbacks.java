@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.Map;
 
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-        /* package */ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
+/* package */ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private Runnable mCheckInBackground;
     private boolean mIsForeground = false;
