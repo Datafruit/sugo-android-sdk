@@ -3,15 +3,30 @@ package io.sugo.android.mpmetrics;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
+import android.content.pm.ActivityInfo;
+import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.ContactsContract;
+import android.renderscript.Sampler;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.Display;
+import android.view.Gravity;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.WindowManager;
+import android.widget.LinearLayout;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
+import java.sql.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 /* package */ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
@@ -22,9 +37,12 @@ import java.util.HashSet;
     public static final int CHECK_DELAY = 1000;
     private final SugoAPI mSugoAPI;
     private final SGConfig mConfig;
+    private double resumeTime;
+    private double pauseTime;
 
     private boolean mIsLaunching = true;     // 是否启动中
     private HashSet<Activity> mDisableActivities;
+    private LinearLayout mDummyView;
 
     public SugoActivityLifecycleCallbacks(SugoAPI sugoAPI, SGConfig config) {
         mSugoAPI = sugoAPI;
@@ -44,6 +62,8 @@ import java.util.HashSet;
 
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+        //当activity重新载入时，清除url路径
+        SugoWebEventListener.webViewUrl=null;
     }
 
     @Override
@@ -55,8 +75,28 @@ import java.util.HashSet;
         }
     }
 
+    class SystemInfo {   //获取设备划分区域的宽高
+        final double itemHeight ;
+        final double itemWidth ;
+        SystemInfo( final Activity activity){
+            SystemInformation msystemInformation = new SystemInformation(activity.getApplication());
+            final DisplayMetrics displayMetrics = msystemInformation.getDisplayMetrics();
+            float h = displayMetrics.heightPixels;
+            float w = displayMetrics.widthPixels;
+            itemHeight = h / 32;
+            itemWidth = w / 18;
+        }
+        public double getItemHeight() {
+            return itemHeight;
+        }
+
+        public double getItemWidth() {
+            return itemWidth;
+        }
+    }
+
     @Override
-    public void onActivityResumed(Activity activity) {
+    public void onActivityResumed(final Activity activity) {
         mPaused = false;
         boolean wasBackground = !mIsForeground;
         mIsForeground = true;
@@ -68,19 +108,24 @@ import java.util.HashSet;
         if (wasBackground && !mIsLaunching) {
             // App is in foreground now
             // App 从 background 状态回来，是被唤醒
-            JSONObject props = new JSONObject();
-            try {
-                props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
-                props.put(SGConfig.FIELD_PAGE_NAME, "唤醒");
-                props.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance()
-                        .getCurrentPageCategory(activity.getClass().getCanonicalName()));
-            } catch (JSONException e) {
-                e.printStackTrace();
+            resumeTime = System.currentTimeMillis();
+            final double FirstResumTime = pauseTime/1000.0;   //应用后台开始时间
+            final double SecondTime = resumeTime/1000.0;        //应用唤醒时间
+            final double StayTime = SecondTime - FirstResumTime;
+            if (StayTime > 30) {
+                JSONObject props = new JSONObject();
+                try {
+                    props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
+                    props.put(SGConfig.FIELD_PAGE_NAME, "唤醒");
+                    props.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance()
+                            .getCurrentPageCategory(activity.getClass().getCanonicalName()));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                mSugoAPI.track("唤醒", props);
+                mSugoAPI.timeEvent("APP停留");
             }
-            mSugoAPI.track("唤醒", props);
-            mSugoAPI.timeEvent("APP停留");
         }
-
         if (!mDisableActivities.contains(activity) && mSugoAPI.getConfig().isEnablePageEvent()) {
             try {
                 JSONObject props = new JSONObject();
@@ -97,12 +142,72 @@ import java.util.HashSet;
         }
 
         if (mIsLaunching) {
-            mIsLaunching = false;    // 第一个界面已经显示完毕
+            mIsLaunching = false;
         }
+
+        if (mDummyView == null){
+            mDummyView = new LinearLayout(activity.getApplication());
+//            createView(activity);
+        }
+
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                1, /* width */
+                1, /* height */
+                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                        ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                        : WindowManager.LayoutParams.TYPE_PHONE),
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
+                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                PixelFormat.TRANSPARENT
+        );
+        params.gravity = Gravity.LEFT | Gravity.TOP;
+        WindowManager mWindowManager = (WindowManager) activity.getApplication().getSystemService(Context.WINDOW_SERVICE);
+        SystemInfo ifo = new SystemInfo(activity);
+        final double itemHeight = ifo.getItemHeight();
+        final double itemWidth =ifo.getItemWidth();
+        mDummyView.setLayoutParams(params);
+        mDummyView.setOnTouchListener(
+                new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        double x = event.getX();
+                        double y = event.getY();
+                        double c;
+                        if (y / itemHeight > 1) {
+                            if (Math.ceil(y / itemHeight ) < 31){
+                                c = (Math.ceil((y / itemHeight) - 1)) * 18 + Math.ceil(x / itemWidth);
+                            }else{
+                                c = Math.ceil(y / itemHeight) * 18 + Math.ceil(x / itemWidth);
+                            }
+                        } else {
+                            c = Math.ceil(x / itemWidth);
+                        }
+                        SugoAPI sugoAPI = SugoAPI.getInstance(activity);
+                        Map<String, Object> values = new HashMap<String, Object>();
+                        values.put("onclick_point", c);//对应底部按钮标签名
+                        String activityname=null;
+                        if (SugoWebEventListener.webViewUrl!=null){
+                             activityname=SugoWebEventListener.webViewUrl;
+                        }else{
+                            activityname=activity.getClass().getName();
+                        }
+
+                        values.put("path_name", activityname);
+                        sugoAPI.trackMap("屏幕点击", values);
+
+                        return false;
+                    }
+                });
+        mWindowManager.addView(mDummyView, params);
     }
 
     @Override
     public void onActivityPaused(final Activity activity) {
+        WindowManager mWindowManager = (WindowManager) activity.getApplication().getSystemService(Context.WINDOW_SERVICE);
+        if (mDummyView !=null){
+            mWindowManager.removeViewImmediate(mDummyView);
+        }
         mPaused = true;
         if (mCheckInBackground != null) {
             mHandler.removeCallbacks(mCheckInBackground);
@@ -127,6 +232,7 @@ import java.util.HashSet;
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
+                    pauseTime=System.currentTimeMillis();
                     mSugoAPI.track("APP停留", props);        // App 进入停留状态
                     mSugoAPI.flush();
                 }
@@ -154,6 +260,7 @@ import java.util.HashSet;
 
     @Override
     public void onActivityDestroyed(Activity activity) {
+        SugoWebEventListener.webViewUrl=null;
         mDisableActivities.remove(activity);
 //         // 无限极使用了 代码埋点 ，所以这里注释掉
 //        String runningPage = SugoPageManager.getInstance().getCurrentPage(activity.getApplicationContext());

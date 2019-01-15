@@ -31,6 +31,7 @@ import io.sugo.android.viewcrawler.SugoHeatMap;
 
 public class SugoWebEventListener {
     private final SugoAPI sugoAPI;
+    public static  String webViewUrl;
     private static Map<String, JSONArray> eventBindingsMap = new HashMap<String, JSONArray>();
     protected static HashSet<WebView> sCurrentWebView = new HashSet<>();
     protected static HashSet<XWalkView> sCurrentXWalkView = new HashSet<>();
@@ -53,10 +54,14 @@ public class SugoWebEventListener {
             if (!jsonObject.has(SGConfig.FIELD_PAGE_NAME)) {
                 jsonObject.put(SGConfig.FIELD_PAGE_NAME, "");
             }
-            if (eventId == null || eventId.trim() == "")
+            if (eventId == null || eventId.trim() == "") {
                 sugoAPI.track(eventName, jsonObject);
-            else
+            } else if (eventName.equals("path_switching")){
+                String path_name = (String) jsonObject.get("path_name");
+                SugoWebEventListener.webViewUrl=path_name;
+            } else {
                 sugoAPI.track(eventId, eventName, jsonObject);
+            }
         } catch (JSONException e) {
             JSONObject jsonObject = new JSONObject();
             try {
