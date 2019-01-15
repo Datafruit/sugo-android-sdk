@@ -37,6 +37,8 @@ import java.util.Map;
     public static final int CHECK_DELAY = 1000;
     private final SugoAPI mSugoAPI;
     private final SGConfig mConfig;
+    private double resumeTime;
+    private double pauseTime;
 
     private boolean mIsLaunching = true;     // 是否启动中
     private HashSet<Activity> mDisableActivities;
@@ -106,19 +108,24 @@ import java.util.Map;
         if (wasBackground && !mIsLaunching) {
             // App is in foreground now
             // App 从 background 状态回来，是被唤醒
-            JSONObject props = new JSONObject();
-            try {
-                props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
-                props.put(SGConfig.FIELD_PAGE_NAME, "唤醒");
-                props.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance()
-                        .getCurrentPageCategory(activity.getClass().getCanonicalName()));
-            } catch (JSONException e) {
-                e.printStackTrace();
+            resumeTime = System.currentTimeMillis();
+            final double FirstResumTime = pauseTime/1000.0;   //应用后台开始时间
+            final double SecondTime = resumeTime/1000.0;        //应用唤醒时间
+            final double StayTime = SecondTime - FirstResumTime;
+            if (StayTime > 30) {
+                JSONObject props = new JSONObject();
+                try {
+                    props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
+                    props.put(SGConfig.FIELD_PAGE_NAME, "唤醒");
+                    props.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance()
+                            .getCurrentPageCategory(activity.getClass().getCanonicalName()));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                mSugoAPI.track("唤醒", props);
+                mSugoAPI.timeEvent("APP停留");
             }
-            mSugoAPI.track("唤醒", props);
-            mSugoAPI.timeEvent("APP停留");
         }
-
         if (!mDisableActivities.contains(activity) && mSugoAPI.getConfig().isEnablePageEvent()) {
             try {
                 JSONObject props = new JSONObject();
@@ -225,6 +232,7 @@ import java.util.Map;
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
+                    pauseTime=System.currentTimeMillis();
                     mSugoAPI.track("APP停留", props);        // App 进入停留状态
                     mSugoAPI.flush();
                 }
