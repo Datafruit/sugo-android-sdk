@@ -239,6 +239,23 @@
         }
     };
 
+    sugo.registerPathName = function(){
+        var props = {};
+        if(sugo.single_code) {
+            props.path_name = sugo.relative_path + "##" + sugo.single_code;
+        } else {
+            props.path_name = sugo.relative_path;
+        }
+        var path_event = {
+            'path_name': props.path_name,
+        };
+        var tmp_props = JSON.parse(JSON.stringify(path_event));
+        sugo.track('path_switching', tmp_props);
+    };
+
+    sugo.registerPathName();
+
+
     if (sugo.showHeatMap) {
         sugo.showHeatMap();
     }
