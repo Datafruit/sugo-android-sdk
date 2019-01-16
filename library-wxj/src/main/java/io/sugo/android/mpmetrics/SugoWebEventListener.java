@@ -56,10 +56,7 @@ public class SugoWebEventListener {
             }
             if (eventId == null || eventId.trim() == "") {
                 sugoAPI.track(eventName, jsonObject);
-            } else if (eventName.equals("path_switching")){
-                String path_name = (String) jsonObject.get("path_name");
-                SugoWebEventListener.webViewUrl=path_name;
-            } else {
+            }else {
                 sugoAPI.track(eventId, eventName, jsonObject);
             }
         } catch (JSONException e) {
@@ -72,6 +69,12 @@ public class SugoWebEventListener {
             sugoAPI.track("Exception", jsonObject);
         }
 
+    }
+
+    @JavascriptInterface
+    @org.xwalk.core.JavascriptInterface
+    public void registerPathName(String pathName){
+        SugoWebEventListener.webViewUrl=pathName;
     }
 
     @JavascriptInterface
