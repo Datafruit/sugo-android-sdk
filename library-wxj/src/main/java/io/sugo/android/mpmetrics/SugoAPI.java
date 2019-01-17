@@ -239,6 +239,7 @@ public class SugoAPI {
         registerSuperProperties(sPreSuperProps);
         registerSuperPropertiesOnce(sPreSuperPropsOnce);
         mEventTimings = mPersistentIdentity.getTimeEvents();
+        classAttributeDict =new HashMap<>();
         mUpdatesListener = constructUpdatesListener();
         mDecideMessages = constructDecideUpdates(mToken, mUpdatesListener, mUpdatesFromMixpanel);
 
@@ -1454,6 +1455,7 @@ public class SugoAPI {
     private final Map<String, String> mDeviceInfo;
     private final Map<String, Long> mEventTimings;
     private SugoActivityLifecycleCallbacks mSugoActivityLifecycleCallbacks;
+    private final Map<String,String> classAttributeDict;
 
     // Maps each token to a singleton SugoAPI instance
     private static final Map<Context, SugoAPI> sInstanceMap = new HashMap<Context, SugoAPI>();
@@ -1470,6 +1472,11 @@ public class SugoAPI {
     // SugoAPI 实例化之前设置 superProperties 的临时变量
     private static JSONObject sPreSuperProps = new JSONObject();
     private static JSONObject sPreSuperPropsOnce = new JSONObject();
+
+
+    public Map<String,String> getClassAttributeDict(){
+        return classAttributeDict;
+    }
 
 
     /**
@@ -1500,6 +1507,10 @@ public class SugoAPI {
         }
         double[] loc = {longitude , latitude};
         return loc;
+    }
+
+    public Context getCurrentContext(){
+        return mContext;
     }
 
     public double[] getLngAndLatWithNetwork(Context context) {

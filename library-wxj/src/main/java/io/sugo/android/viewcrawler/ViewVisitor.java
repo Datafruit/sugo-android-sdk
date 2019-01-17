@@ -14,6 +14,7 @@ import android.view.accessibility.AccessibilityEvent;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -41,7 +42,7 @@ import io.sugo.android.mpmetrics.SGConfig;
      * on click)
      */
     public interface OnEventListener {
-        void OnEvent(View host, String eventId, String eventName, JSONObject properties, boolean debounce);
+        void OnEvent(View host, String eventId, String eventName, JSONObject properties, boolean debounce,JSONObject classAttr);
     }
 
     public interface OnLayoutErrorListener {
@@ -362,8 +363,9 @@ import io.sugo.android.mpmetrics.SGConfig;
      * Adds an accessibility event, which will fire OnEvent, to every matching view.
      */
     public static class AddAccessibilityEventVisitor extends EventTriggeringVisitor {
-        public AddAccessibilityEventVisitor(List<Pathfinder.PathElement> path, int accessibilityEventType, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener) {
-            super(path, eventId, eventName, dimMap, listener, false);
+        public AddAccessibilityEventVisitor(List<Pathfinder.PathElement> path, int accessibilityEventType, String eventId,
+                                            String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener,JSONObject classAttr) {
+            super(path, eventId, eventName, dimMap, listener, false,classAttr);
             mEventType = accessibilityEventType;
             if (mEventType == AccessibilityEvent.TYPE_VIEW_CLICKED) {
                 setEventTypeString("click");
@@ -499,8 +501,8 @@ import io.sugo.android.mpmetrics.SGConfig;
      * Installs a TextWatcher in each matching view. Does nothing if matching views are not TextViews.
      */
     public static class AddTextChangeListener extends EventTriggeringVisitor {
-        public AddTextChangeListener(List<Pathfinder.PathElement> path, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener) {
-            super(path, eventId, eventName, dimMap, listener, true);
+        public AddTextChangeListener(List<Pathfinder.PathElement> path, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener,JSONObject classAttr) {
+            super(path, eventId, eventName, dimMap, listener, true,classAttr);
             mWatching = new HashMap<TextView, TextWatcher>();
             setEventTypeString("text_changed");
         }
@@ -566,8 +568,9 @@ import io.sugo.android.mpmetrics.SGConfig;
      * matching views before. Fires only once per traversal.
      */
     public static class ViewDetectorVisitor extends EventTriggeringVisitor {
-        public ViewDetectorVisitor(List<Pathfinder.PathElement> path, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener) {
-            super(path, eventId, eventName, dimMap, listener, false);
+        public ViewDetectorVisitor(List<Pathfinder.PathElement> path, String eventId, String eventName, Map<String,
+                List<Pathfinder.PathElement>> dimMap, OnEventListener listener,JSONObject classAttr) {
+            super(path, eventId, eventName, dimMap, listener, false,classAttr);
             mSeen = false;
             setEventTypeString("detected");
         }
@@ -595,13 +598,15 @@ import io.sugo.android.mpmetrics.SGConfig;
     }
 
     private static abstract class EventTriggeringVisitor extends ViewVisitor {
-        public EventTriggeringVisitor(List<Pathfinder.PathElement> path, String eventId, String eventName, Map<String, List<Pathfinder.PathElement>> dimMap, OnEventListener listener, boolean debounce) {
+        public EventTriggeringVisitor(List<Pathfinder.PathElement> path, String eventId, String eventName, Map<String,
+                List<Pathfinder.PathElement>> dimMap, OnEventListener listener, boolean debounce,JSONObject classAttr) {
             super(path);
             mListener = listener;
             mEvenId = eventId;
             mEventName = eventName;
             mDimMap = dimMap;
             mDebounce = debounce;
+            mClassAttr = classAttr;
         }
 
         protected void fireEvent(View found) {
@@ -628,7 +633,7 @@ import io.sugo.android.mpmetrics.SGConfig;
             } catch (JSONException e) {
 
             }
-            mListener.OnEvent(found, mEvenId, mEventName, properties, mDebounce);
+            mListener.OnEvent(found, mEvenId, mEventName, properties, mDebounce,mClassAttr);
         }
 
         protected String getEventName() {
@@ -649,6 +654,7 @@ import io.sugo.android.mpmetrics.SGConfig;
         protected final String mEvenId;
         private final boolean mDebounce;
         private String mEventTypeString;
+        private JSONObject mClassAttr;
     }
 
     /**

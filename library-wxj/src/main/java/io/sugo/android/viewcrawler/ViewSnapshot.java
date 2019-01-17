@@ -24,7 +24,9 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import org.json.JSONObject;
 import org.xwalk.core.XWalkView;
@@ -40,6 +42,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -147,6 +150,16 @@ import io.sugo.android.mpmetrics.SugoWebNodeReporter;
         j.endArray();
     }
 
+    private void specialWidgetSubmitExtraAttr(View view,String className){
+        Map<String,String> classAttr = SugoAPI.getInstance(view.getContext()).getClassAttributeDict();
+        String value = classAttr.get(className);
+        if (value != null)
+            return;
+        if (view instanceof ImageView || view instanceof TextView){
+            classAttr.put(className,"id,text,contentDescription");
+        }
+    }
+
     private void snapshotView(JsonWriter j, View view)
             throws IOException {
         if (view.getVisibility() != View.VISIBLE) {
@@ -200,6 +213,7 @@ import io.sugo.android.mpmetrics.SugoWebNodeReporter;
         j.name("classes");
         j.beginArray();
         Class<?> klass = view.getClass();
+        specialWidgetSubmitExtraAttr(view,klass.getName().toString());
         do {
             j.value(mClassnameCache.get(klass));
             klass = klass.getSuperclass();
