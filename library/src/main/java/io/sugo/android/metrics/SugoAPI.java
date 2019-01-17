@@ -118,13 +118,13 @@ public class SugoAPI {
         if (!mConfig.getDisableDecideChecker()) {
             mMessages.startApiCheck();
         }
-
         if (!mPersistentIdentity.hasTrackedIntegration()) {
             Map<String, Object> firstVisitTimeMap = new HashMap<>();
             firstVisitTimeMap.put(SGConfig.FIELD_FIRST_VISIT_TIME, System.currentTimeMillis());
             registerSuperPropertiesMap(firstVisitTimeMap);
             track("首次访问");
             track("APP安装");
+            mMessages.firstInstall();
             flush();
             mPersistentIdentity.setTrackedIntegration(true);
         }
@@ -942,6 +942,7 @@ public class SugoAPI {
         }
         track(eventName, props);
     }
+
 
     /**
      * @param userIdKey   "userId"

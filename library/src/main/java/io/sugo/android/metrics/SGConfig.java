@@ -147,6 +147,7 @@ public class SGConfig {
     private final String mEventDecideEndpoint;
     private final String mHeatMapEndpoint;
     private final String mFirstLoginEndpoint;
+    private final String mFirstInstallEndpoint;
     private final String mEditorUrl;
     private final String mResourcePackageName;
     private final boolean mEnablePageEvent;
@@ -248,6 +249,7 @@ public class SGConfig {
         mEventDecideEndpoint = apiHost + "/api/sdk/decide-event";
         mHeatMapEndpoint = apiHost + "/api/sdk/heat";
         mFirstLoginEndpoint = apiHost + "/api/sdk/get-first-login-time";
+        mFirstInstallEndpoint = apiHost + "/api/sdk/get-first-start-time";
         mEventsEndpoint = eventsHost + "/post?locate=" + mProjectId;
         mEditorUrl = editorHost + "/connect/";
         mEnablePageEvent = metaData.getBoolean("io.sugo.android.SGConfig.EnablePageEvent", true);
@@ -303,6 +305,10 @@ public class SGConfig {
             mDisableViewCrawlerForProjects = new String[0];
         }
 
+    }
+
+    public String getmFirstInstallEndpoint() {
+        return mFirstInstallEndpoint;
     }
 
     String getFirstLoginEndpoint() {

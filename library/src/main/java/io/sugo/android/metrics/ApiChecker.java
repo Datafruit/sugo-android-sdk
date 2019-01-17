@@ -246,6 +246,27 @@ class ApiChecker {
         return urls;
     }
 
+    public void firstInstall(RemoteService poster,Map<String,String> map) {
+        String[] urls = new String[0];
+        try {
+            urls = getUrlFromMap(map,mConfig.getmFirstInstallEndpoint(),null);
+            final byte[] response = getUrls(poster, mContext, urls);
+            String responseString = new String(response, "UTF-8");
+            JSONObject dataObj = new JSONObject(responseString);
+            boolean isFirstStart = dataObj.optBoolean("isFirstStart", false);
+            if (isFirstStart){
+                SugoAPI.getInstance(mContext).track("首次安装");
+                SugoAPI.getInstance(mContext).flush();
+            }
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }catch (RemoteService.ServiceUnavailableException e){
+            e.printStackTrace();
+        }catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void login(RemoteService poster,String userId) throws UnsupportedEncodingException, RemoteService.ServiceUnavailableException, JSONException {
         Map<String,String> map = new HashMap<>();
         map.put("userId",userId);

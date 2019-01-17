@@ -63,6 +63,8 @@ class AnalyticsMessages {
 
     private static final int LOGIN_API_CKECK = 16;
 
+    private static final int FIRST_INSTALL_API_CHECK=18;
+
 
     /**
      * Do not call directly. You should call AnalyticsMessages.getInstance()
@@ -203,6 +205,19 @@ class AnalyticsMessages {
         m.obj=map;
         mWorker.runMessage(m);
     }
+
+    public void firstInstall(){
+        final Message m = Message.obtain();
+        m.what = FIRST_INSTALL_API_CHECK;
+        Map<String,String> map = new HashMap<>();
+        map.put("app_id",mConfig.getToken());
+        map.put("app_type","1");
+        map.put("device_id",mSystemInformation.getDeviceId());
+        map.put("app_version",""+mSystemInformation.getAppVersionCode());
+        m.obj=map;
+        mWorker.runMessage(m);
+    }
+
 
     public void hardKill() {
         final Message m = Message.obtain();
@@ -498,9 +513,11 @@ class AnalyticsMessages {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-
-
-                    } else{
+                    } else if(msg.what == FIRST_INSTALL_API_CHECK){
+                        Map<String,String> map = new HashMap<>();
+                        map=(Map<String,String>)msg.obj;
+                        mApiChecker.firstInstall(getPoster(),map);
+                    }else{
                         Log.e(LOGTAG, "Unexpected message received by Sugo worker: " + msg);
                     }
 
