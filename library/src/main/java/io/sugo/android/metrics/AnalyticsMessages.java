@@ -61,6 +61,8 @@ class AnalyticsMessages {
     // Run this DecideCheck at intervals until it isDestroyed()
     private static final int UPDATE_API_CHECK = 14;
 
+    private static final int LOGIN_API_CKECK = 16;
+
 
     /**
      * Do not call directly. You should call AnalyticsMessages.getInstance()
@@ -189,6 +191,16 @@ class AnalyticsMessages {
     public void startApiCheck() {
         final Message m = Message.obtain();
         m.what = START_API_CHECK;
+        mWorker.runMessage(m);
+    }
+
+    public void login(String userIdKey, String userIdValue){
+        final Message m = Message.obtain();
+        m.what = LOGIN_API_CKECK;
+        Map<String,String> map = new HashMap<>();
+        map.put("userIdkey",userIdKey);
+        map.put("userIdValue",userIdValue);
+        m.obj=map;
         mWorker.runMessage(m);
     }
 
@@ -474,7 +486,21 @@ class AnalyticsMessages {
                             mHandler = null;
                             Looper.myLooper().quit();
                         }
-                    } else {
+                    } else if(msg.what == LOGIN_API_CKECK ){
+                        Map<String,String> map = new HashMap<>();
+                        map=(Map<String,String>)msg.obj;
+                        try {
+                            mApiChecker.login(getPoster(),map.get("userIdValue"));
+                        } catch (UnsupportedEncodingException e) {
+                            e.printStackTrace();
+                        } catch (RemoteService.ServiceUnavailableException e) {
+                            e.printStackTrace();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+
+                    } else{
                         Log.e(LOGTAG, "Unexpected message received by Sugo worker: " + msg);
                     }
 

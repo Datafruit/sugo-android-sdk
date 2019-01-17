@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.net.ssl.SSLSocketFactory;
 
@@ -220,6 +222,60 @@ class ApiChecker {
         }
         return ret;
     }
+
+
+    private String[] getUrlFromMap(Map<String,String> map, String hostUrl,String fallbackHostUrl) throws UnsupportedEncodingException {
+        StringBuilder queryBuilder = new StringBuilder();
+        for (String key : map.keySet()) {
+            String value = map.get(key);
+            String valueCode = URLEncoder.encode(value, "utf-8");
+            String keyCode = URLEncoder.encode(key, "utf-8");
+            if(queryBuilder.length()>0){
+                queryBuilder.append("&").append(keyCode).append("=").append(valueCode);
+            }else{
+                queryBuilder.append("?").append(keyCode).append("=").append(valueCode);
+            }
+        }
+        final String[] urls;
+        if (null ==  fallbackHostUrl ) {
+            urls = new String[]{hostUrl + queryBuilder.toString()};
+        } else {
+            urls = new String[]{hostUrl + queryBuilder.toString(),
+                    fallbackHostUrl + queryBuilder.toString()};
+        }
+        return urls;
+    }
+
+    public void login(RemoteService poster,String userId) throws UnsupportedEncodingException, RemoteService.ServiceUnavailableException, JSONException {
+        Map<String,String> map = new HashMap<>();
+        map.put("userId",userId);
+        map.put("projectId",mConfig.getProjectId());
+        map.put("token",mConfig.getToken());
+        String[] urls = getUrlFromMap(map,mConfig.getFirstLoginEndpoint(),null);
+        final byte[] response = getUrls(poster, mContext, urls);
+        if (null == response) {
+            return ;
+        }
+        String responseString = new String(response, "UTF-8");
+        JSONObject dataObj = new JSONObject(responseString);
+        boolean success = dataObj.optBoolean("success", false);
+        if (success && dataObj.has("result")
+                && dataObj.getJSONObject("result").has("firstLoginTime")) {
+            long firstLoginTime = dataObj.getJSONObject("result").getLong("firstLoginTime");
+            final Map<String, Object> firstLoginTimeMap = new HashMap<>();
+            firstLoginTimeMap.put(SGConfig.FIELD_FIRST_LOGIN_TIME, firstLoginTime);
+            SugoAPI.getInstance(mContext).registerSuperPropertiesMap(firstLoginTimeMap);
+            // 存储起来，下次调用 login 不再请求网络
+            SugoAPI.getInstance(mContext).getmPersistentIdentity().writeUserLoginTime(userId, firstLoginTime);
+            boolean firstLogin = dataObj.getJSONObject("result").optBoolean("isFirstLogin", false);
+            if (firstLogin) {
+                SugoAPI.getInstance(mContext).track("首次登录");
+            }
+        }
+    }
+
+
+
 
     private String getEventApiResponseFromServer(@NonNull String unescapedToken, String unescapedDistinctId, RemoteService poster)
             throws RemoteService.ServiceUnavailableException {
