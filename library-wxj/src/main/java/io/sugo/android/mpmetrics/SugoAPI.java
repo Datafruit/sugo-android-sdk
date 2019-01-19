@@ -120,6 +120,8 @@ public class SugoAPI {
 
     private static boolean SUGO_ENABLE = true;
 
+    public static final int SUGO_EXTRA_TAG=91109102;
+
     /**
      * Declare a string-valued tweak, and return a reference you can use to read the value of the tweak.
      * Tweaks can be changed in Mixpanel A/B tests, and can allow you to alter your customers' experience

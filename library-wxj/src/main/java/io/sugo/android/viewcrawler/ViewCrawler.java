@@ -783,7 +783,6 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
 
             final OutputStream out = mEditorConnection.getBufferedOutputStream();
             final JsonWriter j = new JsonWriter(new OutputStreamWriter(out));
-
             try {
                 j.beginObject();
                 j.name("type").value("device_info_response");
@@ -893,11 +892,11 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                 }
 
                 final long snapshotTime = System.currentTimeMillis() - startSnapshot;
+
                 writer.write(",\"snapshot_time_millis\": ");
                 writer.write(Long.toString(snapshotTime));
 
-                writer.write("},"); // } payload
-                writer.write("\"classAttr\":{");
+                writer.write(",\"classAttr\":{");
                 Map<String,String> classMap = SugoAPI.getInstance(mContext).getClassAttributeDict();
                 boolean isFirstMap = true;
                 for (String key : classMap.keySet()) {
@@ -915,6 +914,8 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                     writer.flush();
                 }
                 writer.write("}"); // } classAttr
+
+                writer.write("}"); // } payload
                 writer.write("}"); // } whole message
 
             } catch (final IOException e) {

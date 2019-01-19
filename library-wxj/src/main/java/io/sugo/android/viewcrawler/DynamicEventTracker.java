@@ -56,25 +56,6 @@ import io.sugo.android.mpmetrics.SugoAPI;
         } catch (JSONException e) {
             Log.e(LOGTAG, "Can't format properties from view due to JSON issue", e);
         }
-
-//        for (NSString *key in classAttr){
-//            NSString *value = classAttr[key];
-//            NSArray *array = [value componentsSeparatedByString:@","];
-//            NSString *data = @"";
-//            for(int i=0;i<array.count;i++){
-//                id attr = [view valueForKey:array[i]];
-//                if (i>0) {
-//                    data = [data stringByAppendingString:[NSString stringWithFormat:@";%@",attr]];
-//                }else{
-//                    data = [data stringByAppendingString:[NSString stringWithFormat:@"%@",attr]];
-//                }
-//            }
-//            p[key] = data;
-//        }
-//        return p;
-
-
-
         if(null != classAttr){
             Iterator it = classAttr.keys();
             while (it.hasNext())
@@ -84,11 +65,23 @@ import io.sugo.android.mpmetrics.SugoAPI;
                 String[] array = value.split(",");
                 String data = "";
                 for (int i=0;i<array.length;i++){
-
+                    String attrData = getExtraAttrData(array[i],v);
+                    if (attrData == null || attrData.length()==0){
+                        attrData = "";
+                    }
+                    if (data.equals("")){
+                        data = attrData;
+                    }else if (attrData.length()>0){
+                        data = data + ";"+attrData;
+                    }
+                }
+                try {
+                    properties.put(key,data);
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
             }
         }
-
         if (debounce) {
             final Signature eventSignature = new Signature(v, eventName);
             final UnsentEvent event = new UnsentEvent(eventName, properties, moment);
@@ -109,19 +102,17 @@ import io.sugo.android.mpmetrics.SugoAPI;
     }
 
     private String getExtraAttrData(String attr,View view){
-        String data =null;
-        Context mContext = mSugo.getCurrentContext();
-        String resourcePackage = SGConfig.getInstance(mContext).getResourcePackageName();
-        if (null == resourcePackage) {
-            resourcePackage = mContext.getPackageName();
+        String[]  array = attr.split("\\.");
+        if (array.length==2&& array[0].equals("ExtraTag")){
+            Map<String,Object> map = (Map<String,Object>)view.getTag(SugoAPI.SUGO_EXTRA_TAG);
+            Object obj =  map.get(array[1]);
+            return obj.toString();
         }
-        final ResourceIds resourceIds = new ResourceReader.Ids(resourcePackage, mContext);
+        String data ="";
         if (attr.equals("id")){
-
+            data = ""+view.getId();
         }else if (attr.equals("text")){
-
-        }else if(attr.equals("contentDescription")){
-
+            data = textPropertyFromView(view);
         }
         return data;
     }

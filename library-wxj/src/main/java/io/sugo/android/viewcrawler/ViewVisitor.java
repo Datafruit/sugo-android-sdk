@@ -32,6 +32,7 @@ import java.util.TreeMap;
 import java.util.WeakHashMap;
 
 import io.sugo.android.mpmetrics.SGConfig;
+import io.sugo.android.mpmetrics.SugoAPI;
 
 @TargetApi(SGConfig.UI_FEATURES_MIN_API)
 /* package */ abstract class ViewVisitor implements Pathfinder.Accumulator {
@@ -633,7 +634,12 @@ import io.sugo.android.mpmetrics.SGConfig;
             } catch (JSONException e) {
 
             }
-            mListener.OnEvent(found, mEvenId, mEventName, properties, mDebounce,mClassAttr);
+            SGConfig mConfig = SGConfig.getInstance(found.getContext());
+            if (mConfig.getmStartExtraAttrFunction()){
+                mListener.OnEvent(found, mEvenId, mEventName, properties, mDebounce,mClassAttr);
+            }else{
+                mListener.OnEvent(found, mEvenId, mEventName, properties, mDebounce,null);
+            }
         }
 
         protected String getEventName() {

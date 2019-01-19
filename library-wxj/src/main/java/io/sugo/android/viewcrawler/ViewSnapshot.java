@@ -156,7 +156,7 @@ import io.sugo.android.mpmetrics.SugoWebNodeReporter;
         if (value != null)
             return;
         if (view instanceof ImageView || view instanceof TextView){
-            classAttr.put(className,"id,text,contentDescription");
+            classAttr.put(className,"id,text");
         }
     }
 
@@ -185,12 +185,32 @@ import io.sugo.android.mpmetrics.SugoWebNodeReporter;
             j.name("contentDescription").value(description.toString());
         }
 
+
+
+
         final Object tag = view.getTag();
         if (null == tag) {
             j.name("tag").nullValue();
         } else if (tag instanceof CharSequence) {
             j.name("tag").value(tag.toString());
         }
+
+        if (view instanceof ImageView || view instanceof TextView){
+            final Map<String,Object> tagMap =(Map<String,Object>)view.getTag(SugoAPI.SUGO_EXTRA_TAG);
+            if (tagMap != null && tagMap.size()>=0) {
+                String extraAttr = "";
+                for (String key : tagMap.keySet()) {
+                    if (extraAttr.length() == 0) {
+                        extraAttr = key;
+                    } else {
+                        extraAttr = extraAttr + "," + key;
+                    }
+                }
+                if (extraAttr.length() > 0)
+                    j.name("ExtraTag").value(extraAttr);
+            }
+        }
+
 
         j.name("top").value(view.getTop());
         j.name("left").value(view.getLeft());
