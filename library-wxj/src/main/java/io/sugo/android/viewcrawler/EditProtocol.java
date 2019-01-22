@@ -78,7 +78,7 @@ import io.sugo.android.util.JSONUtils;
             final String eventName = source.getString("event_name");
             final String eventId = source.getString("event_id");
             final String eventType = source.getString("event_type");
-
+            final JSONObject classAttr = source.getJSONObject("classAttr");
             final JSONArray pathDesc = source.getJSONArray("path");
             final List<Pathfinder.PathElement> path = readPath(pathDesc, mResourceIds);
 
@@ -104,7 +104,7 @@ import io.sugo.android.util.JSONUtils;
                     eventId,
                     eventName,
                     dimMap,
-                    listener
+                    listener,classAttr
                 );
             } else if ("selected".equals(eventType)) {
                 return new ViewVisitor.AddAccessibilityEventVisitor(
@@ -113,7 +113,7 @@ import io.sugo.android.util.JSONUtils;
                     eventId,
                     eventName,
                     dimMap,
-                    listener
+                    listener,classAttr
                 );
             } else if ("focus".equals(eventType)) {
                 return new ViewVisitor.AddAccessibilityEventVisitor(
@@ -122,12 +122,12 @@ import io.sugo.android.util.JSONUtils;
                         eventId,
                         eventName,
                         dimMap,
-                        listener
+                        listener,classAttr
                 );
             } else if ("text_changed".equals(eventType)) {
-                return new ViewVisitor.AddTextChangeListener(path, eventId, eventName, dimMap, listener);
+                return new ViewVisitor.AddTextChangeListener(path, eventId, eventName, dimMap, listener,classAttr);
             } else if ("detected".equals(eventType)) {
-                return new ViewVisitor.ViewDetectorVisitor(path, eventId, eventName, dimMap, listener);
+                return new ViewVisitor.ViewDetectorVisitor(path, eventId, eventName, dimMap, listener,classAttr);
             } else {
                 throw new BadInstructionsException("Mixpanel can't track event type \"" + eventType + "\"");
             }

@@ -24,7 +24,9 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import org.json.JSONObject;
 import org.xwalk.core.XWalkView;
@@ -40,6 +42,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -147,6 +150,16 @@ import io.sugo.android.mpmetrics.SugoWebNodeReporter;
         j.endArray();
     }
 
+    private void specialWidgetSubmitExtraAttr(View view,String className){
+        Map<String,String> classAttr = SugoAPI.getInstance(view.getContext()).getClassAttributeDict();
+        String value = classAttr.get(className);
+        if (value != null)
+            return;
+        if (view instanceof ImageView || view instanceof TextView){
+            classAttr.put(className,"id,text");
+        }
+    }
+
     private void snapshotView(JsonWriter j, View view)
             throws IOException {
         if (view.getVisibility() != View.VISIBLE) {
@@ -172,12 +185,32 @@ import io.sugo.android.mpmetrics.SugoWebNodeReporter;
             j.name("contentDescription").value(description.toString());
         }
 
+
+
+
         final Object tag = view.getTag();
         if (null == tag) {
             j.name("tag").nullValue();
         } else if (tag instanceof CharSequence) {
             j.name("tag").value(tag.toString());
         }
+
+        if (view instanceof ImageView || view instanceof TextView){
+            final Map<String,Object> tagMap =(Map<String,Object>)view.getTag(SugoAPI.SUGO_EXTRA_TAG);
+            if (tagMap != null && tagMap.size()>=0) {
+                String extraAttr = "";
+                for (String key : tagMap.keySet()) {
+                    if (extraAttr.length() == 0) {
+                        extraAttr = key;
+                    } else {
+                        extraAttr = extraAttr + "," + key;
+                    }
+                }
+                if (extraAttr.length() > 0)
+                    j.name("ExtraTag").value(extraAttr);
+            }
+        }
+
 
         j.name("top").value(view.getTop());
         j.name("left").value(view.getLeft());
@@ -200,6 +233,7 @@ import io.sugo.android.mpmetrics.SugoWebNodeReporter;
         j.name("classes");
         j.beginArray();
         Class<?> klass = view.getClass();
+        specialWidgetSubmitExtraAttr(view,klass.getName().toString());
         do {
             j.value(mClassnameCache.get(klass));
             klass = klass.getSuperclass();
