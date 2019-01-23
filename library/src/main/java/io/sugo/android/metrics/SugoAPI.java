@@ -788,6 +788,10 @@ public class SugoAPI {
         return null;
     }
 
+    public Context getmContext() {
+        return mContext;
+    }
+
     class NoOpUpdatesFromSugo implements UpdatesFromSugo {
 
         public NoOpUpdatesFromSugo() {

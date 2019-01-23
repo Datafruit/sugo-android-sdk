@@ -3,6 +3,8 @@ package io.sugo.android.metrics;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -11,6 +13,7 @@ import android.os.Looper;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Date;
 import java.util.HashSet;
 
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
@@ -33,9 +36,12 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
         mDisableActivities = new HashSet<>();
         mConfig = config;
 
+
         // 第一个界面正在启动
-        mSugoAPI.track("启动");
-        mSugoAPI.timeEvent("APP停留");
+//        mSugoAPI.track("启动");
+//        mSugoAPI.timeEvent("APP停留");
+
+        judgeWakeUpOrStartAppWithSugoStatus(null,true);
     }
 
     @Override
@@ -75,7 +81,8 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            mSugoAPI.track("唤醒", props);
+            judgeWakeUpOrStartAppWithSugoStatus(props,false);
+//            mSugoAPI.track("唤醒", props);
         }
 
         if (!mDisableActivities.contains(activity)
@@ -100,6 +107,35 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
         }
     }
 
+    private void setCurrentTimeToJudgeStart(){
+        SharedPreferences sharedPreferences =  mSugoAPI.getmContext().getSharedPreferences(mConfig.getToken(), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        long date = new Date().getTime();
+        editor.putLong("backgroundTime", date);
+        editor.commit();
+    }
+
+    private long getBackgroundTime(){
+        SharedPreferences sharedPreferences = mSugoAPI.getmContext().getSharedPreferences(mConfig.getToken(), Context.MODE_PRIVATE);
+        long backgroundTime = sharedPreferences.getLong("backgroundTime", 0);
+        return backgroundTime;
+    }
+
+    private void judgeWakeUpOrStartAppWithSugoStatus(JSONObject props,boolean isRestart){
+        long currentTime = new Date().getTime();
+        long backgroundTime = getBackgroundTime();
+        setCurrentTimeToJudgeStart();
+        if (currentTime-backgroundTime>30000){
+            mSugoAPI.track("启动");
+            mSugoAPI.timeEvent("APP停留");
+        }else{
+            mSugoAPI.track("唤醒", props);
+        }
+        mSugoAPI.flush();
+    }
+
+
+
     @Override
     public void onActivityPaused(final Activity activity) {
         mPaused = true;
@@ -112,6 +148,7 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
             public void run() {
                 // 延迟一段时间后检测 APP 没有处于前台的话，那就是【后台】状态
                 if (mIsForeground && mPaused) {
+                    setCurrentTimeToJudgeStart();
                     mIsForeground = false;
                     JSONObject props = new JSONObject();
                     try {
@@ -169,6 +206,7 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+            setCurrentTimeToJudgeStart();
             mSugoAPI.track("退出", props);
             mSugoAPI.track("APP停留");
             //mSugoAPI.flush();
