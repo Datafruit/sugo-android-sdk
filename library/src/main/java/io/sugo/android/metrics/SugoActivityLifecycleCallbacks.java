@@ -126,10 +126,6 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
         long backgroundTime = getBackgroundTime();
         setCurrentTimeToJudgeStart();
         if (currentTime-backgroundTime>30000){
-            if (isRestart){
-                mSugoAPI.track("退出", null);
-                mSugoAPI.track("APP停留");
-            }
             mSugoAPI.track("启动");
             mSugoAPI.timeEvent("APP停留");
         }else{
