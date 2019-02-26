@@ -190,12 +190,8 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
     public void onActivityDestroyed(Activity activity) {
         // TODO: 2017/3/15 此处有 BUG （比如启动的 Activity 调用第二个 Activity 后 finish 自己 ）
         // 最后一个被摧毁的 Activity，是应用被退出
-        if (activity.isTaskRoot()) {
-            if (mCheckInBackground != null) {
-                mHandler.removeCallbacks(mCheckInBackground);
-                mCheckInBackground = null;
-            }     // 程序正在退出，避免 后台 事件
 
+        if (activity.isTaskRoot()) {
             JSONObject props = new JSONObject();
             try {
                 props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
@@ -206,7 +202,6 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            setCurrentTimeToJudgeStart();
             mSugoAPI.track("退出", props);
             mSugoAPI.track("APP停留");
             //mSugoAPI.flush();

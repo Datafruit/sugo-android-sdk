@@ -213,7 +213,7 @@ class AnalyticsMessages {
         map.put("app_id",mConfig.getToken());
         map.put("app_type","1");
         map.put("device_id",mSystemInformation.getDeviceId());
-        map.put("app_version",""+mSystemInformation.getAppVersionCode());
+        map.put("app_version",""+mSystemInformation.getAppVersionName());
         map.put("project_id",mConfig.getProjectId());
         m.obj=map;
         mWorker.runMessage(m);
