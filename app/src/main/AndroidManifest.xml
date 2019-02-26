@@ -58,12 +58,12 @@
         <!-- 设置ProjectId -->
         <meta-data
             android:name="io.sugo.android.SGConfig.ProjectId"
-            android:value="com_SJLnjowGe_project_SJI__AlDm" />
+            android:value="tindex_SJLnjowGe_project_pI5X0IJkh" />
 
         <!-- 设置 Token -->
         <meta-data
             android:name="io.sugo.android.SGConfig.token"
-            android:value="ff36a6fa8179d70cccc8dc81185d8ae6" />
+            android:value="72288d475a0fb8568249b16a6f689f8a" />
 
         <!-- 设置埋点配置地址 -->
         <meta-data
