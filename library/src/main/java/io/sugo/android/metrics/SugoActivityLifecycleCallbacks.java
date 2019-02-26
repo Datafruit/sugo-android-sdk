@@ -143,12 +143,12 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
             mHandler.removeCallbacks(mCheckInBackground);
             mCheckInBackground = null;
         }
+        setCurrentTimeToJudgeStart();
         mHandler.postDelayed(mCheckInBackground = new Runnable() {
             @Override
             public void run() {
                 // 延迟一段时间后检测 APP 没有处于前台的话，那就是【后台】状态
                 if (mIsForeground && mPaused) {
-                    setCurrentTimeToJudgeStart();
                     mIsForeground = false;
                     JSONObject props = new JSONObject();
                     try {
@@ -202,6 +202,7 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+            setCurrentTimeToJudgeStart();
             mSugoAPI.track("退出", props);
             mSugoAPI.track("APP停留");
             //mSugoAPI.flush();
