@@ -143,12 +143,12 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
             mHandler.removeCallbacks(mCheckInBackground);
             mCheckInBackground = null;
         }
+        setCurrentTimeToJudgeStart();
         mHandler.postDelayed(mCheckInBackground = new Runnable() {
             @Override
             public void run() {
                 // 延迟一段时间后检测 APP 没有处于前台的话，那就是【后台】状态
                 if (mIsForeground && mPaused) {
-                    setCurrentTimeToJudgeStart();
                     mIsForeground = false;
                     JSONObject props = new JSONObject();
                     try {
@@ -190,12 +190,8 @@ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCal
     public void onActivityDestroyed(Activity activity) {
         // TODO: 2017/3/15 此处有 BUG （比如启动的 Activity 调用第二个 Activity 后 finish 自己 ）
         // 最后一个被摧毁的 Activity，是应用被退出
-        if (activity.isTaskRoot()) {
-            if (mCheckInBackground != null) {
-                mHandler.removeCallbacks(mCheckInBackground);
-                mCheckInBackground = null;
-            }     // 程序正在退出，避免 后台 事件
 
+        if (activity.isTaskRoot()) {
             JSONObject props = new JSONObject();
             try {
                 props.put(SGConfig.FIELD_PAGE, activity.getClass().getCanonicalName());
