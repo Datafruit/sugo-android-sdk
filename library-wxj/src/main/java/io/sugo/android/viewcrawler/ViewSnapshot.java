@@ -129,7 +129,7 @@ import io.sugo.android.mpmetrics.SugoWebNodeReporter;
                 writer.write(",");
                 writer.write("\"screenshot\":");
                 writer.flush();
-                info.screenshot.writeBitmapJSON(Bitmap.CompressFormat.JPEG, 100, out);
+                info.screenshot.writeBitmapJSON(Bitmap.CompressFormat.JPEG, 60, out);
             }
             writer.write("}");
         }

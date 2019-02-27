@@ -55,6 +55,10 @@
             android:name="io.sugo.android.SGConfig.EnableDebugLogging"
             android:value="true" />
 
+        <meta-data
+            android:name="io.sugo.android.SGConfig.SubmitOnclickPointEvent"
+            android:value="true" />
+
         <!-- 设置ProjectId -->
         <meta-data
             android:name="io.sugo.android.SGConfig.ProjectId"

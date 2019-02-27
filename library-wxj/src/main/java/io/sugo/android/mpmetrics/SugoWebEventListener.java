@@ -31,6 +31,7 @@ import io.sugo.android.viewcrawler.SugoHeatMap;
 
 public class SugoWebEventListener {
     private final SugoAPI sugoAPI;
+    public static  String webViewUrl;
     private static Map<String, JSONArray> eventBindingsMap = new HashMap<String, JSONArray>();
     protected static HashSet<WebView> sCurrentWebView = new HashSet<>();
     protected static HashSet<XWalkView> sCurrentXWalkView = new HashSet<>();
@@ -53,10 +54,11 @@ public class SugoWebEventListener {
             if (!jsonObject.has(SGConfig.FIELD_PAGE_NAME)) {
                 jsonObject.put(SGConfig.FIELD_PAGE_NAME, "");
             }
-            if (eventId == null || eventId.trim() == "")
+            if (eventId == null || eventId.trim() == "") {
                 sugoAPI.track(eventName, jsonObject);
-            else
+            }else {
                 sugoAPI.track(eventId, eventName, jsonObject);
+            }
         } catch (JSONException e) {
             JSONObject jsonObject = new JSONObject();
             try {
@@ -67,6 +69,12 @@ public class SugoWebEventListener {
             sugoAPI.track("Exception", jsonObject);
         }
 
+    }
+
+    @JavascriptInterface
+    @org.xwalk.core.JavascriptInterface
+    public void registerPathName(String pathName){
+        SugoWebEventListener.webViewUrl=pathName;
     }
 
     @JavascriptInterface

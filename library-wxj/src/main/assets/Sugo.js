@@ -239,6 +239,19 @@
         }
     };
 
+    sugo.registerPathName = function(){
+        var props = {};
+        if(sugo.single_code) {
+            props.path_name = sugo.relative_path + "##" + sugo.single_code;
+        } else {
+            props.path_name = sugo.relative_path;
+        }
+        window.sugoEventListener.registerPathName(props.path_name);
+    };
+
+    sugo.registerPathName();
+
+
     if (sugo.showHeatMap) {
         sugo.showHeatMap();
     }
