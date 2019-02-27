@@ -222,7 +222,7 @@ public class SGConfig {
         mDisableViewCrawler = metaData.getBoolean("io.sugo.android.SGConfig.DisableViewCrawler", false);
         mDisableDecideChecker = metaData.getBoolean("io.sugo.android.SGConfig.DisableDecideChecker", false);
         mImageCacheMaxMemoryFactor = metaData.getInt("io.sugo.android.SGConfig.ImageCacheMaxMemoryFactor", 10);
-        isSubmitOnclickPointEvent = metaData.getBoolean("io.sugo.android.SGConfig.SubmitOnclickPointEvent",false);
+        isSubmitOnclickPointEvent = metaData.getBoolean("io.sugo.android.SGConfig.SubmitOnclickPointEvent",true);
         mToken = metaData.getString("io.sugo.android.SGConfig.token");
         webRoot = metaData.getString("io.sugo.android.SGConfig.webRoot");
         // Disable if EITHER of these is present and false, otherwise enable
