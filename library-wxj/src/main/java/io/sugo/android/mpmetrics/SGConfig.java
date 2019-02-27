@@ -222,6 +222,7 @@ public class SGConfig {
         mDisableViewCrawler = metaData.getBoolean("io.sugo.android.SGConfig.DisableViewCrawler", false);
         mDisableDecideChecker = metaData.getBoolean("io.sugo.android.SGConfig.DisableDecideChecker", false);
         mImageCacheMaxMemoryFactor = metaData.getInt("io.sugo.android.SGConfig.ImageCacheMaxMemoryFactor", 10);
+        isSubmitOnclickPointEvent = metaData.getBoolean("io.sugo.android.SGConfig.SubmitOnclickPointEvent",false);
         mToken = metaData.getString("io.sugo.android.SGConfig.token");
         webRoot = metaData.getString("io.sugo.android.SGConfig.webRoot");
         // Disable if EITHER of these is present and false, otherwise enable
@@ -498,6 +499,10 @@ public class SGConfig {
         return mDisableDecideChecker;
     }
 
+    public boolean getSubmitOnclickPointEvent(){
+        return isSubmitOnclickPointEvent;
+    }
+
     // Pre-configured package name for resources, if they differ from the application package name
     //
     // mContext.getPackageName() actually returns the "application id", which
@@ -587,6 +592,7 @@ public class SGConfig {
     private final String mResourcePackageName;
     private final boolean mDisableDecideChecker;
     private final int mImageCacheMaxMemoryFactor;
+    private final boolean isSubmitOnclickPointEvent;
     private final boolean mEnableLocation;
     private String mToken;
     private String webRoot;

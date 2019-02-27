@@ -138,6 +138,15 @@ import java.util.Map;
             mIsLaunching = false;
         }
 
+        if (mConfig.getSubmitOnclickPointEvent()){
+            addOnclickPointListener(activity);
+        }
+
+    }
+
+
+    private void addOnclickPointListener(final Activity activity){
+
         if (mDummyView == null){
             mDummyView = new LinearLayout(activity.getApplication());
 //            createView(activity);
@@ -181,7 +190,7 @@ import java.util.Map;
                         values.put("onclick_point", c);//对应底部按钮标签名
                         String activityname=null;
                         if (SugoWebEventListener.webViewUrl!=null){
-                             activityname=SugoWebEventListener.webViewUrl;
+                            activityname=SugoWebEventListener.webViewUrl;
                         }else{
                             activityname=activity.getClass().getName();
                         }
@@ -197,10 +206,13 @@ import java.util.Map;
 
     @Override
     public void onActivityPaused(final Activity activity) {
-        WindowManager mWindowManager = (WindowManager) activity.getApplication().getSystemService(Context.WINDOW_SERVICE);
-        if (mDummyView !=null){
-            mWindowManager.removeViewImmediate(mDummyView);
+        if (mConfig.getSubmitOnclickPointEvent()){
+            WindowManager mWindowManager = (WindowManager) activity.getApplication().getSystemService(Context.WINDOW_SERVICE);
+            if (mDummyView !=null){
+                mWindowManager.removeViewImmediate(mDummyView);
+            }
         }
+
         mPaused = true;
         if (mCheckInBackground != null) {
             mHandler.removeCallbacks(mCheckInBackground);
