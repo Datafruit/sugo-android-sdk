@@ -199,6 +199,7 @@ public class SGConfig {
 
         DEBUG = metaData.getBoolean("io.sugo.android.SGConfig.EnableDebugLogging", false);
 
+
         if (metaData.containsKey("io.sugo.android.SGConfig.AutoCheckForSurveys")) {
             Log.w(LOGTAG, "io.sugo.android.SGConfig.AutoCheckForSurveys has been deprecated in favor of " +
                     "io.sugo.android.SGConfig.AutoShowMixpanelUpdates. Please update this key as soon as possible.");
@@ -206,7 +207,7 @@ public class SGConfig {
         if (metaData.containsKey("io.sugo.android.SGConfig.DebugFlushInterval")) {
             Log.w(LOGTAG, "We do not support io.sugo.android.SGConfig.DebugFlushInterval anymore. There will only be one flush interval. Please, update your AndroidManifest.xml.");
         }
-
+        mStartExtraAttrFunction=metaData.getBoolean("io.sugo.android.SGConfig.StartExtraAttrFunction", false);
         mMaxEventLimit = metaData.getInt("io.sugo.android.SGConfig.MaxEventLimit", 200);
         mEnableLocation = metaData.getBoolean("io.sugo.android.SGConfig.EnableLocation", true);
         mBulkUploadLimit = metaData.getInt("io.sugo.android.SGConfig.BulkUploadLimit", 40); // 40 records default
@@ -393,6 +394,9 @@ public class SGConfig {
     }
     public int getMaxEventLimit() {
         return mMaxEventLimit;
+    }
+    public Boolean getmStartExtraAttrFunction(){
+        return mStartExtraAttrFunction;
     }
 
     // Target max milliseconds between flushes. This is advisory.
@@ -600,6 +604,7 @@ public class SGConfig {
     private SSLSocketFactory mSSLSocketFactory;
     private OfflineMode mOfflineMode;
     private String mHeatMapEndpoint;
+    private Boolean mStartExtraAttrFunction;
 
     private static boolean sugoEnable = true;
     private static SGConfig sInstance;

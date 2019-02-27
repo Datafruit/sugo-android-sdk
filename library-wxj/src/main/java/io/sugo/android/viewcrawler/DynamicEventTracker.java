@@ -1,5 +1,6 @@
 package io.sugo.android.viewcrawler;
 
+import android.content.Context;
 import android.os.Handler;
 import android.text.InputType;
 import android.util.Log;
@@ -8,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -15,6 +17,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import io.sugo.android.mpmetrics.ResourceIds;
+import io.sugo.android.mpmetrics.ResourceReader;
 import io.sugo.android.mpmetrics.SGConfig;
 import io.sugo.android.mpmetrics.SugoAPI;
 
@@ -37,7 +41,7 @@ import io.sugo.android.mpmetrics.SugoAPI;
     }
 
     @Override
-    public void OnEvent(View v, String eventId, String eventName, JSONObject properties, boolean debounce) {
+    public void OnEvent(View v, String eventId, String eventName, JSONObject properties, boolean debounce, JSONObject classAttr) {
         // Will be called on the UI thread
         final long moment = System.currentTimeMillis();
         try {
@@ -52,7 +56,32 @@ import io.sugo.android.mpmetrics.SugoAPI;
         } catch (JSONException e) {
             Log.e(LOGTAG, "Can't format properties from view due to JSON issue", e);
         }
-
+        if(null != classAttr){
+            Iterator it = classAttr.keys();
+            while (it.hasNext())
+            {
+                String key = String.valueOf(it.next());
+                String value = (String) classAttr.optString(key);
+                String[] array = value.split(",");
+                String data = "";
+                for (int i=0;i<array.length;i++){
+                    String attrData = getExtraAttrData(array[i],v);
+                    if (attrData == null || attrData.length()==0){
+                        attrData = "";
+                    }
+                    if (data.equals("")){
+                        data = attrData;
+                    }else if (attrData.length()>0){
+                        data = data + ";"+attrData;
+                    }
+                }
+                try {
+                    properties.put(key,data);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
         if (debounce) {
             final Signature eventSignature = new Signature(v, eventName);
             final UnsentEvent event = new UnsentEvent(eventName, properties, moment);
@@ -71,6 +100,23 @@ import io.sugo.android.mpmetrics.SugoAPI;
             mSugo.track(eventId, eventName, properties);
         }
     }
+
+    private String getExtraAttrData(String attr,View view){
+        String[]  array = attr.split("\\.");
+        if (array.length==2&& array[0].equals("ExtraTag")){
+            Map<String,Object> map = (Map<String,Object>)view.getTag(SugoAPI.SUGO_EXTRA_TAG);
+            Object obj =  map.get(array[1]);
+            return obj.toString();
+        }
+        String data ="";
+        if (attr.equals("id")){
+            data = ""+view.getId();
+        }else if (attr.equals("text")){
+            data = textPropertyFromView(view);
+        }
+        return data;
+    }
+
 
     // Attempts to send all tasks in mDebouncedEvents that have been waiting for
     // more than DEBOUNCE_TIME_MILLIS. Will reschedule itself as long as there

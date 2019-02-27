@@ -28,7 +28,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URI;
@@ -781,7 +783,6 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
 
             final OutputStream out = mEditorConnection.getBufferedOutputStream();
             final JsonWriter j = new JsonWriter(new OutputStreamWriter(out));
-
             try {
                 j.beginObject();
                 j.name("type").value("device_info_response");
@@ -891,11 +892,32 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                 }
 
                 final long snapshotTime = System.currentTimeMillis() - startSnapshot;
+
                 writer.write(",\"snapshot_time_millis\": ");
                 writer.write(Long.toString(snapshotTime));
 
+                writer.write(",\"classAttr\":{");
+                Map<String,String> classMap = SugoAPI.getInstance(mContext).getClassAttributeDict();
+                boolean isFirstMap = true;
+                for (String key : classMap.keySet()) {
+                    if (isFirstMap){
+                        writer.write("\"");
+                        isFirstMap = false;
+                    }else {
+                        writer.write(",\"");
+                    }
+                    writer.write(key);
+                    writer.write("\":");
+                    writer.write("\"");
+                    writer.write(classMap.get(key));
+                    writer.write("\"");
+                    writer.flush();
+                }
+                writer.write("}"); // } classAttr
+
                 writer.write("}"); // } payload
                 writer.write("}"); // } whole message
+
             } catch (final IOException e) {
                 Log.e(LOGTAG, "Can't write snapshot request to server", e);
             } finally {
