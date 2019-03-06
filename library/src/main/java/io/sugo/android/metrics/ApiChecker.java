@@ -63,15 +63,19 @@ class ApiChecker {
         final String token = mConfig.getToken();
         final String distinctId = mConfig.getDistinctId();
         try {
-            final Result eventRes = runEventApiRequest(token, distinctId, poster);
+            Map<String,Object> resultMap = runEventApiRequest(token, distinctId, poster);
 
-            if (eventRes != null) {
+            if (resultMap != null) {
+                Result eventRes = (Result) resultMap.get("result");
+                String eventBindingsAppVersion = (String) resultMap.get("eventBindingsAppVersion");
+                int eventBindingVersion = (int) resultMap.get("eventBindingVersion");
                 reportResults(eventRes.eventBindings, eventRes.h5EventBindings,
-                        eventRes.pageInfo);
+                        eventRes.pageInfo,eventBindingsAppVersion,eventBindingVersion);
             }
-            final Result dimRes = runDimApiRequest(token, distinctId, poster);
-            if (dimRes != null) {
-                reportDims(dimRes.dimensions);
+            resultMap = runDimApiRequest(token, distinctId, poster);
+            if (resultMap != null) {
+                resultMap.put("result",((Result)(resultMap.get("result"))).dimensions);
+                reportDims(resultMap);
             }
         } catch (final UnintelligibleMessageException e) {
             Log.e(LOGTAG, e.getMessage(), e);
@@ -80,14 +84,14 @@ class ApiChecker {
 
     public synchronized void reportResults(JSONArray eventBindings,
                                            JSONArray h5EventBindings,
-                                           JSONArray pageInfos) {
+                                           JSONArray pageInfos,String eventBindingsAppVersion,int eventBindingVersion) {
         mUpdatesFromSugo.setEventBindings(eventBindings);
         mUpdatesFromSugo.setH5EventBindings(h5EventBindings);
-        mUpdatesFromSugo.setPageInfos(pageInfos);
+        mUpdatesFromSugo.setPageInfos(pageInfos,eventBindingsAppVersion,eventBindingVersion);
 
     }
-    public synchronized void reportDims(JSONArray dimensions) {
-        mUpdatesFromSugo.setDimensions(dimensions);
+    public synchronized void reportDims(Map<String,Object> map) {
+        mUpdatesFromSugo.setDimensions(map);
 
     }
 
@@ -99,7 +103,7 @@ class ApiChecker {
         }
     }
 
-    private Result runEventApiRequest(final String token, final String distinctId, final RemoteService poster)
+    private Map<String,Object> runEventApiRequest(final String token, final String distinctId, final RemoteService poster)
             throws RemoteService.ServiceUnavailableException, UnintelligibleMessageException {
         final String responseString = getEventApiResponseFromServer(token, distinctId, poster);
         if (SGConfig.DEBUG) {
@@ -119,17 +123,21 @@ class ApiChecker {
                     String oldEventBindingsAppVersion = preferences.getString(ViewCrawler.SP_EVENT_BINDINGS_APP_VERSION, null);
                     String currentEventBindingsAppVersion = mSystemInformation.getAppVersionName();
                     if ((newEventBindingVersion != oldEventBindingVersion) || !(currentEventBindingsAppVersion.equals(oldEventBindingsAppVersion))) {
-                        SharedPreferences.Editor editor = preferences.edit();
-                        editor.putString(ViewCrawler.SP_EVENT_BINDINGS_APP_VERSION, currentEventBindingsAppVersion);
-                        editor.putInt(ViewCrawler.SP_EVENT_BINDING_VERSION, newEventBindingVersion);
-                        editor.apply();
+
+
+                        parsed = parseApiResponse(responseString);
+                        Map<String,Object> resultMap = new HashMap<>();
+                        resultMap.put("result",parsed);
+                        resultMap.put("eventBindingsAppVersion",currentEventBindingsAppVersion);
+                        resultMap.put("eventBindingVersion",newEventBindingVersion);
+                        return resultMap;
+
                     } else {
                         // 配置没有更新内容，不覆盖旧配置
                         return null;
                     }
                 }
-                parsed = parseApiResponse(responseString);
-                return parsed;
+                return null;
             } catch (final JSONException e) {
                 final String message = "Sugo endpoint returned unparsable result:\n" + responseString;
                 throw new UnintelligibleMessageException(message, e);
@@ -140,7 +148,7 @@ class ApiChecker {
         }
     }
 
-    private Result runDimApiRequest(final String token, final String distinctId, final RemoteService poster)
+    private Map<String,Object> runDimApiRequest(final String token, final String distinctId, final RemoteService poster)
             throws RemoteService.ServiceUnavailableException, UnintelligibleMessageException {
         final String responseString = getDimApiResponseFromServer(token, distinctId, poster);
         if (SGConfig.DEBUG) {
@@ -158,16 +166,17 @@ class ApiChecker {
                     SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + token, Context.MODE_PRIVATE);
                     long oldEventBindingVersion = preferences.getLong(ViewCrawler.SP_DIMENSION_VERSION, -1);
                     if (newEventBindingVersion != oldEventBindingVersion) {
-                        SharedPreferences.Editor editor = preferences.edit();
-                        editor.putLong(ViewCrawler.SP_DIMENSION_VERSION, newEventBindingVersion);
-                        editor.apply();
+                        parsed = parseApiResponse(responseString);
+                        Map<String,Object> resultMap = new HashMap<>();
+                        resultMap.put("result",parsed);
+                        resultMap.put("eventBindingVersion",newEventBindingVersion);
+                        return resultMap;
                     } else {
                         // 配置没有更新内容，不覆盖旧配置
                         return null;
                     }
                 }
-                parsed = parseApiResponse(responseString);
-                return parsed;
+                return null;
             } catch (final JSONException e) {
                 final String message = "Sugo dimensions endpoint returned unparsable result:\n" + responseString;
                 throw new UnintelligibleMessageException(message, e);
