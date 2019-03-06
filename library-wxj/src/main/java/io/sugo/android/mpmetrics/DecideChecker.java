@@ -22,9 +22,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.SSLSocketFactory;
 
@@ -81,15 +83,21 @@ import io.sugo.android.viewcrawler.ViewCrawler;
             final String distinctId = updates.getDistinctId();
             try {
 
-                final Result eventRes = runEventApiRequest(token, distinctId, poster);
-                if (eventRes != null) {
+                Map<String,Object> resultMap = runEventApiRequest(token, distinctId, poster);
+
+                if (resultMap != null) {
+                    Result eventRes = (Result) resultMap.get("result");
+                    String eventBindingsAppVersion = (String) resultMap.get("eventBindingsAppVersion");
+                    int eventBindingVersion = (int) resultMap.get("eventBindingVersion");
                     updates.reportResults(eventRes.surveys, eventRes.notifications, eventRes.eventBindings,
-                            eventRes.h5EventBindings, eventRes.variants, eventRes.pageInfo);
+                            eventRes.h5EventBindings, eventRes.variants, eventRes.pageInfo,eventBindingsAppVersion,eventBindingVersion);
                 }
-                final Result dimRes = runDimApiRequest(token, distinctId, poster);
-                if (dimRes != null) {
+                resultMap = runDimApiRequest(token, distinctId, poster);
+                if (resultMap != null) {
+                    Result dimRes = (Result) resultMap.get("result");
                     SGConfig.positionConfig = dimRes.positionConfig;
-                    updates.reportDims(dimRes.dimensions);
+                    resultMap.put("result",dimRes.dimensions);
+                    updates.reportDims(resultMap);
                 }
             } catch (final UnintelligibleMessageException e) {
                 Log.e(LOGTAG, e.getMessage(), e);
@@ -105,7 +113,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         }
     }
 
-    private Result runEventApiRequest(final String token, final String distinctId, final RemoteService poster)
+    private Map<String,Object> runEventApiRequest(final String token, final String distinctId, final RemoteService poster)
             throws RemoteService.ServiceUnavailableException, UnintelligibleMessageException {
         final String responseString = getEventApiResponseFromServer(token, distinctId, poster);
         if (SGConfig.DEBUG) {
@@ -125,17 +133,18 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                     String oldEventBindingsAppVersion = preferences.getString(ViewCrawler.SP_EVENT_BINDINGS_APP_VERSION, null);
                     String currentEventBindingsAppVersion = mSystemInformation.getAppVersionName();
                     if ((newEventBindingVersion != oldEventBindingVersion) || !(currentEventBindingsAppVersion.equals(oldEventBindingsAppVersion))) {
-                        SharedPreferences.Editor editor = preferences.edit();
-                        editor.putString(ViewCrawler.SP_EVENT_BINDINGS_APP_VERSION, currentEventBindingsAppVersion);
-                        editor.putInt(ViewCrawler.SP_EVENT_BINDING_VERSION, newEventBindingVersion);
-                        editor.apply();
+                        parsed = parseApiResponse(responseString);
+                        Map<String,Object> resultMap = new HashMap<>();
+                        resultMap.put("result",parsed);
+                        resultMap.put("eventBindingsAppVersion",currentEventBindingsAppVersion);
+                        resultMap.put("eventBindingVersion",newEventBindingVersion);
+                        return resultMap;
                     } else {
-                        // 配置没有更新内容，不覆盖旧配置
+//                        // 配置没有更新内容，不覆盖旧配置
                         return null;
                     }
                 }
-                parsed = parseApiResponse(responseString);
-                return parsed;
+                    return null;
             } catch (final JSONException e) {
                 final String message = "Sugo endpoint returned unparsable result:\n" + responseString;
                 throw new UnintelligibleMessageException(message, e);
@@ -146,7 +155,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         }
     }
 
-    private Result runDimApiRequest(final String token, final String distinctId, final RemoteService poster)
+    private Map<String,Object> runDimApiRequest(final String token, final String distinctId, final RemoteService poster)
             throws RemoteService.ServiceUnavailableException, UnintelligibleMessageException {
         final String responseString = getDimApiResponseFromServer(token, distinctId, poster);
         if (SGConfig.DEBUG) {
@@ -163,21 +172,22 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                     newEventBindingVersion = response.optLong("dimension_version", 0);
                     SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + token, Context.MODE_PRIVATE);
                     long oldEventBindingVersion = preferences.getLong(ViewCrawler.SP_DIMENSION_VERSION, -1);
-                    if (newEventBindingVersion != oldEventBindingVersion) {
-                        SharedPreferences.Editor editor = preferences.edit();
-                        editor.putLong(ViewCrawler.SP_DIMENSION_VERSION, newEventBindingVersion);
+//                    if (newEventBindingVersion != oldEventBindingVersion) {
+                        parsed = parseApiResponse(responseString);
+                        Map<String,Object> resultMap = new HashMap<>();
+                        resultMap.put("result",parsed);
+                        resultMap.put("eventBindingVersion",newEventBindingVersion);
                         if (response.has("position_config")){
                             int positionConfig= response.optInt("position_config", -1);
-                            editor.putInt(ViewCrawler.POSITION_CONFIG, positionConfig);
+                            resultMap.put("positionConfig",positionConfig);
                         }
-                        editor.apply();
-                    } else {
-                        // 配置没有更新内容，不覆盖旧配置
-                        return null;
-                    }
+                        return resultMap;
+//                    } else {
+//                        // 配置没有更新内容，不覆盖旧配置
+//                        return null;
+//                    }
                 }
-                parsed = parseApiResponse(responseString);
-                return parsed;
+                return null;
             } catch (final JSONException e) {
                 final String message = "Sugo dimensions endpoint returned unparsable result:\n" + responseString;
                 throw new UnintelligibleMessageException(message, e);
