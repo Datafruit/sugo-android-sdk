@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import io.sugo.android.viewcrawler.UpdatesFromMixpanel;
@@ -53,16 +54,16 @@ import io.sugo.android.viewcrawler.UpdatesFromMixpanel;
         return mDistinctId;
     }
 
-    public synchronized void reportDims(JSONArray dimensions) {
-        mUpdatesFromMixpanel.setDimensions(dimensions);
+    public synchronized void reportDims(Map<String,Object>map) {
+        mUpdatesFromMixpanel.setDimensions(map);
     }
     public synchronized void reportResults(
             List<Survey> newSurveys, List<InAppNotification> newNotifications, JSONArray eventBindings,
-            JSONArray h5EventBindings, JSONArray variants, JSONArray pageInfos) {
+            JSONArray h5EventBindings, JSONArray variants, JSONArray pageInfos,String eventBindingsAppVersion,int eventBindingVersion) {
         boolean newContent = false;
         mUpdatesFromMixpanel.setEventBindings(eventBindings);
         mUpdatesFromMixpanel.setH5EventBindings(h5EventBindings);
-        mUpdatesFromMixpanel.setPageInfos(pageInfos);
+        mUpdatesFromMixpanel.setPageInfos(pageInfos,eventBindingsAppVersion,eventBindingVersion);
         for (final Survey s : newSurveys) {
             final int id = s.getId();
             if (! mSurveyIds.contains(id)) {

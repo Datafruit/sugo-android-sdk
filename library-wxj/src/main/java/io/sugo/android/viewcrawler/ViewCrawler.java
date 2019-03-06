@@ -146,9 +146,29 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
     }
 
     @Override
+    public void setPageInfos(JSONArray pageInfos,String eventBindingsAppVersion,int eventBindingVersion) {
+        final Message msg = mMessageThreadHandler.obtainMessage(ViewCrawler.MESSAGE_HANDLE_PAGE_INFO_EVENT);
+        Map<String,Object> map = new HashMap<>();
+        map.put("pageInfos",pageInfos);
+        map.put("eventBindingsAppVersion",eventBindingsAppVersion);
+        map.put("eventBindingVersion",eventBindingVersion);
+        msg.obj = map;
+        mMessageThreadHandler.sendMessage(msg);
+    }
+
+
+
+    @Override
     public void setDimensions(JSONArray dimensions) {
         final Message msg = mMessageThreadHandler.obtainMessage(ViewCrawler.MESSAGE_HANDLE_DIMENSIONS_EVENT);
         msg.obj = dimensions;
+        mMessageThreadHandler.sendMessage(msg);
+    }
+
+    @Override
+    public void setDimensions(Map<String,Object> map) {
+        final Message msg = mMessageThreadHandler.obtainMessage(ViewCrawler.MESSAGE_HANDLE_DIMENSIONS_EVENT);
+        msg.obj = map;
         mMessageThreadHandler.sendMessage(msg);
     }
 
@@ -466,10 +486,12 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                         handleH5EventBindingsReceived((JSONArray) msg.obj);
                         break;
                     case MESSAGE_HANDLE_PAGE_INFO_EVENT:
-                        handlePageInfoReceived((JSONArray) msg.obj);
+                        Map<String,Object> map = (Map<String, Object>) msg.obj;
+                        handlePageInfoReceived((JSONArray) map.get("pageInfos"),(String)map.get("eventBindingsAppVersion"),(int)map.get("eventBindingVersion"));
                         break;
                     case MESSAGE_HANDLE_DIMENSIONS_EVENT:
-                        handleDimensions((JSONArray) msg.obj);
+                        Map<String,Object> msgMap = (Map<String, Object>) msg.obj;
+                        handleDimensions(msgMap);
                         break;
                     case MESSAGE_SEND_TEST_EVENT:
                         handleSendTestEvent((JSONArray) msg.obj);
@@ -1096,23 +1118,31 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
             }
         }
 
-        private void handlePageInfoReceived(JSONArray pageInfos) {
+        private void handlePageInfoReceived(JSONArray pageInfos,String eventBindingsAppVersion,int eventBindingVersion) {
             if (!SugoAPI.developmentMode) {
+                SugoPageManager.getInstance().setPageInfos(pageInfos);
                 final SharedPreferences preferences = getSharedPreferences();
                 final SharedPreferences.Editor editor = preferences.edit();
                 editor.putString(SHARED_PREF_PAGE_INFO_KEY, pageInfos.toString());
+                editor.putString(ViewCrawler.SP_EVENT_BINDINGS_APP_VERSION, eventBindingsAppVersion);
+                editor.putInt(ViewCrawler.SP_EVENT_BINDING_VERSION, eventBindingVersion);
                 editor.apply();
-                SugoPageManager.getInstance().setPageInfos(pageInfos);
             }
         }
 
-        private void handleDimensions(JSONArray array) {
+        private void handleDimensions(Map<String,Object> map) {
             if (!SugoAPI.developmentMode) {
+                JSONArray array = (JSONArray) map.get("result");
+                SugoDimensionManager.getInstance().setDimensions(array);
                 final SharedPreferences preferences = getSharedPreferences();
                 final SharedPreferences.Editor editor = preferences.edit();
                 editor.putString(SHARED_PREF_DIMENSIONS_KEY, array.toString());
+                editor.putLong(ViewCrawler.SP_DIMENSION_VERSION, (long)map.get("eventBindingVersion"));
+                if (map.containsKey("positionConfig")){
+                    editor.putInt(ViewCrawler.POSITION_CONFIG, (int)map.get("positionConfig"));
+                }
+
                 editor.apply();
-                SugoDimensionManager.getInstance().setDimensions(array);
             }
         }
 

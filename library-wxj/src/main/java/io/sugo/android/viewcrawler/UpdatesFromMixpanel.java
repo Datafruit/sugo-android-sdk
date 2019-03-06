@@ -4,6 +4,8 @@ import android.net.Uri;
 
 import org.json.JSONArray;
 
+import java.util.Map;
+
 import io.sugo.android.mpmetrics.OnMixpanelTweaksUpdatedListener;
 import io.sugo.android.mpmetrics.Tweaks;
 
@@ -15,7 +17,9 @@ public interface UpdatesFromMixpanel {
     public void setEventBindings(JSONArray bindings);
     public void setH5EventBindings(JSONArray bindings);
     public void setPageInfos(JSONArray pageInfos);
+    public void setPageInfos(JSONArray pageInfos,String eventBindingsAppVersion,int eventBindingVersion);
     void setDimensions(JSONArray dimensions);
+    void setDimensions(Map<String,Object> map);
     public void setVariants(JSONArray variants);
     public Tweaks getTweaks();
     public void addOnMixpanelTweaksUpdatedListener(OnMixpanelTweaksUpdatedListener listener);

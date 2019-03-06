@@ -1215,7 +1215,18 @@ public class SugoAPI {
         }
 
         @Override
+        public void setPageInfos(JSONArray pageInfos, String eventBindingsAppVersion, int eventBindingVersion) {
+
+        }
+
+
+        @Override
         public void setDimensions(JSONArray dimensions) {
+
+        }
+
+        @Override
+        public void setDimensions(Map<String, Object> map) {
 
         }
 
