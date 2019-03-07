@@ -172,7 +172,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                     newEventBindingVersion = response.optLong("dimension_version", 0);
                     SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + token, Context.MODE_PRIVATE);
                     long oldEventBindingVersion = preferences.getLong(ViewCrawler.SP_DIMENSION_VERSION, -1);
-//                    if (newEventBindingVersion != oldEventBindingVersion) {
+                    if (newEventBindingVersion != oldEventBindingVersion) {
                         parsed = parseApiResponse(responseString);
                         Map<String,Object> resultMap = new HashMap<>();
                         resultMap.put("result",parsed);
@@ -182,10 +182,11 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                             resultMap.put("positionConfig",positionConfig);
                         }
                         return resultMap;
-//                    } else {
-//                        // 配置没有更新内容，不覆盖旧配置
-//                        return null;
-//                    }
+                    } else {
+
+                        // 配置没有更新内容，不覆盖旧配置
+                        return null;
+                    }
                 }
                 return null;
             } catch (final JSONException e) {
