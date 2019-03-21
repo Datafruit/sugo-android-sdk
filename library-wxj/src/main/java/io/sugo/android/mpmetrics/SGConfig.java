@@ -95,7 +95,7 @@ public class SGConfig {
     // Unfortunately, as long as we support building from source in Eclipse,
     // we can't rely on BuildConfig.SUGO_VERSION existing, so this must
     // be hard-coded both in our gradle files and here in code.
-    public static final String VERSION = "2.7.3";
+    public static final String VERSION = "2.7.4";
 
     public static boolean DEBUG = false;
 
@@ -207,7 +207,7 @@ public class SGConfig {
         if (metaData.containsKey("io.sugo.android.SGConfig.DebugFlushInterval")) {
             Log.w(LOGTAG, "We do not support io.sugo.android.SGConfig.DebugFlushInterval anymore. There will only be one flush interval. Please, update your AndroidManifest.xml.");
         }
-        mStartExtraAttrFunction=metaData.getBoolean("io.sugo.android.SGConfig.StartExtraAttrFunction", false);
+        mStartExtraAttrFunction=metaData.getBoolean("io.sugo.android.SGConfig.StartExtraAttrFunction", true);
         mMaxEventLimit = metaData.getInt("io.sugo.android.SGConfig.MaxEventLimit", 200);
         mEnableLocation = metaData.getBoolean("io.sugo.android.SGConfig.EnableLocation", true);
         mBulkUploadLimit = metaData.getInt("io.sugo.android.SGConfig.BulkUploadLimit", 40); // 40 records default
