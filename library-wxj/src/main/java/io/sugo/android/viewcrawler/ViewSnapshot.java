@@ -156,7 +156,7 @@ import io.sugo.android.mpmetrics.SugoWebNodeReporter;
         if (value != null)
             return;
         if (view instanceof ImageView || view instanceof TextView){
-            classAttr.put(className,"id,text");
+            classAttr.put(className,"id,text,mp_id_name");
         }
     }
 

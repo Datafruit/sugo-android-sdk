@@ -24,20 +24,26 @@ import io.sugo.android.mpmetrics.SugoAPI;
 
 /**
  * Handles translating events detected by ViewVisitors into events sent to Mixpanel
- *
+ * <p>
  * - Builds properties by interrogating view subtrees
- *
+ * <p>
  * - Possibly debounces events using the Handler given at construction
- *
+ * <p>
  * - Calls SugoAPI.track
  */
 /* package */ class DynamicEventTracker implements ViewVisitor.OnEventListener {
+    final ResourceIds resourceIds;
 
     public DynamicEventTracker(SugoAPI sugoAPI, Handler homeHandler) {
         mSugo = sugoAPI;
         mDebouncedEvents = new HashMap<Signature, UnsentEvent>();
         mTask = new SendDebouncedTask();
         mHandler = homeHandler;
+        String resourcePackage = mSugo.getConfig().getResourcePackageName();
+        if (null == resourcePackage) {
+            resourcePackage = mSugo.getCurrentContext().getPackageName();
+        }
+        resourceIds = new ResourceReader.Ids(resourcePackage, mSugo.getCurrentContext());
     }
 
     @Override
@@ -56,27 +62,26 @@ import io.sugo.android.mpmetrics.SugoAPI;
         } catch (JSONException e) {
             Log.e(LOGTAG, "Can't format properties from view due to JSON issue", e);
         }
-        if(null != classAttr){
+        if (null != classAttr) {
             Iterator it = classAttr.keys();
-            while (it.hasNext())
-            {
+            while (it.hasNext()) {
                 String key = String.valueOf(it.next());
                 String value = (String) classAttr.optString(key);
                 String[] array = value.split(",");
                 String data = "";
-                for (int i=0;i<array.length;i++){
-                    String attrData = getExtraAttrData(array[i],v);
-                    if (attrData == null || attrData.length()==0){
+                for (int i = 0; i < array.length; i++) {
+                    String attrData = getExtraAttrData(array[i], v);
+                    if (attrData == null || attrData.length() == 0) {
                         attrData = "";
                     }
-                    if (data.equals("")){
+                    if (data.equals("")) {
                         data = attrData;
-                    }else if (attrData.length()>0){
-                        data = data + ";"+attrData;
+                    } else if (attrData.length() > 0) {
+                        data = data + ";" + attrData;
                     }
                 }
                 try {
-                    properties.put(key,data);
+                    properties.put(key, data);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -101,18 +106,20 @@ import io.sugo.android.mpmetrics.SugoAPI;
         }
     }
 
-    private String getExtraAttrData(String attr,View view){
-        String[]  array = attr.split("\\.");
-        if (array.length==2&& array[0].equals("ExtraTag")){
-            Map<String,Object> map = (Map<String,Object>)view.getTag(SugoAPI.SUGO_EXTRA_TAG);
-            Object obj =  map.get(array[1]);
+    private String getExtraAttrData(String attr, View view) {
+        String[] array = attr.split("\\.");
+        if (array.length == 2 && array[0].equals("ExtraTag")) {
+            Map<String, Object> map = (Map<String, Object>) view.getTag(SugoAPI.SUGO_EXTRA_TAG);
+            Object obj = map.get(array[1]);
             return obj.toString();
         }
-        String data ="";
-        if (attr.equals("id")){
-            data = ""+view.getId();
-        }else if (attr.equals("text")){
+        String data = "";
+        if (attr.equals("id")) {
+            data = "" + view.getId();
+        } else if (attr.equals("text")) {
             data = textPropertyFromView(view);
+        } else if (attr.equals("mp_id_name")) {
+            data = resourceIds.nameForId(view.getId());
         }
         return data;
     }
