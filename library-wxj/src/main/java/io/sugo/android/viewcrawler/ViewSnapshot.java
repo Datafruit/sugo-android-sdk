@@ -155,9 +155,9 @@ import io.sugo.android.mpmetrics.SugoWebNodeReporter;
         String value = classAttr.get(className);
         if (value != null)
             return;
-        if (view instanceof ImageView || view instanceof TextView){
+//        if (view instanceof ImageView || view instanceof TextView){
             classAttr.put(className,"id,text,mp_id_name");
-        }
+//        }
     }
 
     private void snapshotView(JsonWriter j, View view)
