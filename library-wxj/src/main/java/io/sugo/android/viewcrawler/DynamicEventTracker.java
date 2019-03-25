@@ -107,13 +107,19 @@ import io.sugo.android.mpmetrics.SugoAPI;
     }
 
     private String getExtraAttrData(String attr, View view) {
+        String data = "";
         String[] array = attr.split("\\.");
         if (array.length == 2 && array[0].equals("ExtraTag")) {
             Map<String, Object> map = (Map<String, Object>) view.getTag(SugoAPI.SUGO_EXTRA_TAG);
-            Object obj = map.get(array[1]);
-            return obj.toString();
+            if (map != null) {
+                Object obj = map.get(array[1]);
+                if (obj == null) return data;
+                return obj.toString();
+            } else {
+                return data;
+            }
         }
-        String data = "";
+
         if (attr.equals("id")) {
             data = "" + view.getId();
         } else if (attr.equals("text")) {
@@ -156,7 +162,7 @@ import io.sugo.android.mpmetrics.SugoAPI;
      * provide as an event property.
      */
     private static String textPropertyFromView(View v) {
-        String ret = null;
+        String ret = "";
         if (v instanceof EditText) {
             int inputType = ((EditText) v).getInputType();
             if (isPassword(inputType)) {     // textPassword / numberPassword

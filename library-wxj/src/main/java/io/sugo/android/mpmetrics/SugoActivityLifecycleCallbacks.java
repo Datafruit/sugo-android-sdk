@@ -23,13 +23,14 @@ import android.widget.LinearLayout;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.sql.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-/* package */ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
+        /* package */ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private Runnable mCheckInBackground;
     private boolean mIsForeground = false;
@@ -61,7 +62,7 @@ import java.util.Map;
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
         //当activity重新载入时，清除url路径
-        SugoWebEventListener.webViewUrl=null;
+        SugoWebEventListener.webViewUrl = null;
     }
 
     @Override
@@ -74,16 +75,18 @@ import java.util.Map;
     }
 
     class SystemInfo {   //获取设备划分区域的宽高
-        final double itemHeight ;
-        final double itemWidth ;
-        SystemInfo( final Activity activity){
+        final double itemHeight;
+        final double itemWidth;
+
+        SystemInfo(final Activity activity) {
             SystemInformation msystemInformation = new SystemInformation(activity.getApplication());
             final DisplayMetrics displayMetrics = msystemInformation.getDisplayMetrics();
             float h = displayMetrics.heightPixels;
             float w = displayMetrics.widthPixels;
-            itemHeight = h / 32;
-            itemWidth = w / 18;
+            itemHeight = h / 64;
+            itemWidth = w / 36;
         }
+
         public double getItemHeight() {
             return itemHeight;
         }
@@ -138,16 +141,16 @@ import java.util.Map;
             mIsLaunching = false;
         }
 
-        if (mConfig.getSubmitOnclickPointEvent()){
+        if (mConfig.getSubmitOnclickPointEvent()) {
             addOnclickPointListener(activity);
         }
 
     }
 
 
-    private void addOnclickPointListener(final Activity activity){
+    private void addOnclickPointListener(final Activity activity) {
 
-        if (mDummyView == null){
+        if (mDummyView == null) {
             mDummyView = new LinearLayout(activity.getApplication());
 //            createView(activity);
         }
@@ -165,9 +168,6 @@ import java.util.Map;
         );
         params.gravity = Gravity.LEFT | Gravity.TOP;
         WindowManager mWindowManager = (WindowManager) activity.getApplication().getSystemService(Context.WINDOW_SERVICE);
-        SystemInfo ifo = new SystemInfo(activity);
-        final double itemHeight = ifo.getItemHeight();
-        final double itemWidth =ifo.getItemWidth();
         mDummyView.setLayoutParams(params);
         mDummyView.setOnTouchListener(
                 new View.OnTouchListener() {
@@ -175,24 +175,15 @@ import java.util.Map;
                     public boolean onTouch(View v, MotionEvent event) {
                         double x = event.getX();
                         double y = event.getY();
-                        double c;
-                        if (y / itemHeight > 1) {
-                            if (Math.ceil(y / itemHeight ) < 31){
-                                c = (Math.ceil((y / itemHeight) - 1)) * 18 + Math.ceil(x / itemWidth);
-                            }else{
-                                c = Math.ceil(y / itemHeight) * 18 + Math.ceil(x / itemWidth);
-                            }
-                        } else {
-                            c = Math.ceil(x / itemWidth);
-                        }
+                        int serialNum = calculateTouchArea(activity, (float) x, (float) y);
                         SugoAPI sugoAPI = SugoAPI.getInstance(activity);
                         Map<String, Object> values = new HashMap<String, Object>();
-                        values.put("onclick_point", c);//对应底部按钮标签名
-                        String activityname=null;
-                        if (SugoWebEventListener.webViewUrl!=null){
-                            activityname=SugoWebEventListener.webViewUrl;
-                        }else{
-                            activityname=activity.getClass().getName();
+                        values.put("onclick_point", serialNum);//对应底部按钮标签名
+                        String activityname = null;
+                        if (SugoWebEventListener.webViewUrl != null) {
+                            activityname = SugoWebEventListener.webViewUrl;
+                        } else {
+                            activityname = activity.getClass().getName();
                         }
 
                         values.put("path_name", activityname);
@@ -204,11 +195,53 @@ import java.util.Map;
         mWindowManager.addView(mDummyView, params);
     }
 
+
+    private float getScreenHeight(final Activity activity, int type, int distance) {
+        WindowManager wm = (WindowManager) activity.getApplication().getSystemService(Context.WINDOW_SERVICE);
+
+        int statusBarHeight =getStatusBarHeight(activity);
+
+        DisplayMetrics dm = new DisplayMetrics();
+        wm.getDefaultDisplay().getMetrics(dm);
+        if (type == 0) {
+            return dm.widthPixels / distance;
+        } else {
+            return (dm.heightPixels+statusBarHeight) / distance;
+        }
+    }
+
+    private int getStatusBarHeight(final Activity activity){
+        int result=0;
+        int resourceId = activity.getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            result = activity.getResources().getDimensionPixelSize(resourceId);
+        }
+        return result;
+    }
+
+
+    private int calculateTouchArea(final Activity activity, float x, float y) {
+        int columnNum = 36;
+        int lineNum = 64;
+        int statusBarHeight =getStatusBarHeight(activity);
+        float areaWidth = getScreenHeight(activity, 0, columnNum);
+        float areaHeight = getScreenHeight(activity, 1, lineNum);
+        float columnSerialValue = x / areaWidth;
+        float lineNumSerialValue = (y+statusBarHeight )/ areaHeight;
+        int columnSerialNum = (columnSerialValue - (int) columnSerialValue) >= 0 ? (int) columnSerialValue + 1 : (int) columnSerialValue;
+        int lineNumSerialNum = (lineNumSerialValue - (int) lineNumSerialValue) > 0 ? (int) lineNumSerialValue : (int) lineNumSerialValue - 1;
+        int serialNum = columnSerialNum + lineNumSerialNum * columnNum;
+        if (x==0){
+            serialNum +=1;
+        }
+        return serialNum;
+    }
+
     @Override
     public void onActivityPaused(final Activity activity) {
-        if (mConfig.getSubmitOnclickPointEvent()){
+        if (mConfig.getSubmitOnclickPointEvent()) {
             WindowManager mWindowManager = (WindowManager) activity.getApplication().getSystemService(Context.WINDOW_SERVICE);
-            if (mDummyView !=null){
+            if (mDummyView != null) {
                 mWindowManager.removeViewImmediate(mDummyView);
             }
         }
@@ -264,7 +297,7 @@ import java.util.Map;
 
     @Override
     public void onActivityDestroyed(Activity activity) {
-        SugoWebEventListener.webViewUrl=null;
+        SugoWebEventListener.webViewUrl = null;
         mDisableActivities.remove(activity);
 //         // 无限极使用了 代码埋点 ，所以这里注释掉
 //        String runningPage = SugoPageManager.getInstance().getCurrentPage(activity.getApplicationContext());
