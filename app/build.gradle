@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion 26
     buildToolsVersion '26.0.3'
     defaultConfig {
         applicationId "io.sugo.sdkdemo"
@@ -67,8 +67,6 @@ repositories {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-//    compile(project(':library_heatmap'))
-    compile 'io.sugo.android:sugo-android-sdk-heatmap:2.7.8'
     compile(project(':library-wxj'))
 //    compile(project(':library'))
 //    compile 'io.sugo.android:sugo-android-sdk:2.3.4'
@@ -85,5 +83,4 @@ dependencies {
     compile 'com.jakewharton:butterknife:8.8.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
-//    compile project(path: ':library-wxj')
 }
