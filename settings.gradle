@@ -1,1 +1,1 @@
-include ':app', ':library', ':library-xwalk', ':library-weex', ':library-wxj', ':library-reactnative'
+include ':app', ':library', ':library-xwalk', ':library-weex', ':library-wxj', ':library-reactnative', ':library_heatmap'
