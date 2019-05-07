@@ -18,6 +18,7 @@ public class SugoPageManager {
 
     private static SugoPageManager sInstance = new SugoPageManager();
     private HashMap<String, JSONObject> mPageInfos;
+    private boolean openHeatMapFunc = false;
 
     private SugoPageManager() {
 
@@ -28,6 +29,7 @@ public class SugoPageManager {
     }
 
     public void setPageInfos(JSONArray pageInfos) {
+        setOpenHeatMapFunc(pageInfos);
         if (pageInfos == null) {
             return;
         }
@@ -41,6 +43,22 @@ public class SugoPageManager {
             try {
                 pageObj = pageInfos.getJSONObject(i);
                 mPageInfos.put(pageObj.optString("page"), pageObj);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void setOpenHeatMapFunc(JSONArray pageInfos){
+        JSONObject pageObj = null;
+        for (int i=0;i<pageInfos.length();i++){
+            try {
+                pageObj = pageInfos.getJSONObject(i);
+                boolean isSubmitPoint = pageObj.optBoolean("isSubmitPoint");
+                if (isSubmitPoint){
+                    openHeatMapFunc = true;
+                    break;
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -71,6 +89,10 @@ public class SugoPageManager {
             return mPageInfos.get(currentPage);
         }
         return null;
+    }
+
+    public boolean isOpenHeatMapFunc() {
+        return openHeatMapFunc;
     }
 
     public String getCurrentPageName(Context context) {
