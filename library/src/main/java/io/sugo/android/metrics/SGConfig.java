@@ -175,6 +175,7 @@ public class SGConfig {
     // Mutable, with synchronized accessor and mutator
     private SSLSocketFactory mSSLSocketFactory;
     private OfflineMode mOfflineMode;
+    private boolean isAndroidX;
 
     private static SGConfig sInstance;
     private static final Object sInstanceLock = new Object();
@@ -255,6 +256,8 @@ public class SGConfig {
         mEnablePageEvent = metaData.getBoolean("io.sugo.android.SGConfig.EnablePageEvent", true);
         mFlushInterval = metaData.getInt("io.sugo.android.SGConfig.FlushInterval", 60 * 1000);
         mUpdateDecideInterval = metaData.getInt("io.sugo.android.SGConfig.UpdateDecideInterval", 60 * 60 * 1000);
+        isAndroidX = metaData.getBoolean("io.sugo.android.SGConfig.isAndroidX",false);
+
 
         mBulkUploadLimit = metaData.getInt("io.sugo.android.SGConfig.BulkUploadLimit", 40); // 40 records default
         mDataExpiration = metaData.getInt("io.sugo.android.SGConfig.DataExpiration", 1000 * 60 * 60 * 24 * 5); // 5 days default
@@ -595,6 +598,10 @@ public class SGConfig {
 
     public boolean isSugoEnable() {
         return sugoEnable;
+    }
+
+    public boolean isAndroidX(){
+        return isAndroidX;
     }
 
     public SGConfig setSugoEnable(boolean sugoEnable) {
