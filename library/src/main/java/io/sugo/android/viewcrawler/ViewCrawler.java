@@ -712,7 +712,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
             try {
                 final JSONObject payload = message.getJSONObject("payload");
                 if (payload.has("config")) {
-                    mSnapshot = mProtocol.readSnapshotConfig(payload);
+                    mSnapshot = mProtocol.readSnapshotConfig(payload,mConfig);
                     if (mXWalkViewListener != null) {
                         mSnapshot.setXWalkViewListener(mXWalkViewListener);
                     } else {

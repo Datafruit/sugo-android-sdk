@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.sugo.android.metrics.ResourceIds;
+import io.sugo.android.metrics.SGConfig;
 import io.sugo.android.util.ImageStore;
 import io.sugo.android.util.JSONUtils;
 
@@ -104,7 +105,7 @@ class BindingProtocol {
         }
     }
 
-    public ViewSnapshot readSnapshotConfig(JSONObject source) throws BadInstructionsException {
+    public ViewSnapshot readSnapshotConfig(JSONObject source, SGConfig mconfig) throws BadInstructionsException {
         final List<PropertyDescription> properties = new ArrayList<PropertyDescription>();
 
         try {
@@ -112,7 +113,10 @@ class BindingProtocol {
             final JSONArray classes = config.getJSONArray("classes");
             for (int classIx = 0; classIx < classes.length(); classIx++) {
                 final JSONObject classDesc = classes.getJSONObject(classIx);
-                final String targetClassName = classDesc.getString("name");
+                String targetClassName = classDesc.getString("name");
+                if (targetClassName.equals("android.support.v4.view.ViewPager")&&mconfig.isAndroidX()){
+                    targetClassName = "androidx.viewpager.widget.ViewPager";
+                }
                 final Class<?> targetClass = Class.forName(targetClassName);
 
                 final JSONArray propertyDescs = classDesc.getJSONArray("properties");
