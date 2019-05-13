@@ -114,7 +114,7 @@ class BindingProtocol {
             for (int classIx = 0; classIx < classes.length(); classIx++) {
                 final JSONObject classDesc = classes.getJSONObject(classIx);
                 String targetClassName = classDesc.getString("name");
-                if (targetClassName.equals("android.support.v4.view.ViewPager")&&mconfig.isAndroidX()){
+                if (targetClassName.endsWith("support.v4.view.ViewPager")&&mconfig.isAndroidX()){
                     targetClassName = "androidx.viewpager.widget.ViewPager";
                 }
                 final Class<?> targetClass = Class.forName(targetClassName);
