@@ -99,7 +99,7 @@
                sugo.handleNodeChild = function(childrens, nodeJSONArray, parent_path) {
                    for (var i = 0; i < childrens.length; i++) {
                        var nodeChildren = childrens[i];
-                       if (sugo.excludeControl.includes(nodeChildren.tagName)) {
+                       if (sugo.excludeControl.indexOf(nodeChildren.tagName) >= 0) {
                            continue;
                        }
                        var rect = nodeChildren.getBoundingClientRect();
