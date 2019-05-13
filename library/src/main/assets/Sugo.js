@@ -9,11 +9,7 @@
                }
 
                sugo.single_code = '';
-               sugo.relative_path = window.location.pathname.replace(/$sugo_webroot$/g, '');
-               sugo.relative_path = sugo.relative_path.replace(/$sugo_remove_path$/g, '');
-               sugo.hash = window.location.hash;
-               sugo.hash = sugo.hash.indexOf('?') < 0 ? sugo.hash : sugo.hash.substring(0, sugo.hash.indexOf('?'));
-               sugo.relative_path += sugo.hash;
+               sugo.relative_path = '$sugo_relative_path$';
                sugo.all_page_info = $all_page_info$;
                sugo.init = {
                     "code ":  "$sugo_init_code$ ",
@@ -47,6 +43,15 @@
                    window.sugoEventListener.timeEvent(event_name);
                };
 
+               sugo.registerSuperProperties = function(props) {
+                       window.sugoEventListener.registerSuperProperties(JSON.stringify(props));
+               };
+               sugo.login = function(key, value) {
+                   window.sugoEventListener.login(key, value)
+               };
+               sugo.logout = function(key, value) {
+                   window.sugoEventListener.logout()
+               };
                var sugoio = {
                    track: sugo.track,
                    time_event: sugo.timeEvent
@@ -90,25 +95,28 @@
                    return ( rect.top >= 0 && rect.left >= 0 && rect.bottom <= sugo.clientHeight && rect.right <= sugo.clientWidth);
                };
 
-               sugo.handleNodeChild = function (childrens, nodeJSONArray, parent_path) {
+               sugo.excludeControl = ['symbol', 'SCRIPT'];
+               sugo.handleNodeChild = function(childrens, nodeJSONArray, parent_path) {
                    for (var i = 0; i < childrens.length; i++) {
                        var nodeChildren = childrens[i];
-                       var childPath = sugoioKit.cssPath(nodeChildren);
+                       if (sugo.excludeControl.includes(nodeChildren.tagName)) {
+                           continue;
+                       }
+                       var rect = nodeChildren.getBoundingClientRect();
                        var htmlNode = {};
+                       var temp_rect = {
+                           top: rect.top,
+                           left: rect.left,
+                           width: rect.width,
+                           height: rect.height
+                       };
+                       htmlNode.rect = temp_rect;
+                       var childPath = sugoioKit.cssPath(nodeChildren);
                        htmlNode.innerText = nodeChildren.innerText;
                        htmlNode.path = childPath;
                        htmlNode.classList = nodeChildren.classList;
-                       var rect = nodeChildren.getBoundingClientRect();
-                       if (sugo.isElementInViewport(rect) === true) {
-                           var temp_rect = {
-                               top: rect.top,
-                               left: rect.left,
-                               width: rect.width,
-                               height: rect.height
-                           };
-                           htmlNode.rect = temp_rect;
-                           nodeJSONArray.push(htmlNode);
-                       }
+
+                       nodeJSONArray.push(htmlNode);
                        if (nodeChildren.children) {
                            sugo.handleNodeChild(nodeChildren.children, nodeJSONArray, childPath);
                        }
