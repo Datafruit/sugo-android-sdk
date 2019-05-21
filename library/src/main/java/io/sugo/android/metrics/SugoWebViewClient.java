@@ -41,7 +41,7 @@ public class SugoWebViewClient extends WebViewClient {
     }
 
 
-    public static void handlePageFinished(WebView view, String url) {
+    public static void handlePageFinished(WebView view, String url, String js) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             view.setWebContentsDebuggingEnabled(true);
         }
@@ -51,15 +51,26 @@ public class SugoWebViewClient extends WebViewClient {
         Activity activity = (Activity) context;
         String script = getInjectScript(activity, url);
         view.loadUrl("javascript:" + script);
+        if(js != null){
+            view.loadUrl("javascript:" + js);
+        }
 
         SugoWebEventListener.addCurrentWebView(view);
     }
-
-    public static void handlePageFinished(WebViewDelegate delegate, Activity activity, String url) {
-        String script = getInjectScript(activity, url);
-        delegate.loadUrl("javascript:" + script);
+    public static void handlePageFinished(WebView view, String url) {
+        handlePageFinished(view, url, null);
     }
 
+    public static void handlePageFinished(WebViewDelegate delegate, Activity activity, String url) {
+        handlePageFinished(delegate, activity, url, null);
+    }
+    public static void handlePageFinished(WebViewDelegate delegate, Activity activity, String url, String js) {
+        String script = getInjectScript(activity, url);
+        delegate.loadUrl("javascript:" + script);
+        if(js != null){
+            delegate.loadUrl("javascript:" + js);
+        }
+    }
     private static String getRealUrl(Activity activity, String url){
         SugoAPI sugoAPI = SugoAPI.getInstance(activity);
 

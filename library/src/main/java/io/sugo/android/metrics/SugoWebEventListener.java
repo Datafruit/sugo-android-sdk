@@ -17,6 +17,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import io.sugo.android.util.StringUtils;
 import io.sugo.android.viewcrawler.SugoHeatMap;
 
 /**
@@ -96,16 +97,22 @@ public class SugoWebEventListener {
     }
 
     @JavascriptInterface
-    public void pageFinish(String url) {
+    public void pageFinish(String url, String js) {
         if(webView == null){
             return ;
         }
         final String finalUrl = url;
+        final String finalJs = js;
         Activity activity = (Activity) webView.getContext();
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                SugoWebViewClient.handlePageFinished(webView, finalUrl);
+                if(finalJs == null || finalJs.trim().equals("") ){
+                    SugoWebViewClient.handlePageFinished(webView, finalUrl);
+                } else {
+                    SugoWebViewClient.handlePageFinished(webView, finalUrl, finalJs);
+                }
+
             }
         });
     }
