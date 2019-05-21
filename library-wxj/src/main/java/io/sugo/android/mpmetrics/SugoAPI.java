@@ -17,6 +17,8 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
@@ -47,6 +49,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import io.sugo.android.util.HttpService;
+import io.sugo.android.util.RemoteService;
 import io.sugo.android.viewcrawler.TrackingDebug;
 import io.sugo.android.viewcrawler.UpdatesFromMixpanel;
 import io.sugo.android.viewcrawler.ViewCrawler;
@@ -356,9 +360,97 @@ public class SugoAPI {
             return;
         }
 
-        SugoAPI.getInstance(context);
+        new SugoInitThread(context).start();
+//        SugoAPI.getInstance(context);
         Log.i("Sugo", "SugoSDK 初始化成功！");
     }
+
+
+
+    public static class SugoInitThread extends Thread {
+
+        private Context context;
+
+        public void runSdkInitializeRequest() throws RemoteService.ServiceUnavailableException {
+            SystemInformation mSystemInformation = new SystemInformation(context);
+            SGConfig config = SGConfig.getInstance(context);
+            final String token = config.getToken();
+            final String projectId = config.getProjectId();
+            final String appVersion = mSystemInformation.getAppVersionName();
+            DecideChecker decideChecker = new DecideChecker(context, config, mSystemInformation);
+            final String responseString = decideChecker.getSugoInitializeEndpointFromServer(token,projectId,appVersion,new HttpService());
+            if (SGConfig.DEBUG) {
+                Log.v(LOGTAG, "Sugo decide server response was:\n" + responseString);
+            }
+            if (TextUtils.isEmpty(responseString)){
+                return ;
+            }
+
+            try {
+                JSONObject response=new JSONObject(responseString);
+                if (response.has("isSugoInitialize")){
+                    boolean isSugoInitialize = response.optBoolean("isSugoInitialize",false);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, isSugoInitialize);
+                    editor.commit();
+                }
+                if (response.has("isHeatMapFunc")){
+                    boolean isHeatMapFunc = response.optBoolean("isHeatMapFunc",false);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISHEATMAPFUNC, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putBoolean(ViewCrawler.ISHEATMAPFUNC, isHeatMapFunc);
+                    editor.commit();
+                }
+                if (response.has("uploadLocation")){
+                    int uploadLocation = response.optInt("uploadLocation",0);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.UPLOADLOCATION, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putInt(ViewCrawler.UPLOADLOCATION, uploadLocation);
+                    editor.commit();
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public SugoInitThread (Context context) {
+            this.context = context;
+        }
+        @Override
+        public void run() {
+            super.run();
+            try {
+                runSdkInitializeRequest();
+            } catch (RemoteService.ServiceUnavailableException e) {
+                e.printStackTrace();
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+            Message msg =Message.obtain();
+            msg.obj = context;
+            msg.what=1;
+            SugoInitHandler.sendMessage(msg);
+        }
+
+    }
+
+    private static Handler SugoInitHandler = new Handler(){
+
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case 1:
+                    SharedPreferences preferences = ((Context) msg.obj).getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
+                    boolean isSugoInitialize = preferences.getBoolean(ViewCrawler.ISSUGOINITIALIZE,false);
+                    if (isSugoInitialize)
+                        SugoAPI.getInstance((Context) msg.obj);
+                    break;
+            }
+        }
+    };
 
 
     /**

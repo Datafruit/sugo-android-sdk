@@ -286,9 +286,11 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
 
         @Override
         public void onActivityResumed(Activity activity) {
-            if (SGConfig.positionConfig > 0){
+            SharedPreferences pre = activity.getSharedPreferences(ViewCrawler.UPLOADLOCATION, Context.MODE_PRIVATE);
+            int isuploadLocation = pre.getInt(ViewCrawler.UPLOADLOCATION,0);
+            if (isuploadLocation>0&&SGConfig.positionConfig > 0){
                 long now = System.currentTimeMillis();
-                if (now - SGConfig.lastReportLoaction > SGConfig.positionConfig * 60000) {
+                if (now - SGConfig.lastReportLoaction > isuploadLocation * 60000) {
                     try {
                         JSONObject messageProps = new JSONObject();
                         double[] loc = mMixpanel.getLngAndLat(mContext);
@@ -1522,6 +1524,9 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
     public static final String SP_EVENT_BINDINGS_APP_VERSION = "sugo.event_bindings_app_version";
     public static final String POSITION_CONFIG = "sugo_position_config";
     public static final String LAST_REPORT_LOCATION = "sugo_last_report_location";
+    public static final String ISSUGOINITIALIZE = "sugo_isSugoInitialize";
+    public static final String ISHEATMAPFUNC = "sugo_isHeatMapFunc";
+    public static final String UPLOADLOCATION= "sugo_isuploadLocation";
 
     private static final int MESSAGE_INITIALIZE_CHANGES = 0;
     private static final int MESSAGE_CONNECT_TO_EDITOR = 1;
