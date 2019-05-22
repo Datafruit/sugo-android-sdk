@@ -4,6 +4,7 @@ package io.sugo.heatmap;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.Bundle;
@@ -23,6 +24,7 @@ import java.util.Map;
 import io.sugo.android.mpmetrics.SugoAPI;
 import io.sugo.android.mpmetrics.SugoPageManager;
 import io.sugo.android.mpmetrics.SugoWebEventListener;
+import io.sugo.android.viewcrawler.ViewCrawler;
 
 
 /**
@@ -45,7 +47,9 @@ public class SugoHeatMapCallbacks implements Application.ActivityLifecycleCallba
 
     @Override
     public void onActivityResumed(Activity activity) {
-        if (SugoPageManager.getInstance().isOpenHeatMapFunc())
+        SharedPreferences preferences = activity.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
+        boolean isHeatMapFunc = preferences.getBoolean(ViewCrawler.ISHEATMAPFUNC,false);
+        if (isHeatMapFunc&&SugoPageManager.getInstance().isOpenHeatMapFunc())
             addOnclickPointListener(activity);
     }
 

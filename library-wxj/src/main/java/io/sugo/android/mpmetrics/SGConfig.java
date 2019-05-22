@@ -250,7 +250,7 @@ public class SGConfig {
         mEventsEndpoint = eventsHost + "/post?locate=" + mProjectId;
         mDimDecideEndpoint = apiHost + "/api/sdk/decide-dimesion";
         mEventDecideEndpoint = apiHost + "/api/sdk/decide-event";
-        mSugoInitializeEndpoint = apiHost + "";
+        mSugoInitializeEndpoint = apiHost + "/api/sdk/decide-config";
         // 默认开启【页面事件】
         mEnablePageEvent = metaData.getBoolean("io.sugo.android.SGConfig.EnablePageEvent", true);
 

@@ -105,42 +105,6 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         }
     }
 
-//    public void runSdkInitializeRequest(final String token, final String projectId,final String appVersion ,final RemoteService poster) throws RemoteService.ServiceUnavailableException, UnintelligibleMessageException{
-//        final String responseString = getSugoInitializeEndpointFromServer(token,projectId,appVersion,poster);
-//        if (SGConfig.DEBUG) {
-//            Log.v(LOGTAG, "Sugo decide server response was:\n" + responseString);
-//        }
-//        if (TextUtils.isEmpty(responseString)){
-//            return ;
-//        }
-//
-//        try {
-//            JSONObject response=new JSONObject(responseString);
-//            if (response.has("isSugoInitialize")){
-//                boolean isSugoInitialize = response.optBoolean("isSugoInitialize",false);
-//                SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
-//                SharedPreferences.Editor editor = preferences.edit();
-//                editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, isSugoInitialize);
-//                editor.apply();
-//            }
-//            if (response.has("isHeatMapFunc")){
-//                boolean isHeatMapFunc = response.optBoolean("isHeatMapFunc",false);
-//                SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.ISHEATMAPFUNC, Context.MODE_PRIVATE);
-//                SharedPreferences.Editor editor = preferences.edit();
-//                editor.putBoolean(ViewCrawler.ISHEATMAPFUNC, isHeatMapFunc);
-//                editor.apply();
-//            }
-//            if (response.has("uploadLocation")){
-//                int uploadLocation = response.optInt("uploadLocation",0);
-//                SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.ISHEATMAPFUNC, Context.MODE_PRIVATE);
-//                SharedPreferences.Editor editor = preferences.edit();
-//                editor.putInt(ViewCrawler.ISHEATMAPFUNC, uploadLocation);
-//                editor.apply();
-//            }
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
-//    }
 
     private Result runEventApiRequest(final String token, final String distinctId, final RemoteService poster)
             throws RemoteService.ServiceUnavailableException, UnintelligibleMessageException {
@@ -286,7 +250,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
             throw new RuntimeException("Sugo library requires utf-8 string encoding to be available", e);
         }
         final StringBuilder queryBuilder = new StringBuilder()
-                .append("?lib=android&token=").append(token)
+                .append("?tokenId=").append(token)
                 .append("&projectId=").append(projectId)
                 .append("&appVersion=").append(appVersion);
         final String[] urls = new String[]{mConfig.getSugoInitializeEndpoint() + queryBuilder.toString()};
