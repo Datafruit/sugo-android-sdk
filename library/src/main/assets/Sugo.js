@@ -12,9 +12,9 @@
                sugo.relative_path = '$sugo_relative_path$';
                sugo.all_page_info = $all_page_info$;
                sugo.init = {
-                    "code ":  "$sugo_init_code$ ",
-                    "page_name ":  "$sugo_init_page_name$ ",
-                    "page_category ":  "$sugo_init_page_category$ "
+                    'code':  '$sugo_init_code$',
+                    'page_name':  '$sugo_init_page_name$',
+                    'page_category':  '$sugo_init_page_category$'
                };
                sugo.view_props = {};
 
@@ -23,7 +23,7 @@
                        props = {};
                    }
             if(sugo.single_code) {
-                     props.$sugo_path_name$ = sugo.relative_path +  "## " + sugo.single_code;
+                     props.$sugo_path_name$ = sugo.relative_path +  '##' + sugo.single_code;
                    } else {
                      props.$sugo_path_name$ = sugo.relative_path;
                    }
@@ -312,15 +312,15 @@
                     var page_obj = sugo.all_page_info[sugo.relative_path + (sugo.single_code ? '##' + sugo.single_code : '')];
                     if(page_obj){
                     sugo.init = {
-                        "code ":page_obj.code,
-                        "page_name ": page_obj.page_name,
-                        "page_category ": page_obj.page_category
+                        'code':page_obj.code,
+                        'page_name': page_obj.page_name,
+                        'page_category': page_obj.page_category
                    };
                    }else{
                        sugo.init = {
-                            "code ": '',
-                            "page_name ": '',
-                            "page_category ": ''
+                            'code': '',
+                            'page_name': '',
+                            'page_category': ''
                        };
                    }
 
