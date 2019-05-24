@@ -126,6 +126,8 @@ public class SugoAPI {
 
     public static final int SUGO_EXTRA_TAG=91109102;
 
+    public static final String SUGO_TAG = "SUGO";
+
     /**
      * Declare a string-valued tweak, and return a reference you can use to read the value of the tweak.
      * Tweaks can be changed in Mixpanel A/B tests, and can allow you to alter your customers' experience
@@ -340,7 +342,7 @@ public class SugoAPI {
         }
     }
 
-    public static void startSugo(Context context, SGConfig sgConfig) {
+    public static void startSugo(Context context, SGConfig sgConfig,final InitSugoCallback callback) {
         if (null == context) {
             Log.e(LOGTAG, "startSugo 失败，context 为空");
             return;
@@ -359,10 +361,14 @@ public class SugoAPI {
             Log.e(LOGTAG, "未检测到 SugoSDK 的 ProjectId，请正确设置 SGConfig.setProjectId");
             return;
         }
+        try {
+            new SugoInitThread(context,callback).start();
+        }catch (Exception e){
+            Log.e(SUGO_TAG, "sugo startSugo method: "+e.toString());
+            return;
+        }
 
-        new SugoInitThread(context).start();
-//        SugoAPI.getInstance(context);
-        Log.i("Sugo", "SugoSDK 初始化成功！");
+
     }
 
 
@@ -370,21 +376,29 @@ public class SugoAPI {
     public static class SugoInitThread extends Thread {
 
         private Context context;
+        private final InitSugoCallback callback;
 
         public void runSdkInitializeRequest() throws RemoteService.ServiceUnavailableException {
-            SystemInformation mSystemInformation = new SystemInformation(context);
-            SGConfig config = SGConfig.getInstance(context);
-            final String token = config.getToken();
-            final String projectId = config.getProjectId();
-            final String appVersion = mSystemInformation.getAppVersionName();
-            DecideChecker decideChecker = new DecideChecker(context, config, mSystemInformation);
-            final String responseString = decideChecker.getSugoInitializeEndpointFromServer(token,projectId,appVersion,new HttpService());
-            if (SGConfig.DEBUG) {
-                Log.v(LOGTAG, "Sugo decide server response was:\n" + responseString);
+            String responseString =null;
+            try{
+                SystemInformation mSystemInformation = new SystemInformation(context);
+                SGConfig config = SGConfig.getInstance(context);
+                final String token = config.getToken();
+                final String projectId = config.getProjectId();
+                final String appVersion = mSystemInformation.getAppVersionName();
+                DecideChecker decideChecker = new DecideChecker(context, config, mSystemInformation);
+                responseString = decideChecker.getSugoInitializeEndpointFromServer(token,projectId,appVersion,new HttpService());
+                if (SGConfig.DEBUG) {
+                    Log.v(LOGTAG, "Sugo decide server response was:\n" + responseString);
+                }
+                if (TextUtils.isEmpty(responseString)){
+                    return ;
+                }
+            }catch (Exception e){
+                Log.e(SUGO_TAG, "sugo init api: "+e.toString());
+                return;
             }
-            if (TextUtils.isEmpty(responseString)){
-                return ;
-            }
+
 
             try {
                 JSONObject response=new JSONObject(responseString);
@@ -410,12 +424,14 @@ public class SugoAPI {
                     editor.commit();
                 }
             } catch (JSONException e) {
-                e.printStackTrace();
+                Log.e(SUGO_TAG, "sugo init api: "+e.toString());
+                return;
             }
         }
 
-        public SugoInitThread (Context context) {
+        public SugoInitThread (Context context,final InitSugoCallback callback) {
             this.context = context;
+            this.callback = callback;
         }
         @Override
         public void run() {
@@ -423,16 +439,25 @@ public class SugoAPI {
             try {
                 runSdkInitializeRequest();
             } catch (RemoteService.ServiceUnavailableException e) {
-                e.printStackTrace();
+                Log.e(SUGO_TAG, "sugo init api: "+e.toString());
+                return;
             } catch (Exception e){
-                e.printStackTrace();
+                Log.e(SUGO_TAG, "sugo init api: "+e.toString());
+                return;
             }
-            Message msg =Message.obtain();
-            msg.obj = context;
-            msg.what=1;
-            SugoInitHandler.sendMessage(msg);
+            try{
+                Message msg =Message.obtain();
+                Map<String,Object> map = new HashMap<>();
+                map.put("context",context);
+                map.put("callback",callback);
+                msg.obj = map;
+                msg.what=1;
+                SugoInitHandler.sendMessage(msg);
+            }catch (Exception e){
+                Log.e(SUGO_TAG, "sugo init api: "+e.toString());
+                return;
+            }
         }
-
     }
 
     private static Handler SugoInitHandler = new Handler(){
@@ -442,14 +467,25 @@ public class SugoAPI {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             switch (msg.what) {
-                case 1:
-                    SharedPreferences preferences = ((Context) msg.obj).getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
-                    boolean isSugoInitialize = preferences.getBoolean(ViewCrawler.ISSUGOINITIALIZE,false);
-                    if (isSugoInitialize)
-                        SugoAPI.getInstance((Context) msg.obj);
-                    break;
+        case 1:
+            try {
+                Map<String, Object> map = (HashMap) msg.obj;
+                Context context = (Context) map.get("context");
+                InitSugoCallback callback = (InitSugoCallback) map.get("callback");
+                SharedPreferences preferences = (context).getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
+                boolean isSugoInitialize = preferences.getBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
+                if (isSugoInitialize) {
+                    SugoAPI.getInstance(context);
+                    if (callback != null) callback.finish();
+                    Log.i("Sugo", "SugoSDK 初始化成功！");
+                }
+            }catch (Exception e){
+                Log.e(SUGO_TAG, "sugo init api handleMessage: " + e.toString());
+                return;
             }
-        }
+            break;
+    }
+}
     };
 
 

@@ -71,7 +71,7 @@ import io.sugo.android.util.RemoteService;
  */
 @TargetApi(SGConfig.UI_FEATURES_MIN_API)
 public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisitor.OnLayoutErrorListener {
-
+    private static String TAG = "SUGO_ViewCrawler";
 
 
     public ViewCrawler(Context context, String token, SugoAPI mixpanel, Tweaks tweaks) {
@@ -286,8 +286,14 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
 
         @Override
         public void onActivityResumed(Activity activity) {
-            SharedPreferences pre = activity.getSharedPreferences(ViewCrawler.UPLOADLOCATION, Context.MODE_PRIVATE);
-            int isuploadLocation = pre.getInt(ViewCrawler.UPLOADLOCATION,0);
+            int isuploadLocation = 0;
+            try{
+                SharedPreferences pre = activity.getSharedPreferences(ViewCrawler.UPLOADLOCATION, Context.MODE_PRIVATE);
+                isuploadLocation = pre.getInt(ViewCrawler.UPLOADLOCATION,0);
+            }catch (Exception e){
+                Log.e(TAG, "onActivityResumed: "+e.toString());
+                return ;
+            }
             if (isuploadLocation>0&&SGConfig.positionConfig > 0){
                 long now = System.currentTimeMillis();
                 if (now - SGConfig.lastReportLoaction > isuploadLocation * 60000) {
