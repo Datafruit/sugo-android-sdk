@@ -105,6 +105,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         }
     }
 
+
     private Result runEventApiRequest(final String token, final String distinctId, final RemoteService poster)
             throws RemoteService.ServiceUnavailableException, UnintelligibleMessageException {
         final String responseString = getEventApiResponseFromServer(token, distinctId, poster);
@@ -239,6 +240,29 @@ import io.sugo.android.viewcrawler.ViewCrawler;
             }
         }
         return ret;
+    }
+
+
+    public String getSugoInitializeEndpointFromServer(@NonNull String token,@NonNull String projectId,@NonNull String appVersion,RemoteService poster)throws RemoteService.ServiceUnavailableException{
+        try {
+            token = URLEncoder.encode(token, "utf-8");
+        } catch (final UnsupportedEncodingException e) {
+            throw new RuntimeException("Sugo library requires utf-8 string encoding to be available", e);
+        }
+        final StringBuilder queryBuilder = new StringBuilder()
+                .append("?tokenId=").append(token)
+                .append("&projectId=").append(projectId)
+                .append("&appVersion=").append(appVersion);
+        final String[] urls = new String[]{mConfig.getSugoInitializeEndpoint() + queryBuilder.toString()};
+        final byte[] response = getUrls(poster, mContext, urls);
+        if (null == response) {
+            return null;
+        }
+        try {
+            return new String(response, "UTF-8");
+        } catch (final UnsupportedEncodingException e) {
+            throw new RuntimeException("UTF not supported on this platform?", e);
+        }
     }
 
     private String getEventApiResponseFromServer(@NonNull String unescapedToken, String unescapedDistinctId, RemoteService poster)

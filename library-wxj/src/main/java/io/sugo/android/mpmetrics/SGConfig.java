@@ -95,12 +95,13 @@ public class SGConfig {
     // Unfortunately, as long as we support building from source in Eclipse,
     // we can't rely on BuildConfig.SUGO_VERSION existing, so this must
     // be hard-coded both in our gradle files and here in code.
-    public static final String VERSION = "2.7.9";
+    public static final String VERSION = "2.8.0";
 
     public static boolean DEBUG = false;
 
     public static int positionConfig = -1;
     public static long lastReportLoaction = 0l;
+
 
     /**
      * Minimum API level for support of rich UI features, like Surveys, In-App notifications, and dynamic event binding.
@@ -249,6 +250,7 @@ public class SGConfig {
         mEventsEndpoint = eventsHost + "/post?locate=" + mProjectId;
         mDimDecideEndpoint = apiHost + "/api/sdk/decide-dimesion";
         mEventDecideEndpoint = apiHost + "/api/sdk/decide-event";
+        mSugoInitializeEndpoint = apiHost + "/api/sdk/decide-config";
         // 默认开启【页面事件】
         mEnablePageEvent = metaData.getBoolean("io.sugo.android.SGConfig.EnablePageEvent", true);
 
@@ -464,6 +466,10 @@ public class SGConfig {
         return mEventDecideEndpoint;
     }
 
+    public String getSugoInitializeEndpoint(){
+        return mSugoInitializeEndpoint;
+    }
+
     public String getHeatMapEndpoint(){
         return mHeatMapEndpoint;
     }
@@ -585,6 +591,7 @@ public class SGConfig {
     private String mEventsEndpoint;
     private final String mDimDecideEndpoint;
     private final String mEventDecideEndpoint;
+    private final String mSugoInitializeEndpoint;
     private boolean mEnablePageEvent;
     private final String mEventsFallbackEndpoint;
     private final String mPeopleEndpoint;
