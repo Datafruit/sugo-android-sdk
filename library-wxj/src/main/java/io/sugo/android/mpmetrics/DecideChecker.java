@@ -28,6 +28,7 @@ import java.util.List;
 
 import javax.net.ssl.SSLSocketFactory;
 
+import io.sugo.android.util.ExceptionInfoUtils;
 import io.sugo.android.util.ImageStore;
 import io.sugo.android.util.RemoteService;
 import io.sugo.android.viewcrawler.ViewCrawler;
@@ -108,6 +109,25 @@ import io.sugo.android.viewcrawler.ViewCrawler;
 
     private Result runEventApiRequest(final String token, final String distinctId, final RemoteService poster)
             throws RemoteService.ServiceUnavailableException, UnintelligibleMessageException {
+        SharedPreferences pref = mContext.getSharedPreferences(ViewCrawler.ISUPDATACONFIG, Context.MODE_PRIVATE);
+        boolean isUpdateConfig = pref.getBoolean(ViewCrawler.ISUPDATACONFIG, false);
+        pref = mContext.getSharedPreferences(ViewCrawler.LAESTEVENTBINDINGVERSION , Context.MODE_PRIVATE);
+        long latestEventBindingVersion = pref.getLong(ViewCrawler.LAESTEVENTBINDINGVERSION, -1);
+
+        if (isUpdateConfig){
+            SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + token, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putInt(ViewCrawler.SHARED_PREF_EDITS_FILE + token, -1);
+            editor.commit();
+        }else{
+            SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + token, Context.MODE_PRIVATE);
+            int oldEventBindingVersion = preferences.getInt(ViewCrawler.SP_EVENT_BINDING_VERSION, -1);
+            if (oldEventBindingVersion == latestEventBindingVersion&&oldEventBindingVersion!=-1){
+                return null;
+            }
+        }
+
+
         final String responseString = getEventApiResponseFromServer(token, distinctId, poster);
         if (SGConfig.DEBUG) {
             Log.v(LOGTAG, "Sugo decide server response was:\n" + responseString);
@@ -149,6 +169,25 @@ import io.sugo.android.viewcrawler.ViewCrawler;
 
     private Result runDimApiRequest(final String token, final String distinctId, final RemoteService poster)
             throws RemoteService.ServiceUnavailableException, UnintelligibleMessageException {
+        //Determine whether to force an update
+        SharedPreferences pref = mContext.getSharedPreferences(ViewCrawler.ISUPDATACONFIG , Context.MODE_PRIVATE);
+        boolean isUpdateConfig = pref.getBoolean(ViewCrawler.ISUPDATACONFIG, false);
+        pref = mContext.getSharedPreferences(ViewCrawler.LAESTEVENTBINDINGVERSION , Context.MODE_PRIVATE);
+        long latestDimensionVersion = pref.getLong(ViewCrawler.LAESTDIMENSIONVERSION, -1);
+
+        if (isUpdateConfig){
+            SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + token, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putInt(ViewCrawler.SP_DIMENSION_VERSION + token, -1);
+            editor.commit();
+        }else{
+            SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + token, Context.MODE_PRIVATE);
+            int oldEventBindingVersion = preferences.getInt(ViewCrawler.SP_DIMENSION_VERSION, -1);
+            if (oldEventBindingVersion == latestDimensionVersion&&oldEventBindingVersion!=-1){
+                return null;
+            }
+        }
+
         final String responseString = getDimApiResponseFromServer(token, distinctId, poster);
         if (SGConfig.DEBUG) {
             Log.v(LOGTAG, "Sugo dimensions response was:\n" + responseString);
@@ -180,6 +219,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                 parsed = parseApiResponse(responseString);
                 return parsed;
             } catch (final JSONException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 final String message = "Sugo dimensions endpoint returned unparsable result:\n" + responseString;
                 throw new UnintelligibleMessageException(message, e);
             }
@@ -195,6 +235,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         try {
             response = new JSONObject(responseString);
         } catch (final JSONException e) {
+
             final String message = "Sugo endpoint returned unparsable result:\n" + responseString;
             throw new UnintelligibleMessageException(message, e);
         }
@@ -247,6 +288,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         try {
             token = URLEncoder.encode(token, "utf-8");
         } catch (final UnsupportedEncodingException e) {
+            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             throw new RuntimeException("Sugo library requires utf-8 string encoding to be available", e);
         }
         final StringBuilder queryBuilder = new StringBuilder()
@@ -261,6 +303,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         try {
             return new String(response, "UTF-8");
         } catch (final UnsupportedEncodingException e) {
+            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             throw new RuntimeException("UTF not supported on this platform?", e);
         }
     }
@@ -277,6 +320,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                 escapedId = null;
             }
         } catch (final UnsupportedEncodingException e) {
+            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             throw new RuntimeException("Sugo library requires utf-8 string encoding to be available", e);
         }
 
@@ -313,6 +357,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
             queryBuilder.append("&properties=");
             queryBuilder.append(URLEncoder.encode(properties.toString(), "utf-8"));
         } catch (Exception e) {
+            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             Log.e(LOGTAG, "Exception constructing properties JSON", e.getCause());
         }
 
@@ -339,6 +384,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         try {
             return new String(response, "UTF-8");
         } catch (final UnsupportedEncodingException e) {
+            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             throw new RuntimeException("UTF not supported on this platform?", e);
         }
     }
@@ -355,6 +401,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                 escapedId = null;
             }
         } catch (final UnsupportedEncodingException e) {
+            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             throw new RuntimeException("Sugo library requires utf-8 string encoding to be available", e);
         }
 
@@ -387,6 +434,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
             queryBuilder.append("&properties=");
             queryBuilder.append(URLEncoder.encode(properties.toString(), "utf-8"));
         } catch (Exception e) {
+            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             Log.e(LOGTAG, "Exception constructing properties JSON", e.getCause());
         }
 
@@ -413,6 +461,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         try {
             return new String(response, "UTF-8");
         } catch (final UnsupportedEncodingException e) {
+            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             throw new RuntimeException("UTF not supported on this platform?", e);
         }
     }
@@ -427,6 +476,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         try {
             response = new JSONObject(responseString);
         } catch (final JSONException e) {
+
             final String message = "Mixpanel endpoint returned unparsable result:\n" + responseString;
             throw new UnintelligibleMessageException(message, e);
         }

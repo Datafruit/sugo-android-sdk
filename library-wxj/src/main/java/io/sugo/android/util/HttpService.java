@@ -21,6 +21,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
 
 import io.sugo.android.mpmetrics.SGConfig;
+import io.sugo.android.mpmetrics.SugoAPI;
 
 /**
  * An HTTP utility class for internal use in the Mixpanel library. Not thread-safe.
@@ -68,6 +69,7 @@ public class HttpService implements RemoteService {
                 Log.v(LOGTAG, "ConnectivityManager says we " + (isOnline ? "are" : "are not") + " online");
             }
         } catch (final SecurityException e) {
+            SugoAPI.getInstance(context).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
             isOnline = true;
             if (SGConfig.DEBUG) {
                 Log.v(LOGTAG, "Don't have permission to check connectivity, will assume we are online");

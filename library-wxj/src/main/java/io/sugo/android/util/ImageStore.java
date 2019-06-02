@@ -8,6 +8,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import io.sugo.android.mpmetrics.SGConfig;
+import io.sugo.android.mpmetrics.SugoAPI;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -46,6 +47,7 @@ public class ImageStore {
         try {
             useDigest = MessageDigest.getInstance("SHA1");
         } catch (NoSuchAlgorithmException e) {
+            SugoAPI.getInstance(context).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
             Log.w(LOGTAG, "Images won't be stored because this platform doesn't supply a SHA1 hash function");
             useDigest = null;
         }

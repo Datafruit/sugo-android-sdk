@@ -25,6 +25,7 @@ import java.util.Map;
 import javax.net.ssl.SSLSocketFactory;
 
 import io.sugo.android.util.Base64Coder;
+import io.sugo.android.util.ExceptionInfoUtils;
 import io.sugo.android.util.HttpService;
 import io.sugo.android.util.RemoteService;
 import io.sugo.android.viewcrawler.ViewCrawler;
@@ -117,6 +118,22 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         m.what = KILL_WORKER;
 
         mWorker.runMessage(m);
+    }
+
+    public void sendDataForInitSugo(Exception exception){
+        try {
+            JSONObject props = ExceptionInfoUtils.ExceptionInfo(mContext,exception);
+            final RemoteService poster = getPoster();
+            String url = mConfig.getExceptionTopicEndpoint();
+            final String encodedData = Base64Coder.encodeString(props.toString());
+            final SSLSocketFactory socketFactory = mConfig.getSSLSocketFactory();
+            byte[] response;
+            response = poster.performRawRequest(url, encodedData, socketFactory);
+            String parsedResponse = new String(response, "UTF-8");
+            Log.d("SUGO_TAG", "sendDataForInitSugo: "+parsedResponse);
+        }catch (Exception e){
+            Log.e("SUGO_TAG", "sendDataForInitSugo: " + e.toString());
+        }
     }
 
     /////////////////////////////////////////////////////////
@@ -326,6 +343,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                             logAboutMessageToMixpanel("    " + message.toString());
                             returnCode = mDbAdapter.addJSON(message, MPDbAdapter.Table.EVENTS);
                         } catch (final JSONException e) {
+                            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                             Log.e(LOGTAG, "Exception tracking event " + eventDescription.getEventName(), e);
                         }
                     } else if (msg.what == FLUSH_QUEUE) {
@@ -348,6 +366,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                             try {
                                 mDecideChecker.runDecideChecks(getPoster());
                             } catch (RemoteService.ServiceUnavailableException e) {
+                                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                                 mDecideRetryAfter = SystemClock.elapsedRealtime() + e.getRetryAfter() * 1000;
                             }
                             if (mUpdateDecideInterval > 0) {     // 不允许低于 1s 的值
@@ -364,6 +383,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                                     mDecideChecker.runDecideChecks(getPoster());
                                 }
                             } catch (RemoteService.ServiceUnavailableException e) {
+                                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                                 mDecideRetryAfter = SystemClock.elapsedRealtime() + e.getRetryAfter() * 1000;
                             }
                             if (mUpdateDecideInterval > 0) {     // 不允许低于 1s 的值
@@ -415,6 +435,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                         }
                     }
                 } catch (final RuntimeException e) {
+                    SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                     Log.e(LOGTAG, "Worker threw an unhandled exception", e);
                     synchronized (mHandlerLock) {
                         mHandler = null;
@@ -422,6 +443,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                             Looper.myLooper().quit();
                             Log.e(LOGTAG, "Mixpanel will not process any more analytics messages", e);
                         } catch (final Exception tooLate) {
+                            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                             Log.e(LOGTAG, "Could not halt looper", tooLate);
                         }
                     }
@@ -450,6 +472,8 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                             new String[]{mConfig.getPeopleEndpoint(), mConfig.getPeopleFallbackEndpoint()});
                 }
             }
+
+
 
             private void sendData(MPDbAdapter dbAdapter, MPDbAdapter.Table table, String[] urls) {
                 final RemoteService poster = getPoster();
@@ -501,6 +525,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                                     response = poster.performRawRequest(url + "_filter", Base64Coder.encodeString(wrongEvent), socketFactory);
                                 }
                             } catch (Exception e){
+                                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                                 Log.e(LOGTAG, "Cannot post message to " + url + "_filter" + ".", e);
                             }
 
@@ -509,16 +534,20 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                             Log.e(LOGTAG, "Out of memory when posting to " + url + ".", e);
                             break;
                         } catch (final MalformedURLException e) {
+                            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                             Log.e(LOGTAG, "Cannot interpret " + url + " as a URL.", e);
                             break;
                         } catch (final RemoteService.ServiceUnavailableException e) {
+                            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                             logAboutMessageToMixpanel("Cannot post message to " + url + ".", e);
                             deleteEvents = false;
                             mTrackEngageRetryAfter = e.getRetryAfter() * 1000;
                         } catch (final SocketTimeoutException e) {
+                            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                             logAboutMessageToMixpanel("Cannot post message to " + url + ".", e);
                             deleteEvents = false;
                         } catch (final IOException e) {
+                            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                             logAboutMessageToMixpanel("Cannot post message to " + url + ".", e);
                             deleteEvents = false;
                         }

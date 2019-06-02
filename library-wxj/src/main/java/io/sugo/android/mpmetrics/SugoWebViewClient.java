@@ -17,6 +17,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.regex.Pattern;
 
+import io.sugo.android.util.ExceptionInfoUtils;
 import io.sugo.android.util.FileUtils;
 import io.sugo.android.util.StringEscapeUtils;
 import io.sugo.android.viewcrawler.ViewCrawler;
@@ -128,6 +129,7 @@ public class SugoWebViewClient extends WebViewClient {
             }
             realPath = realPath.replace(sugoAPI.getConfig().getWebRoot(), "");
         } catch (MalformedURLException e) {
+            sugoAPI.track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(sugoAPI.getCurrentContext(),e));
             e.printStackTrace();
         }
         return SugoPageManager.getInstance().getCurrentPageInfo(realPath);

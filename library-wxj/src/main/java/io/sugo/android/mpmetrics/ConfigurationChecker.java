@@ -15,6 +15,8 @@ import android.content.pm.ResolveInfo;
 import android.os.Build;
 import android.util.Log;
 
+import io.sugo.android.util.ExceptionInfoUtils;
+
 /*
  * Copyright 2012 Google Inc.
  *
@@ -81,6 +83,7 @@ import android.util.Log;
         try {
             packageManager.getPermissionInfo(permissionName, PackageManager.GET_PERMISSIONS);
         } catch (final NameNotFoundException e) {
+            SugoAPI.getInstance(context).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
             Log.w(LOGTAG, "Application does not define permission " + permissionName);
             Log.i(LOGTAG, "You will need to add the following lines to your application manifest:\n" +
                     "<permission android:name=\"" + packageName + ".permission.C2D_MESSAGE\" android:protectionLevel=\"signature\" />\n" +
@@ -128,6 +131,7 @@ import android.util.Log;
         try {
             receiversInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_RECEIVERS);
         } catch (final NameNotFoundException e) {
+            SugoAPI.getInstance(context).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
             Log.w(LOGTAG, "Could not get receivers for package " + packageName);
             return false;
         }
@@ -163,6 +167,7 @@ import android.util.Log;
             Class.forName("com.google.android.gms.common.GooglePlayServicesUtil");
             canRegisterWithPlayServices = true;
         } catch(final ClassNotFoundException e) {
+            SugoAPI.getInstance(context).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
             Log.w(LOGTAG, "Google Play Services aren't included in your build- push notifications won't work on Lollipop/API 21 or greater");
             Log.i(LOGTAG, "You can fix this by adding com.google.android.gms:play-services as a dependency of your gradle or maven project");
         }

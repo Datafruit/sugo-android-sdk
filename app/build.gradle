@@ -68,7 +68,7 @@ repositories {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile(project(':library-wxj'))
-//    compile(project(':library_heatmap'))
+    compile(project(':library_heatmap'))
 //    compile 'io.sugo.android:sugo-android-sdk-wxj:2.7.8'
 //    compile 'io.sugo.android:sugo-android-sdk-heatmap:2.7.8'
 

@@ -18,6 +18,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import io.sugo.android.util.ExceptionInfoUtils;
+
 /**
  * SQLite database adapter for SugoAPI.
  *

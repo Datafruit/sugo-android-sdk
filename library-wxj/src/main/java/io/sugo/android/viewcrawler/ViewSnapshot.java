@@ -84,6 +84,7 @@ import io.sugo.android.mpmetrics.SugoWebNodeReporter;
         try {
             infoList = infoFuture.get(1, TimeUnit.SECONDS);
         } catch (final InterruptedException e) {
+
             if (SGConfig.DEBUG) {
                 Log.d(LOGTAG, "Screenshot interrupted, no screenshot will be sent.", e);
             }

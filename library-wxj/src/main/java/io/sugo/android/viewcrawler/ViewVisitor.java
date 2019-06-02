@@ -33,6 +33,7 @@ import java.util.WeakHashMap;
 
 import io.sugo.android.mpmetrics.SGConfig;
 import io.sugo.android.mpmetrics.SugoAPI;
+import io.sugo.android.util.ExceptionInfoUtils;
 
 @TargetApi(SGConfig.UI_FEATURES_MIN_API)
 /* package */ abstract class ViewVisitor implements Pathfinder.Accumulator {
@@ -440,10 +441,13 @@ import io.sugo.android.mpmetrics.SugoAPI;
                 Method m = klass.getMethod("getAccessibilityDelegate");
                 ret = (View.AccessibilityDelegate) m.invoke(v);
             } catch (NoSuchMethodException e) {
+                SugoAPI.getInstance(v.getContext()).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(v.getContext(),e));
                 // In this case, we just overwrite the original.
             } catch (IllegalAccessException e) {
+                SugoAPI.getInstance(v.getContext()).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(v.getContext(),e));
                 // In this case, we just overwrite the original.
             } catch (InvocationTargetException e) {
+                SugoAPI.getInstance(v.getContext()).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(v.getContext(),e));
                 Log.w(LOGTAG, "getAccessibilityDelegate threw an exception when called.", e);
             }
 
@@ -610,7 +614,7 @@ import io.sugo.android.mpmetrics.SugoAPI;
             mClassAttr = classAttr;
         }
 
-        protected void fireEvent(View found) {
+        protected void fireEvent(final View found) {
             final JSONObject properties = new JSONObject();
             if (mDimMap != null && mDimMap.size() > 0) {
                 for (final String dimName : mDimMap.keySet()) {
@@ -622,6 +626,7 @@ import io.sugo.android.mpmetrics.SugoAPI;
                                 try {
                                     properties.put(dimName, tv.getText().toString());
                                 } catch (JSONException e) {
+                                    SugoAPI.getInstance(found.getContext()).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(found.getContext(),e));
                                     Log.e(LOGTAG, "", e);
                                 }
                             }
@@ -632,7 +637,7 @@ import io.sugo.android.mpmetrics.SugoAPI;
             try {
                 properties.put(SGConfig.FIELD_EVENT_TYPE, getEventTypeString());
             } catch (JSONException e) {
-
+                SugoAPI.getInstance(found.getContext()).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(found.getContext(),e));
             }
             SGConfig mConfig = SGConfig.getInstance(found.getContext());
             if (mConfig.getmStartExtraAttrFunction()){
