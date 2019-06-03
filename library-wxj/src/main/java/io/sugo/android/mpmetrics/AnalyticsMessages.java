@@ -122,7 +122,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
 
     public void sendDataForInitSugo(Exception exception){
         try {
-            JSONObject props = ExceptionInfoUtils.ExceptionInfo(mContext,exception);
+            JSONObject props = ExceptionInfoUtils.ExceptionInfo2(mContext,exception);
             final RemoteService poster = getPoster();
             String url = mConfig.getExceptionTopicEndpoint();
             final String encodedData = Base64Coder.encodeString(props.toString());
@@ -132,7 +132,7 @@ import io.sugo.android.viewcrawler.ViewCrawler;
             String parsedResponse = new String(response, "UTF-8");
             Log.d("SUGO_TAG", "sendDataForInitSugo: "+parsedResponse);
         }catch (Exception e){
-            Log.e("SUGO_TAG", "sendDataForInitSugo: " + e.toString());
+            Log.e("SUGO_TAG", "sendDataForInitSugo: " + e);
         }
     }
 
