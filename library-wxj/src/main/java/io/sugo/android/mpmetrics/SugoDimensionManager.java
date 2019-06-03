@@ -6,6 +6,8 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 
+import io.sugo.android.util.ExceptionInfoUtils;
+
 /**
  * Created by Administrator on 2017/2/16.
  */

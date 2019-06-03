@@ -95,7 +95,7 @@ public class SGConfig {
     // Unfortunately, as long as we support building from source in Eclipse,
     // we can't rely on BuildConfig.SUGO_VERSION existing, so this must
     // be hard-coded both in our gradle files and here in code.
-    public static final String VERSION = "2.8.0";
+    public static final String VERSION = "2.8.1";
 
     public static boolean DEBUG = false;
 
@@ -246,8 +246,10 @@ public class SGConfig {
         }
         mProjectId = projectId;
         String apiHost = metaData.getString("io.sugo.android.SGConfig.APIHost");
+        exceptionTopic = metaData.getString("io.sugo.android.SGConfig.ExceptionTopic","sugo_exception");
         String eventsHost = metaData.getString("io.sugo.android.SGConfig.EventsHost");
         mEventsEndpoint = eventsHost + "/post?locate=" + mProjectId;
+        exceptionTopicEndpoint = eventsHost + "/post?locate=" + exceptionTopic;
         mDimDecideEndpoint = apiHost + "/api/sdk/decide-dimesion";
         mEventDecideEndpoint = apiHost + "/api/sdk/decide-event";
         mSugoInitializeEndpoint = apiHost + "/api/sdk/decide-config";
@@ -453,6 +455,10 @@ public class SGConfig {
         return mEventsEndpoint;
     }
 
+    public String getExceptionTopicEndpoint(){
+        return exceptionTopicEndpoint;
+    }
+
     // Preferred URL for tracking people
     public String getPeopleEndpoint() {
         return mPeopleEndpoint;
@@ -596,6 +602,8 @@ public class SGConfig {
     private final String mEventsFallbackEndpoint;
     private final String mPeopleEndpoint;
     private final String mPeopleFallbackEndpoint;
+    private final String exceptionTopic;
+    private final String exceptionTopicEndpoint;
     private final String mDecideEndpoint;
     private final String mDecideFallbackEndpoint;
     private final boolean mAutoShowMixpanelUpdates;

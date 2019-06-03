@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import io.sugo.android.util.ExceptionInfoUtils;
 import io.sugo.android.viewcrawler.SugoHeatMap;
 
 /**
@@ -60,10 +61,12 @@ public class SugoWebEventListener {
                 sugoAPI.track(eventId, eventName, jsonObject);
             }
         } catch (JSONException e) {
+            sugoAPI.track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(sugoAPI.getCurrentContext(),e));
             JSONObject jsonObject = new JSONObject();
             try {
                 jsonObject.put(SGConfig.FIELD_TEXT, e.toString());
             } catch (JSONException e1) {
+                sugoAPI.track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(sugoAPI.getCurrentContext(),e));
                 e1.printStackTrace();
             }
             sugoAPI.track("Exception", jsonObject);

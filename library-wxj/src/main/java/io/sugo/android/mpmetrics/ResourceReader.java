@@ -9,6 +9,8 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.sugo.android.util.ExceptionInfoUtils;
+
 /**
  * This class is for internal use in the Mixpanel library, and should not be imported into
  * client code.
@@ -118,6 +120,7 @@ public abstract class ResourceReader implements ResourceIds {
             final Class<?> rIdClass = Class.forName(localClassName);
             readClassIds(rIdClass, null, mIdNameToId);
         } catch (ClassNotFoundException e) {
+            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             Log.w(LOGTAG, "Can't load names for Android view ids from '" + localClassName + "', ids by name will not be available in the events editor.");
             Log.i(LOGTAG,
                     "You may be missing a Resources class for your package due to your proguard configuration, " +

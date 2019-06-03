@@ -60,6 +60,7 @@ import io.sugo.android.mpmetrics.SugoWebEventListener;
 import io.sugo.android.mpmetrics.SuperPropertyUpdate;
 import io.sugo.android.mpmetrics.SystemInformation;
 import io.sugo.android.mpmetrics.Tweaks;
+import io.sugo.android.util.ExceptionInfoUtils;
 import io.sugo.android.util.HttpService;
 import io.sugo.android.util.ImageStore;
 import io.sugo.android.util.JSONUtils;
@@ -225,6 +226,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                             return true;
                         }
                     } catch (Exception e) {
+                        SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                         e.printStackTrace();
                     }
                 }
@@ -291,6 +293,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                 SharedPreferences pre = activity.getSharedPreferences(ViewCrawler.UPLOADLOCATION, Context.MODE_PRIVATE);
                 isuploadLocation = pre.getInt(ViewCrawler.UPLOADLOCATION,0);
             }catch (Exception e){
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.e(TAG, "onActivityResumed: "+e.toString());
                 return ;
             }
@@ -312,6 +315,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                         editor.putLong(ViewCrawler.LAST_REPORT_LOCATION, now);
                         editor.apply();
                     } catch (JSONException e) {
+                        SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                         e.printStackTrace();
                     }
                 }
@@ -520,6 +524,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                         mSeenExperiments.add(sight);
                     }
                 } catch (JSONException e) {
+                    SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                     Log.e(LOGTAG, "Malformed variants found in persistent storage, clearing all variants", e);
                     final SharedPreferences.Editor editor = preferences.edit();
                     editor.remove(SHARED_PREF_CHANGES_KEY);
@@ -589,6 +594,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                     }
                 }
             } catch (final JSONException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.i(LOGTAG, "JSON error when initializing saved changes, clearing persistent memory", e);
                 final SharedPreferences.Editor editor = preferences.edit();
                 editor.remove(SHARED_PREF_CHANGES_KEY);
@@ -617,6 +623,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                     escapedId = null;
                 }
             } catch (final UnsupportedEncodingException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 throw new RuntimeException("Sugo library requires utf-8 string encoding to be available", e);
             }
 
@@ -647,6 +654,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                 queryBuilder.append("&properties=");
                 queryBuilder.append(URLEncoder.encode(properties.toString(), "utf-8"));
             } catch (Exception e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.e(LOGTAG, "Exception constructing properties JSON", e.getCause());
             }
 
@@ -668,8 +676,10 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                 }
                 return new String(response, "UTF-8");
             } catch (final UnsupportedEncodingException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 throw new RuntimeException("UTF not supported on this platform?", e);
             } catch (RemoteService.ServiceUnavailableException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 e.printStackTrace();
             }
             return null;
@@ -690,12 +700,15 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                     response = poster.performRequest(url, null, socketFactory);
                     break;
                 } catch (final MalformedURLException e) {
+                    SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                     Log.e(LOGTAG, "Cannot interpret " + url + " as a URL.", e);
                 } catch (final FileNotFoundException e) {
+                    SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                     if (SGConfig.DEBUG) {
                         Log.v(LOGTAG, "Cannot get " + url + ", file not found.", e);
                     }
                 } catch (final IOException e) {
+                    SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                     if (SGConfig.DEBUG) {
                         Log.v(LOGTAG, "Cannot get " + url + ".", e);
                     }
@@ -741,10 +754,13 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                     socket = new Socket();
                 mEditorConnection = new EditorConnection(new URI(url), new Editor(), socket);
             } catch (final URISyntaxException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.e(LOGTAG, "Error parsing URI " + url + " for editor websocket", e);
             } catch (final EditorConnection.EditorConnectionException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.e(LOGTAG, "Error connecting to URI " + url, e);
             } catch (IOException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.i(LOGTAG, "Can't create SSL Socket to connect to editor service", e);
             }
         }
@@ -761,6 +777,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
             try {
                 errorObject.put("error_message", errorMessage);
             } catch (final JSONException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.e(LOGTAG, "Apparently impossible JSONException", e);
             }
 
@@ -771,11 +788,13 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                 writer.write(errorObject.toString());
                 writer.write("}");
             } catch (final IOException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.e(LOGTAG, "Can't write error message to editor", e);
             } finally {
                 try {
                     writer.close();
                 } catch (final IOException e) {
+                    SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                     Log.e(LOGTAG, "Could not close output writer to editor", e);
                 }
             }
@@ -842,11 +861,13 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                 j.endObject(); // payload
                 j.endObject();
             } catch (final IOException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.e(LOGTAG, "Can't write device_info to server", e);
             } finally {
                 try {
                     j.close();
                 } catch (final IOException e) {
+                    SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                     Log.e(LOGTAG, "Can't close websocket writer", e);
                 }
             }
@@ -870,10 +891,12 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                     bitmapHash = payload.getString("image_hash");
                 }
             } catch (final JSONException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.e(LOGTAG, "Payload with snapshot config required with snapshot request", e);
                 sendError("Payload with snapshot config required with snapshot request");
                 return;
             } catch (final EditProtocol.BadInstructionsException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.e(LOGTAG, "Editor sent malformed message with snapshot request", e);
                 sendError(e.getMessage());
                 return;
@@ -927,11 +950,13 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                 writer.write("}"); // } whole message
 
             } catch (final IOException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.e(LOGTAG, "Can't write snapshot request to server", e);
             } finally {
                 try {
                     writer.close();
                 } catch (final IOException e) {
+                    SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                     Log.e(LOGTAG, "Can't close writer.", e);
                 }
             }
@@ -963,11 +988,13 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                 j.endObject();
                 j.flush();
             } catch (final IOException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.e(LOGTAG, "Can't write track_message to server", e);
             } finally {
                 try {
                     j.close();
                 } catch (final IOException e) {
+                    SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                     Log.e(LOGTAG, "Can't close writer.", e);
                 }
             }
@@ -989,11 +1016,13 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                 j.name("cid").value(exception.getName());
                 j.endObject();
             } catch (final IOException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.e(LOGTAG, "Can't write track_message to server", e);
             } finally {
                 try {
                     j.close();
                 } catch (final IOException e) {
+                    SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                     Log.e(LOGTAG, "Can't close writer.", e);
                 }
             }
@@ -1016,6 +1045,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
 
                 applyVariantsAndEventBindings(Collections.<Pair<Integer, Integer>>emptyList());
             } catch (final JSONException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.e(LOGTAG, "Bad change request received", e);
             }
         }
@@ -1034,6 +1064,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                     mEditorChanges.remove(changeId);
                 }
             } catch (final JSONException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.e(LOGTAG, "Bad clear request received", e);
             }
 
@@ -1051,6 +1082,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                     mEditorTweaks.add(tweakDesc);
                 }
             } catch (final JSONException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.e(LOGTAG, "Bad tweaks received", e);
             }
 
@@ -1142,13 +1174,16 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                 pkg.put("payload", eventpkg);
                 out.write(pkg.toString().getBytes());
             } catch (final JSONException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.e(LOGTAG, "JSON convert Exception", e);
             } catch (final IOException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.e(LOGTAG, "Can't write device_info to server", e);
             } finally {
                 try {
                     out.close();
                 } catch (final IOException e) {
+                    SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                     Log.e(LOGTAG, "Can't close websocket writer", e);
                 }
             }
@@ -1176,6 +1211,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                 SugoWebEventListener.bindEvents(mToken, h5EventBindings);
                 SugoDimensionManager.getInstance().setDimensions(dimensionsBindings);
             } catch (final JSONException e) {
+                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.e(LOGTAG, "Bad event bindings received", e);
                 return;
             }
@@ -1189,6 +1225,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                     final String targetActivity = JSONUtils.optionalStringKey(event, "target_activity");
                     mEditorEventBindings.add(new Pair<String, JSONObject>(targetActivity, event));
                 } catch (final JSONException e) {
+                    SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                     Log.e(LOGTAG, "Bad event binding received from editor in " + eventBindings.toString(), e);
                 }
             }
@@ -1243,10 +1280,13 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                             toTrack.add(changeInfo.variantId);
                         }
                     } catch (final EditProtocol.CantGetEditAssetsException e) {
+                        SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                         Log.v(LOGTAG, "Can't load assets for an edit, won't apply the change now", e);
                     } catch (final EditProtocol.InapplicableInstructionsException e) {
+                        SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                         Log.i(LOGTAG, e.getMessage());
                     } catch (final EditProtocol.BadInstructionsException e) {
+                        SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                         Log.e(LOGTAG, "Bad persistent change request cannot be applied.", e);
                     }
                 }
@@ -1269,6 +1309,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
 
                         mTweaks.set(tweakValue.first, tweakValue.second);
                     } catch (EditProtocol.BadInstructionsException e) {
+                        SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                         Log.e(LOGTAG, "Bad editor tweak cannot be applied.", e);
                     }
                 }
@@ -1296,10 +1337,13 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                         newVisitors.add(new Pair<String, ViewVisitor>(changeInfo.first, edit.visitor));
                         mEditorAssetUrls.addAll(edit.imageUrls);
                     } catch (final EditProtocol.CantGetEditAssetsException e) {
+                        SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                         Log.v(LOGTAG, "Can't load assets for an edit, won't apply the change now", e);
                     } catch (final EditProtocol.InapplicableInstructionsException e) {
+                        SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                         Log.i(LOGTAG, e.getMessage());
                     } catch (final EditProtocol.BadInstructionsException e) {
+                        SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                         Log.e(LOGTAG, "Bad editor change request cannot be applied.", e);
                     }
                 }
@@ -1314,6 +1358,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                         final Pair<String, Object> tweakValue = mProtocol.readTweak(tweakDesc);
                         mTweaks.set(tweakValue.first, tweakValue.second);
                     } catch (final EditProtocol.BadInstructionsException e) {
+                        SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                         Log.e(LOGTAG, "Strange tweaks received", e);
                     }
                 }
@@ -1327,8 +1372,10 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                         final ViewVisitor visitor = mProtocol.readEventBinding(changeInfo.second, mDynamicEventTracker);
                         newVisitors.add(new Pair<String, ViewVisitor>(changeInfo.first, visitor));
                     } catch (final EditProtocol.InapplicableInstructionsException e) {
+                        SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                         Log.i(LOGTAG, e.getMessage());
                     } catch (final EditProtocol.BadInstructionsException e) {
+                        SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                         Log.e(LOGTAG, "Bad editor event binding cannot be applied.", e);
                     }
                 }
@@ -1343,8 +1390,10 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                             final ViewVisitor visitor = mProtocol.readEventBinding(changeInfo.second, mDynamicEventTracker);
                             newVisitors.add(new Pair<String, ViewVisitor>(changeInfo.first, visitor));
                         } catch (final EditProtocol.InapplicableInstructionsException e) {
+                            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                             Log.i(LOGTAG, e.getMessage());
                         } catch (final EditProtocol.BadInstructionsException e) {
+                            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                             Log.e(LOGTAG, "Bad persistent event binding cannot be applied.", e);
                         }
                     }
@@ -1397,6 +1446,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                                 try {
                                     in.put("$experiments", variantObject);
                                 } catch (JSONException e) {
+                                    SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                                     Log.wtf(LOGTAG, "Can't write $experiments super property", e);
                                 }
                                 return in;
@@ -1406,6 +1456,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                         mMixpanel.track(null, "experiment_started", trackProps);
                     }
                 } catch (JSONException e) {
+                    SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                     Log.wtf(LOGTAG, "Could not build JSON for reporting experiment start", e);
                 }
             }
@@ -1533,6 +1584,9 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
     public static final String ISSUGOINITIALIZE = "sugo_isSugoInitialize";
     public static final String ISHEATMAPFUNC = "sugo_isHeatMapFunc";
     public static final String UPLOADLOCATION= "sugo_isuploadLocation";
+    public static final String ISUPDATACONFIG = "sugo_isUpdateConfig";
+    public static final String LAESTEVENTBINDINGVERSION = "sugo_latestEventBindingVersion";
+    public static final String LAESTDIMENSIONVERSION = "sugo_latestDimensionVersion";
 
     private static final int MESSAGE_INITIALIZE_CHANGES = 0;
     private static final int MESSAGE_CONNECT_TO_EDITOR = 1;

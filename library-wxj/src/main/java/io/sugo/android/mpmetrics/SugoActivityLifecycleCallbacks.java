@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import io.sugo.android.util.ExceptionInfoUtils;
+
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
         /* package */ class SugoActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
     private Handler mHandler = new Handler(Looper.getMainLooper());
@@ -53,6 +55,7 @@ import java.util.Map;
             props.put(SGConfig.FIELD_PAGE_NAME, "启动");
             props.put("app_name", "无限极中国APP");
         } catch (JSONException e) {
+            mSugoAPI.track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mSugoAPI.getCurrentContext(),e));
             e.printStackTrace();
         }
         mSugoAPI.track("启动", props);    // 第一个界面正在启动
@@ -116,6 +119,7 @@ import java.util.Map;
                 props.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance()
                         .getCurrentPageCategory(activity.getClass().getCanonicalName()));
             } catch (JSONException e) {
+                mSugoAPI.track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mSugoAPI.getCurrentContext(),e));
                 e.printStackTrace();
             }
             mSugoAPI.track("唤醒", props);
@@ -133,6 +137,7 @@ import java.util.Map;
                 mSugoAPI.track("浏览", props);
                 mSugoAPI.timeEvent("窗口停留");
             } catch (JSONException e) {
+                mSugoAPI.track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mSugoAPI.getCurrentContext(),e));
                 e.printStackTrace();
             }
         }
@@ -167,12 +172,14 @@ import java.util.Map;
                         props.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance()
                                 .getCurrentPageCategory(activity.getClass().getCanonicalName()));
                     } catch (JSONException e) {
+                        mSugoAPI.track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mSugoAPI.getCurrentContext(),e));
                         e.printStackTrace();
                     }
                     mSugoAPI.track("后台", props);        // App 进入后台运行状态
                     try {
                         props.put(SGConfig.FIELD_PAGE_NAME, "APP停留");
                     } catch (JSONException e) {
+                        mSugoAPI.track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mSugoAPI.getCurrentContext(),e));
                         e.printStackTrace();
                     }
                     mSugoAPI.track("APP停留", props);        // App 进入停留状态
@@ -191,6 +198,7 @@ import java.util.Map;
                         .getCurrentPageCategory(activity.getClass().getCanonicalName()));
                 mSugoAPI.track("窗口停留", props);
             } catch (JSONException e) {
+                mSugoAPI.track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mSugoAPI.getCurrentContext(),e));
                 e.printStackTrace();
             }
         }

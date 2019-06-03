@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import io.sugo.android.mpmetrics.SugoAPI;
+import io.sugo.android.util.ExceptionInfoUtils;
 
 import static io.sugo.android.viewcrawler.ViewCrawler.SHARED_PREF_EDITS_FILE;
 
@@ -112,6 +113,7 @@ public class SugoHeatMap {
             setShowHeatMap(true);
 
         } catch (JSONException e) {
+            SugoAPI.getInstance(context).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
             e.printStackTrace();
             sEventCount.clear();
             sPageMaxCount.clear();

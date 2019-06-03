@@ -21,6 +21,7 @@ import io.sugo.android.mpmetrics.ResourceIds;
 import io.sugo.android.mpmetrics.ResourceReader;
 import io.sugo.android.mpmetrics.SGConfig;
 import io.sugo.android.mpmetrics.SugoAPI;
+import io.sugo.android.util.ExceptionInfoUtils;
 
 /**
  * Handles translating events detected by ViewVisitors into events sent to Mixpanel
@@ -60,6 +61,7 @@ import io.sugo.android.mpmetrics.SugoAPI;
             properties.put(SGConfig.FIELD_TIME, System.currentTimeMillis());
 
         } catch (JSONException e) {
+            SugoAPI.getInstance(v.getContext()).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(v.getContext(),e));
             Log.e(LOGTAG, "Can't format properties from view due to JSON issue", e);
         }
         if (null != classAttr) {
@@ -83,6 +85,7 @@ import io.sugo.android.mpmetrics.SugoAPI;
                 try {
                     properties.put(key, data);
                 } catch (JSONException e) {
+                    SugoAPI.getInstance(v.getContext()).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(v.getContext(),e));
                     e.printStackTrace();
                 }
             }

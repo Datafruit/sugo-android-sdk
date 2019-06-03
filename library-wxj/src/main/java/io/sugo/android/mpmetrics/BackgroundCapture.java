@@ -50,6 +50,7 @@ import io.sugo.android.util.StackBlurManager;
                     final Canvas canvas = new Canvas(mSourceImage);
                     canvas.drawColor(GRAY_72PERCENT_OPAQUE, PorterDuff.Mode.SRC_ATOP);
                 } catch (final ArrayIndexOutOfBoundsException e) {
+
                     // Workaround for a bug in the algorithm while we wait
                     // for folks to move to gradle/AndroidStudio/other Renderscript-friendly build tools
                     mSourceImage = null;

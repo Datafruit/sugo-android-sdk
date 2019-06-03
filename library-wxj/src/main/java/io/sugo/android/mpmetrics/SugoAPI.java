@@ -32,6 +32,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.xwalk.core.XWalkView;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -49,6 +51,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import io.sugo.android.util.ExceptionInfoUtils;
 import io.sugo.android.util.HttpService;
 import io.sugo.android.util.RemoteService;
 import io.sugo.android.viewcrawler.TrackingDebug;
@@ -232,11 +235,13 @@ public class SugoAPI {
         deviceInfo.put("$android_brand", Build.BRAND == null ? "UNKNOWN" : Build.BRAND);
         deviceInfo.put("$android_model", Build.MODEL == null ? "UNKNOWN" : Build.MODEL);
         try {
+
             final PackageManager manager = mContext.getPackageManager();
             final PackageInfo info = manager.getPackageInfo(mContext.getPackageName(), 0);
             deviceInfo.put("$android_app_version", info.versionName);
             deviceInfo.put("$android_app_version_code", Integer.toString(info.versionCode));
-        } catch (final PackageManager.NameNotFoundException e) {
+        } catch (final Exception e) {
+            track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             Log.e(LOGTAG, "Exception getting app version name", e);
         }
         mDeviceInfo = Collections.unmodifiableMap(deviceInfo);
@@ -285,6 +290,7 @@ public class SugoAPI {
                 props.put(SGConfig.FIELD_PAGE_NAME, "APP安装");
             } catch (JSONException e) {
                 e.printStackTrace();
+                track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             }
             track("APP安装", props);
             flush();
@@ -335,9 +341,6 @@ public class SugoAPI {
                 registerAppLinksListeners(context, instance);
                 sInstanceMap.put(appContext, instance);
             }
-
-            checkIntentForInboundAppLink(context);
-
             return instance;
         }
     }
@@ -364,7 +367,10 @@ public class SugoAPI {
         try {
             new SugoInitThread(context,callback).start();
         }catch (Exception e){
-            Log.e(SUGO_TAG, "sugo startSugo method: "+e.toString());
+            SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
+            editor.commit();
             return;
         }
 
@@ -383,6 +389,7 @@ public class SugoAPI {
             try{
                 SystemInformation mSystemInformation = new SystemInformation(context);
                 SGConfig config = SGConfig.getInstance(context);
+
                 final String token = config.getToken();
                 final String projectId = config.getProjectId();
                 final String appVersion = mSystemInformation.getAppVersionName();
@@ -391,15 +398,24 @@ public class SugoAPI {
                 if (SGConfig.DEBUG) {
                     Log.v(LOGTAG, "Sugo decide server response was:\n" + responseString);
                 }
+
                 if (TextUtils.isEmpty(responseString)){
+                    //TODO 添加没有数据返回处理，把所有字段设置为false
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
+                    editor.commit();
                     return ;
                 }
             }catch (Exception e){
-                Log.e(SUGO_TAG, "sugo init api: "+e.toString());
+                //TODO 添加没有数据返回处理，把所有字段设置为false
+                SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
+                editor.commit();
+                AnalyticsMessages.getInstance(context).sendDataForInitSugo(e);
                 return;
             }
-
-
             try {
                 JSONObject response=new JSONObject(responseString);
                 if (response.has("isSugoInitialize")){
@@ -423,8 +439,30 @@ public class SugoAPI {
                     editor.putInt(ViewCrawler.UPLOADLOCATION, uploadLocation);
                     editor.commit();
                 }
+                if (response.has("isUpdateConfig")){
+                    boolean isUpdateConfig = response.optBoolean("isUpdateConfig",false);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISUPDATACONFIG, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putBoolean(ViewCrawler.ISUPDATACONFIG, isUpdateConfig);
+                    editor.commit();
+
+                }
+                if (response.has("latestEventBindingVersion")){
+                    Long laestEventBindingVersion = response.optLong("latestEventBindingVersion",-1);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.LAESTEVENTBINDINGVERSION, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putLong(ViewCrawler.LAESTEVENTBINDINGVERSION, laestEventBindingVersion);
+                    editor.commit();
+                }
+                if (response.has("latestDimensionVersion")){
+                    Long laestDimensionVersion = response.optLong("latestDimensionVersion",-1);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.LAESTDIMENSIONVERSION, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putLong(ViewCrawler.LAESTDIMENSIONVERSION, laestDimensionVersion);
+                    editor.commit();
+                }
             } catch (JSONException e) {
-                Log.e(SUGO_TAG, "sugo init api: "+e.toString());
+                AnalyticsMessages.getInstance(context).sendDataForInitSugo(e);
                 return;
             }
         }
@@ -439,10 +477,17 @@ public class SugoAPI {
             try {
                 runSdkInitializeRequest();
             } catch (RemoteService.ServiceUnavailableException e) {
+                SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
+                editor.commit();
                 Log.e(SUGO_TAG, "sugo init api: "+e.toString());
-                return;
+                AnalyticsMessages.getInstance(context).sendDataForInitSugo(e);
             } catch (Exception e){
-                Log.e(SUGO_TAG, "sugo init api: "+e.toString());
+                SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
+                AnalyticsMessages.getInstance(context).sendDataForInitSugo(e);
                 return;
             }
             try{
@@ -454,7 +499,11 @@ public class SugoAPI {
                 msg.what=1;
                 SugoInitHandler.sendMessage(msg);
             }catch (Exception e){
-                Log.e(SUGO_TAG, "sugo init api: "+e.toString());
+                AnalyticsMessages.getInstance(context).sendDataForInitSugo(e);
+                SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
+                editor.commit();
                 return;
             }
         }
@@ -480,7 +529,7 @@ public class SugoAPI {
                     Log.i("Sugo", "SugoSDK 初始化成功！");
                 }
             }catch (Exception e){
-                Log.e(SUGO_TAG, "sugo init api handleMessage: " + e.toString());
+
                 return;
             }
             break;
@@ -541,6 +590,7 @@ public class SugoAPI {
             try {
                 SugoPageManager.getInstance().setPageInfos(new JSONArray(storeInfo));
             } catch (JSONException e) {
+                track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 e.printStackTrace();
             }
         }
@@ -554,6 +604,7 @@ public class SugoAPI {
             try {
                 SugoDimensionManager.getInstance().setDimensions(new JSONArray(storeInfo));
             } catch (JSONException e) {
+                track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 e.printStackTrace();
             }
         }
@@ -596,6 +647,7 @@ public class SugoAPI {
             j.put("original", original);
             track(null, "$create_alias", j);
         } catch (final JSONException e) {
+            track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             Log.e(LOGTAG, "Failed to alias", e);
         }
         flush();
@@ -685,6 +737,7 @@ public class SugoAPI {
             try {
                 track(null, eventName, new JSONObject(properties));
             } catch (NullPointerException e) {
+                track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.w(LOGTAG, "Can't have null keys in the properties of trackMap!");
             }
         }
@@ -711,30 +764,31 @@ public class SugoAPI {
     // This MAY CHANGE IN FUTURE RELEASES, so minimize code that assumes thread safety
     // (and perhaps document that code here).
     public void track(String eventId, @NonNull String eventName, JSONObject properties) {
-        if (!SUGO_ENABLE){
-            return;
-        }
-        if (eventName.trim().equals("")) {
-            Log.e("SugoAPI.track", "track failure. eventName can't be empty");
-            return;
-        }
-        if (SugoAPI.developmentMode) {
-            Toast.makeText(this.mContext, eventName, Toast.LENGTH_SHORT).show();
-        }
-        final Long eventBegin;
-        synchronized (mEventTimings) {
-            String timeEventName = eventName;
-            if (properties != null && properties.has(SGConfig.TIME_EVENT_TAG)) {
-                timeEventName = eventName + properties.optString(SGConfig.TIME_EVENT_TAG, "");
-                properties.remove(SGConfig.TIME_EVENT_TAG);
-            }
-            eventBegin = mEventTimings.get(timeEventName);
-            mEventTimings.remove(timeEventName);
-            mPersistentIdentity.removeTimeEvent(timeEventName);
-        }
-
         try {
-            final JSONObject messageProps = new JSONObject();
+            if (!SUGO_ENABLE){
+            return;
+        }
+            if (eventName.trim().equals("")) {
+                Log.e("SugoAPI.track", "track failure. eventName can't be empty");
+                return;
+            }
+            if (SugoAPI.developmentMode) {
+                Toast.makeText(this.mContext, eventName, Toast.LENGTH_SHORT).show();
+            }
+            final Long eventBegin;
+            synchronized (mEventTimings) {
+                String timeEventName = eventName;
+                if (properties != null && properties.has(SGConfig.TIME_EVENT_TAG)) {
+                    timeEventName = eventName + properties.optString(SGConfig.TIME_EVENT_TAG, "");
+                    properties.remove(SGConfig.TIME_EVENT_TAG);
+                }
+                eventBegin = mEventTimings.get(timeEventName);
+                mEventTimings.remove(timeEventName);
+                mPersistentIdentity.removeTimeEvent(timeEventName);
+            }
+
+            try {
+                final JSONObject messageProps = new JSONObject();
 
 //            if (mConfig.ismEnableLocation()){
 //                double[] loc = getLngAndLat(mContext);
@@ -742,101 +796,107 @@ public class SugoAPI {
 //                messageProps.put(SGConfig.FIELD_LATITUDE,  loc[1]);
 //            }
 
-            messageProps.put(SGConfig.SESSION_ID, getCurrentSessionId());
-            messageProps.put(SGConfig.FIELD_PAGE, SugoPageManager.getInstance().getCurrentPage(mContext));
-            messageProps.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance().getCurrentPageName(mContext));
-            messageProps.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance().getCurrentPageCategory(mContext));
+                messageProps.put(SGConfig.SESSION_ID, getCurrentSessionId());
+                messageProps.put(SGConfig.FIELD_PAGE, SugoPageManager.getInstance().getCurrentPage(mContext));
+                messageProps.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance().getCurrentPageName(mContext));
+                messageProps.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance().getCurrentPageCategory(mContext));
 
-            final Map<String, String> referrerProperties = mPersistentIdentity.getReferrerProperties();
-            for (final Map.Entry<String, String> entry : referrerProperties.entrySet()) {
-                final String key = entry.getKey();
-                final String value = entry.getValue();
-                messageProps.put(key, value);
-            }
-
-            mPersistentIdentity.addSuperPropertiesToObject(messageProps);
-
-            // Don't allow super properties or referral properties to override these fields,
-            // but DO allow the caller to override them in their given properties.
-            final double timeSecondsDouble = (System.currentTimeMillis()) / 1000.0;
-            //final long timeSeconds = (long) timeSecondsDouble;
-            messageProps.put(SGConfig.FIELD_TIME, System.currentTimeMillis());
-            messageProps.put(SGConfig.FIELD_DISTINCT_ID, getDistinctId());
-
-            if (null != eventBegin) {
-                final double eventBeginDouble = ((double) eventBegin) / 1000.0;
-                final double secondsElapsed = timeSecondsDouble - eventBeginDouble;
-                messageProps.put(SGConfig.FIELD_DURATION, new BigDecimal(secondsElapsed).setScale(2, BigDecimal.ROUND_HALF_UP));
-            }
-
-            if (null != properties) {
-                final Iterator<?> propIter = properties.keys();
-                while (propIter.hasNext()) {
-                    final String key = (String) propIter.next();
-                    messageProps.put(key, properties.get(key));
+                final Map<String, String> referrerProperties = mPersistentIdentity.getReferrerProperties();
+                for (final Map.Entry<String, String> entry : referrerProperties.entrySet()) {
+                    final String key = entry.getKey();
+                    final String value = entry.getValue();
+                    messageProps.put(key, value);
                 }
-            }
 
-            final String eventTypeValue = messageProps.optString(SGConfig.FIELD_EVENT_TYPE);
-            if (TextUtils.isEmpty(eventTypeValue)) {
-                messageProps.put(SGConfig.FIELD_EVENT_TYPE, eventName);
-            } else {
-                String newValue;
-                switch (eventTypeValue) {
-                    case "click":
-                        newValue = "点击";
-                        break;
-                    case "focus":
-                        newValue = "对焦";
-                        break;
-                    case "change":
-                        newValue = "改变";
-                        break;
-                    default:
-                        newValue = eventTypeValue;
-                        break;
+                mPersistentIdentity.addSuperPropertiesToObject(messageProps);
+
+                // Don't allow super properties or referral properties to override these fields,
+                // but DO allow the caller to override them in their given properties.
+                final double timeSecondsDouble = (System.currentTimeMillis()) / 1000.0;
+                //final long timeSeconds = (long) timeSecondsDouble;
+                messageProps.put(SGConfig.FIELD_TIME, System.currentTimeMillis());
+                messageProps.put(SGConfig.FIELD_DISTINCT_ID, getDistinctId());
+
+                if (null != eventBegin) {
+                    final double eventBeginDouble = ((double) eventBegin) / 1000.0;
+                    final double secondsElapsed = timeSecondsDouble - eventBeginDouble;
+                    messageProps.put(SGConfig.FIELD_DURATION, new BigDecimal(secondsElapsed).setScale(2, BigDecimal.ROUND_HALF_UP));
                 }
-                messageProps.put(SGConfig.FIELD_EVENT_TYPE, newValue);
-            }
 
-            if (SugoAPI.developmentMode) {
-                JSONArray events = new JSONArray();
-                JSONObject event = new JSONObject();
-                event.put(SGConfig.FIELD_EVENT_ID, eventId);
-                event.put(SGConfig.FIELD_EVENT_NAME, eventName);
-                final Iterator<?> propIter = messageProps.keys();
-                while (propIter.hasNext()) {
-                    final String key = (String) propIter.next();
-                    Object value = messageProps.get(key);
-                    if (value instanceof Date) {
-                        messageProps.put(key, ((Date) value).getTime());
+                if (null != properties) {
+                    final Iterator<?> propIter = properties.keys();
+                    while (propIter.hasNext()) {
+                        final String key = (String) propIter.next();
+                        messageProps.put(key, properties.get(key));
                     }
                 }
-                JSONObject defaultDimensions = mMessages.getDefaultEventProperties();
-                final Iterator<String> defaultPropIter = defaultDimensions.keys();
-                while (defaultPropIter.hasNext()) {
-                    final String key = defaultPropIter.next();
-                    Object value = defaultDimensions.get(key);
-                    if (value instanceof Date) {
-                        messageProps.put(key, ((Date) value).getTime());
-                    } else {
-                        messageProps.put(key, value);
+
+                final String eventTypeValue = messageProps.optString(SGConfig.FIELD_EVENT_TYPE);
+                if (TextUtils.isEmpty(eventTypeValue)) {
+                    messageProps.put(SGConfig.FIELD_EVENT_TYPE, eventName);
+                } else {
+                    String newValue;
+                    switch (eventTypeValue) {
+                        case "click":
+                            newValue = "点击";
+                            break;
+                        case "focus":
+                            newValue = "对焦";
+                            break;
+                        case "change":
+                            newValue = "改变";
+                            break;
+                        default:
+                            newValue = eventTypeValue;
+                            break;
                     }
+                    messageProps.put(SGConfig.FIELD_EVENT_TYPE, newValue);
                 }
-                event.put("properties", messageProps);
-                events.put(event);
-                mUpdatesFromMixpanel.sendTestEvent(events);
-            } else {
-                final AnalyticsMessages.EventDescription eventDescription =
-                        new AnalyticsMessages.EventDescription(eventId, eventName, messageProps, mToken);
-                mMessages.eventsMessage(eventDescription);
-            }
+
+                if (SugoAPI.developmentMode) {
+                    JSONArray events = new JSONArray();
+                    JSONObject event = new JSONObject();
+                    event.put(SGConfig.FIELD_EVENT_ID, eventId);
+                    event.put(SGConfig.FIELD_EVENT_NAME, eventName);
+                    final Iterator<?> propIter = messageProps.keys();
+                    while (propIter.hasNext()) {
+                        final String key = (String) propIter.next();
+                        Object value = messageProps.get(key);
+                        if (value instanceof Date) {
+                            messageProps.put(key, ((Date) value).getTime());
+                        }
+                    }
+                    JSONObject defaultDimensions = mMessages.getDefaultEventProperties();
+                    final Iterator<String> defaultPropIter = defaultDimensions.keys();
+                    while (defaultPropIter.hasNext()) {
+                        final String key = defaultPropIter.next();
+                        Object value = defaultDimensions.get(key);
+                        if (value instanceof Date) {
+                            messageProps.put(key, ((Date) value).getTime());
+                        } else {
+                            messageProps.put(key, value);
+                        }
+                    }
+                    event.put("properties", messageProps);
+                    events.put(event);
+                    mUpdatesFromMixpanel.sendTestEvent(events);
+                } else {
+                    final AnalyticsMessages.EventDescription eventDescription =
+                            new AnalyticsMessages.EventDescription(eventId, eventName, messageProps, mToken);
+                    mMessages.eventsMessage(eventDescription);
+                }
 //            if (null != mTrackingDebug) {
 //                mTrackingDebug.reportTrack(eventName);
 //            }
-        } catch (final JSONException e) {
-            Log.e(LOGTAG, "Exception tracking event " + eventName, e);
+            } catch (final JSONException e) {
+                track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
+                Log.e(LOGTAG, "Exception tracking event " + eventName, e);
+            }
+        }catch (Exception e){
+            track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
+            Log.e(LOGTAG, "track method: "+e.toString());
         }
+
     }
 
     /**
@@ -926,6 +986,7 @@ public class SugoAPI {
         try {
             registerSuperProperties(new JSONObject(superProperties));
         } catch (NullPointerException e) {
+            track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             Log.w(LOGTAG, "Can't have null keys in the properties of registerSuperPropertiesMap");
         }
     }
@@ -972,6 +1033,7 @@ public class SugoAPI {
                 sPreSuperProps.put(key, value);
             }
         } catch (JSONException e) {
+            sInstanceMap.get(context.getApplicationContext()).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
             e.printStackTrace();
         }
     }
@@ -993,6 +1055,7 @@ public class SugoAPI {
                 sPreSuperPropsOnce.put(key, value);
             }
         } catch (JSONException e) {
+            sInstanceMap.get(context.getApplicationContext()).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
             e.printStackTrace();
         }
     }
@@ -1400,6 +1463,7 @@ public class SugoAPI {
                 final JSONObject message = records.getJSONObject(i);
                 mMessages.peopleMessage(message);
             } catch (final JSONException e) {
+                track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.e(LOGTAG, "Malformed people record stored pending identity, will not send it.", e);
             }
         }
@@ -1422,6 +1486,7 @@ public class SugoAPI {
                             try {
                                 properties.put(key, args.get(key));
                             } catch (final JSONException e) {
+                                SugoAPI.getInstance(context).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
                                 Log.e(APP_LINKS_LOGTAG, "failed to add key \"" + key + "\" to properties for tracking bolts event", e);
                             }
                         }
@@ -1430,39 +1495,21 @@ public class SugoAPI {
                 }
             }, new IntentFilter("com.parse.bolts.measurement_event"));
         } catch (final InvocationTargetException e) {
+            SugoAPI.getInstance(context).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
             Log.d(APP_LINKS_LOGTAG, "Failed to invoke LocalBroadcastManager.registerReceiver() -- App Links tracking will not be enabled due to this exception", e);
         } catch (final ClassNotFoundException e) {
+            SugoAPI.getInstance(context).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
             Log.d(APP_LINKS_LOGTAG, "To enable App Links tracking android.support.v4 must be installed: " + e.getMessage());
         } catch (final NoSuchMethodException e) {
+            SugoAPI.getInstance(context).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
             Log.d(APP_LINKS_LOGTAG, "To enable App Links tracking android.support.v4 must be installed: " + e.getMessage());
         } catch (final IllegalAccessException e) {
+            SugoAPI.getInstance(context).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
             Log.d(APP_LINKS_LOGTAG, "App Links tracking will not be enabled due to this exception: " + e.getMessage());
         }
     }
 
-    private static void checkIntentForInboundAppLink(Context context) {
-        // call the Bolts getTargetUrlFromInboundIntent method simply for a side effect
-        // if the intent is the result of an App Link, it'll trigger al_nav_in
-        // https://github.com/BoltsFramework/Bolts-Android/blob/1.1.2/Bolts/src/bolts/AppLinks.java#L86
-        if (context instanceof Activity) {
-            try {
-                final Class<?> clazz = Class.forName("bolts.AppLinks");
-                final Intent intent = ((Activity) context).getIntent();
-                final Method getTargetUrlFromInboundIntent = clazz.getMethod("getTargetUrlFromInboundIntent", Context.class, Intent.class);
-                getTargetUrlFromInboundIntent.invoke(null, context, intent);
-            } catch (final InvocationTargetException e) {
-                Log.d(APP_LINKS_LOGTAG, "Failed to invoke bolts.AppLinks.getTargetUrlFromInboundIntent() -- Unable to detect inbound App Links", e);
-            } catch (final ClassNotFoundException e) {
-                Log.d(APP_LINKS_LOGTAG, "Please install the Bolts library >= 1.1.2 to track App Links: " + e.getMessage());
-            } catch (final NoSuchMethodException e) {
-                Log.d(APP_LINKS_LOGTAG, "Please install the Bolts library >= 1.1.2 to track App Links: " + e.getMessage());
-            } catch (final IllegalAccessException e) {
-                Log.d(APP_LINKS_LOGTAG, "Unable to detect inbound App Links: " + e.getMessage());
-            }
-        } else {
-            Log.d(APP_LINKS_LOGTAG, "Context is not an instance of Activity. To detect inbound App Links, pass an instance of an Activity to getInstance.");
-        }
-    }
+
 
     public void handleWebView(WebView webView) {
 
@@ -1568,6 +1615,7 @@ public class SugoAPI {
             }
         } catch (JSONException e) {
             e.printStackTrace();
+            track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
         }
         track(eventName, props);
     }

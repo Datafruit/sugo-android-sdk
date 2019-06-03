@@ -96,6 +96,7 @@ import io.sugo.android.viewcrawler.UpdatesFromMixpanel;
                     break;
                 }
             } catch(JSONException e) {
+
                 Log.e(LOGTAG, "Could not convert variants[" + i + "] into a JSONObject while comparing the new variants", e);
             }
         }
