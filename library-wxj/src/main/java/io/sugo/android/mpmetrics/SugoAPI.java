@@ -766,8 +766,8 @@ public class SugoAPI {
     public void track(String eventId, @NonNull String eventName, JSONObject properties) {
         try {
             if (!SUGO_ENABLE){
-            return;
-        }
+                return;
+            }
             if (eventName.trim().equals("")) {
                 Log.e("SugoAPI.track", "track failure. eventName can't be empty");
                 return;
@@ -889,11 +889,9 @@ public class SugoAPI {
 //                mTrackingDebug.reportTrack(eventName);
 //            }
             } catch (final JSONException e) {
-                track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.e(LOGTAG, "Exception tracking event " + eventName, e);
             }
         }catch (Exception e){
-            track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             Log.e(LOGTAG, "track method: "+e.toString());
         }
 

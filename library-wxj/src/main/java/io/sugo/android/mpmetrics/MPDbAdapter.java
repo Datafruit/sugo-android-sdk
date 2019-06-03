@@ -339,7 +339,6 @@ import io.sugo.android.util.ExceptionInfoUtils;
                                         try {
                                             value = Long.parseLong(value.toString());
                                         } catch (Exception e) {
-                                            e.printStackTrace();
                                             value = 0;
                                             isWrongEvent = true;
                                         }
@@ -350,7 +349,6 @@ import io.sugo.android.util.ExceptionInfoUtils;
                                         try {
                                             value = value.toString();
                                         } catch (Exception e) {
-                                            e.printStackTrace();
                                             value = "";
                                         }
                                     }
@@ -363,7 +361,6 @@ import io.sugo.android.util.ExceptionInfoUtils;
                                         try {
                                             value = Float.parseFloat(value.toString());
                                         } catch (Exception e) {
-                                            e.printStackTrace();
                                             value = 0;
                                             isWrongEvent = true;
                                         }
@@ -374,7 +371,6 @@ import io.sugo.android.util.ExceptionInfoUtils;
                                         try {
                                             value = Long.parseLong(value.toString());
                                         } catch (Exception e) {
-                                            e.printStackTrace();
                                             value = 0;
                                             isWrongEvent = true;
                                         }
@@ -385,7 +381,6 @@ import io.sugo.android.util.ExceptionInfoUtils;
                                         try {
                                             value = Integer.parseInt(value.toString());
                                         } catch (Exception e) {
-                                            e.printStackTrace();
                                             value = 0;
                                             isWrongEvent = true;
                                         }
