@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import io.sugo.android.mpmetrics.AnalyticsMessages;
 import io.sugo.android.mpmetrics.SugoAPI;
 import io.sugo.android.util.ExceptionInfoUtils;
 
@@ -113,13 +114,17 @@ public class SugoHeatMap {
             setShowHeatMap(true);
 
         } catch (JSONException e) {
-            SugoAPI.getInstance(context).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
             e.printStackTrace();
-            sEventCount.clear();
-            sPageMaxCount.clear();
-            sEventPage.clear();
-            sEventHeat.clear();
-            setShowHeatMap(false);
+            try {
+                sEventCount.clear();
+                sPageMaxCount.clear();
+                sEventPage.clear();
+                sEventHeat.clear();
+                setShowHeatMap(false);
+                AnalyticsMessages.sendDataForInitSugo(context,e);
+            }catch (Exception e1){
+
+            }
         }
     }
 

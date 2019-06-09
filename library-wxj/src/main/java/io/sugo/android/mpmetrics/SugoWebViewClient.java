@@ -129,8 +129,12 @@ public class SugoWebViewClient extends WebViewClient {
             }
             realPath = realPath.replace(sugoAPI.getConfig().getWebRoot(), "");
         } catch (MalformedURLException e) {
-            sugoAPI.track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(sugoAPI.getCurrentContext(),e));
             e.printStackTrace();
+            try {
+                AnalyticsMessages.sendDataForInitSugo(activity.getApplicationContext(),e);
+            }catch (Exception e1){
+
+            }
         }
         return SugoPageManager.getInstance().getCurrentPageInfo(realPath);
     }
@@ -148,6 +152,11 @@ public class SugoWebViewClient extends WebViewClient {
                     eventBindings = new JSONArray(storedBindings);
                 } catch (JSONException e) {
                     e.printStackTrace();
+                    try {
+                        AnalyticsMessages.sendDataForInitSugo(activity.getApplicationContext(),e);
+                    }catch (Exception exception){
+
+                    }
                 }
             }
         }

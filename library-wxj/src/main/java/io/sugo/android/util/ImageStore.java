@@ -47,7 +47,6 @@ public class ImageStore {
         try {
             useDigest = MessageDigest.getInstance("SHA1");
         } catch (NoSuchAlgorithmException e) {
-            SugoAPI.getInstance(context).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
             Log.w(LOGTAG, "Images won't be stored because this platform doesn't supply a SHA1 hash function");
             useDigest = null;
         }

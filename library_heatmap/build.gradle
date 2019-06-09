@@ -1,5 +1,5 @@
 apply plugin: 'com.android.library'
-apply from: "MavenUpload.gradle"
+
 
 android {
     compileSdkVersion 26
@@ -28,6 +28,7 @@ dependencies {
     compileOnly(project(':library-wxj'))
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    compile 'com.android.support:support-v4:26.0.0'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
 

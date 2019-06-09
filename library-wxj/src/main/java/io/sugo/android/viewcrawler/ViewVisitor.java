@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
 
+import io.sugo.android.mpmetrics.AnalyticsMessages;
 import io.sugo.android.mpmetrics.SGConfig;
 import io.sugo.android.mpmetrics.SugoAPI;
 import io.sugo.android.util.ExceptionInfoUtils;
@@ -441,13 +442,25 @@ import io.sugo.android.util.ExceptionInfoUtils;
                 Method m = klass.getMethod("getAccessibilityDelegate");
                 ret = (View.AccessibilityDelegate) m.invoke(v);
             } catch (NoSuchMethodException e) {
-                SugoAPI.getInstance(v.getContext()).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(v.getContext(),e));
+                try {
+                    AnalyticsMessages.sendDataForInitSugo(v.getContext(),e);
+                }catch (Exception e1){
+
+                }
                 // In this case, we just overwrite the original.
             } catch (IllegalAccessException e) {
-                SugoAPI.getInstance(v.getContext()).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(v.getContext(),e));
+                try {
+                    AnalyticsMessages.sendDataForInitSugo(v.getContext(),e);
+                }catch (Exception e1){
+
+                }
                 // In this case, we just overwrite the original.
             } catch (InvocationTargetException e) {
-                SugoAPI.getInstance(v.getContext()).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(v.getContext(),e));
+                try {
+                    AnalyticsMessages.sendDataForInitSugo(v.getContext(),e);
+                }catch (Exception e1){
+
+                }
                 Log.w(LOGTAG, "getAccessibilityDelegate threw an exception when called.", e);
             }
 
@@ -626,8 +639,12 @@ import io.sugo.android.util.ExceptionInfoUtils;
                                 try {
                                     properties.put(dimName, tv.getText().toString());
                                 } catch (JSONException e) {
-                                    SugoAPI.getInstance(found.getContext()).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(found.getContext(),e));
                                     Log.e(LOGTAG, "", e);
+                                    try {
+                                        AnalyticsMessages.sendDataForInitSugo(found.getContext(),e);
+                                    }catch (Exception e1){
+
+                                    }
                                 }
                             }
                         }
@@ -637,7 +654,11 @@ import io.sugo.android.util.ExceptionInfoUtils;
             try {
                 properties.put(SGConfig.FIELD_EVENT_TYPE, getEventTypeString());
             } catch (JSONException e) {
-                SugoAPI.getInstance(found.getContext()).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(found.getContext(),e));
+                try {
+                    AnalyticsMessages.sendDataForInitSugo(found.getContext(),e);
+                }catch (Exception e1){
+
+                }
             }
             SGConfig mConfig = SGConfig.getInstance(found.getContext());
             if (mConfig.getmStartExtraAttrFunction()){

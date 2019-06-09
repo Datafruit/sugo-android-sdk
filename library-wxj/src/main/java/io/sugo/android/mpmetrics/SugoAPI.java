@@ -127,7 +127,7 @@ public class SugoAPI {
 
     private static boolean SUGO_ENABLE = true;
 
-    public static final int SUGO_EXTRA_TAG=91109102;
+    public static final int SUGO_EXTRA_TAG = 91109102;
 
     public static final String SUGO_TAG = "SUGO";
 
@@ -241,7 +241,6 @@ public class SugoAPI {
             deviceInfo.put("$android_app_version", info.versionName);
             deviceInfo.put("$android_app_version_code", Integer.toString(info.versionCode));
         } catch (final Exception e) {
-            track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             Log.e(LOGTAG, "Exception getting app version name", e);
         }
         mDeviceInfo = Collections.unmodifiableMap(deviceInfo);
@@ -252,7 +251,7 @@ public class SugoAPI {
         registerSuperProperties(sPreSuperProps);
         registerSuperPropertiesOnce(sPreSuperPropsOnce);
         mEventTimings = mPersistentIdentity.getTimeEvents();
-        classAttributeDict =new HashMap<>();
+        classAttributeDict = new HashMap<>();
         mUpdatesListener = constructUpdatesListener();
         mDecideMessages = constructDecideUpdates(mToken, mUpdatesListener, mUpdatesFromMixpanel);
 
@@ -290,7 +289,6 @@ public class SugoAPI {
                 props.put(SGConfig.FIELD_PAGE_NAME, "APP安装");
             } catch (JSONException e) {
                 e.printStackTrace();
-                track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             }
             track("APP安装", props);
             flush();
@@ -338,45 +336,49 @@ public class SugoAPI {
             SugoAPI instance = sInstanceMap.get(appContext);
             if (null == instance && ConfigurationChecker.checkBasicConfiguration(appContext)) {
                 instance = new SugoAPI(context, sReferrerPrefs);
-                registerAppLinksListeners(context, instance);
+//                registerAppLinksListeners(context, instance);
                 sInstanceMap.put(appContext, instance);
             }
             return instance;
         }
     }
 
-    public static void startSugo(Context context, SGConfig sgConfig,final InitSugoCallback callback) {
-        if (null == context) {
-            Log.e(LOGTAG, "startSugo 失败，context 为空");
-            return;
-        }
-        synchronized (sInstanceMap) {
-            if (sInstanceMap.get(context.getApplicationContext()) != null) {
-                Log.e(LOGTAG, "Sugo SDK 已经初始化，不能再次初始化");
+    public static void startSugo(Context context, SGConfig sgConfig, final InitSugoCallback callback) {
+        try {
+            if (null == context) {
+                Log.e(LOGTAG, "startSugo 失败，context 为空");
                 return;
             }
-        }
-        if (TextUtils.isEmpty(sgConfig.getToken())) {
-            Log.e(LOGTAG, "未检测到 SugoSDK 的 Token，请正确设置 SGConfig.setToken");
-            return;
-        }
-        if (TextUtils.isEmpty(sgConfig.getProjectId())) {
-            Log.e(LOGTAG, "未检测到 SugoSDK 的 ProjectId，请正确设置 SGConfig.setProjectId");
-            return;
-        }
-        try {
-            new SugoInitThread(context,callback).start();
-        }catch (Exception e){
-            SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
-            editor.commit();
+            synchronized (sInstanceMap) {
+                if (sInstanceMap.get(context.getApplicationContext()) != null) {
+                    Log.e(LOGTAG, "Sugo SDK 已经初始化，不能再次初始化");
+                    return;
+                }
+            }
+            if (TextUtils.isEmpty(sgConfig.getToken())) {
+                Log.e(LOGTAG, "未检测到 SugoSDK 的 Token，请正确设置 SGConfig.setToken");
+                return;
+            }
+            if (TextUtils.isEmpty(sgConfig.getProjectId())) {
+                Log.e(LOGTAG, "未检测到 SugoSDK 的 ProjectId，请正确设置 SGConfig.setProjectId");
+                return;
+            }
+            new SugoInitThread(context, callback).start();
+        } catch (Exception e) {
+            try {
+                SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
+                editor.commit();
+            } catch (Exception exception) {
+                Log.e(SUGO_TAG, "startSugo: ", e);
+            }
+
             return;
         }
 
 
     }
-
 
 
     public static class SugoInitThread extends Thread {
@@ -385,156 +387,191 @@ public class SugoAPI {
         private final InitSugoCallback callback;
 
         public void runSdkInitializeRequest() throws RemoteService.ServiceUnavailableException {
-            String responseString =null;
-            try{
+            String responseString = null;
+            try {
                 SystemInformation mSystemInformation = new SystemInformation(context);
                 SGConfig config = SGConfig.getInstance(context);
-
                 final String token = config.getToken();
                 final String projectId = config.getProjectId();
                 final String appVersion = mSystemInformation.getAppVersionName();
                 DecideChecker decideChecker = new DecideChecker(context, config, mSystemInformation);
-                responseString = decideChecker.getSugoInitializeEndpointFromServer(token,projectId,appVersion,new HttpService());
+                responseString = decideChecker.getSugoInitializeEndpointFromServer(token, projectId, appVersion, new HttpService());
                 if (SGConfig.DEBUG) {
                     Log.v(LOGTAG, "Sugo decide server response was:\n" + responseString);
                 }
 
-                if (TextUtils.isEmpty(responseString)){
+                if (TextUtils.isEmpty(responseString)) {
                     //TODO 添加没有数据返回处理，把所有字段设置为false
                     SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
                     editor.commit();
-                    return ;
+                    return;
                 }
-            }catch (Exception e){
-                //TODO 添加没有数据返回处理，把所有字段设置为false
-                SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = preferences.edit();
-                editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
-                editor.commit();
-                AnalyticsMessages.getInstance(context).sendDataForInitSugo(e);
-                return;
+            } catch (Exception e) {
+                try {
+                    //TODO 添加没有数据返回处理，把所有字段设置为false
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
+                    editor.commit();
+                    try {
+                        AnalyticsMessages.sendDataForInitSugo(context, e);
+                        return;
+                    }catch (Exception e1){
+                        return;
+                    }
+                }catch (Exception excepiton){
+                    return;
+                }
+
             }
             try {
-                JSONObject response=new JSONObject(responseString);
-                if (response.has("isSugoInitialize")){
-                    boolean isSugoInitialize = response.optBoolean("isSugoInitialize",false);
+                JSONObject response = new JSONObject(responseString);
+                if (response.has("isSugoInitialize")) {
+                    boolean isSugoInitialize = response.optBoolean("isSugoInitialize", false);
                     SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, isSugoInitialize);
                     editor.commit();
                 }
-                if (response.has("isHeatMapFunc")){
-                    boolean isHeatMapFunc = response.optBoolean("isHeatMapFunc",false);
+                if (response.has("isHeatMapFunc")) {
+                    boolean isHeatMapFunc = response.optBoolean("isHeatMapFunc", false);
                     SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISHEATMAPFUNC, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putBoolean(ViewCrawler.ISHEATMAPFUNC, isHeatMapFunc);
                     editor.commit();
                 }
-                if (response.has("uploadLocation")){
-                    int uploadLocation = response.optInt("uploadLocation",0);
+                if (response.has("uploadLocation")) {
+                    int uploadLocation = response.optInt("uploadLocation", 0);
                     SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.UPLOADLOCATION, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putInt(ViewCrawler.UPLOADLOCATION, uploadLocation);
                     editor.commit();
                 }
-                if (response.has("isUpdateConfig")){
-                    boolean isUpdateConfig = response.optBoolean("isUpdateConfig",false);
+                if (response.has("isUpdateConfig")) {
+                    boolean isUpdateConfig = response.optBoolean("isUpdateConfig", false);
                     SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISUPDATACONFIG, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putBoolean(ViewCrawler.ISUPDATACONFIG, isUpdateConfig);
                     editor.commit();
 
                 }
-                if (response.has("latestEventBindingVersion")){
-                    Long laestEventBindingVersion = response.optLong("latestEventBindingVersion",-1);
+                if (response.has("latestEventBindingVersion")) {
+                    Long laestEventBindingVersion = response.optLong("latestEventBindingVersion", -1);
                     SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.LAESTEVENTBINDINGVERSION, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putLong(ViewCrawler.LAESTEVENTBINDINGVERSION, laestEventBindingVersion);
                     editor.commit();
                 }
-                if (response.has("latestDimensionVersion")){
-                    Long laestDimensionVersion = response.optLong("latestDimensionVersion",-1);
+                if (response.has("latestDimensionVersion")) {
+                    Long laestDimensionVersion = response.optLong("latestDimensionVersion", -1);
                     SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.LAESTDIMENSIONVERSION, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putLong(ViewCrawler.LAESTDIMENSIONVERSION, laestDimensionVersion);
                     editor.commit();
                 }
             } catch (JSONException e) {
-                AnalyticsMessages.getInstance(context).sendDataForInitSugo(e);
+                try {
+                    AnalyticsMessages.sendDataForInitSugo(context, e);
+                }catch (Exception exception){
+                    return;
+                }
                 return;
             }
         }
 
-        public SugoInitThread (Context context,final InitSugoCallback callback) {
+        public SugoInitThread(Context context, final InitSugoCallback callback) {
             this.context = context;
             this.callback = callback;
         }
+
         @Override
         public void run() {
             super.run();
             try {
                 runSdkInitializeRequest();
             } catch (RemoteService.ServiceUnavailableException e) {
-                SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = preferences.edit();
-                editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
-                editor.commit();
-                Log.e(SUGO_TAG, "sugo init api: "+e.toString());
-                AnalyticsMessages.getInstance(context).sendDataForInitSugo(e);
-            } catch (Exception e){
-                SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = preferences.edit();
-                editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
-                AnalyticsMessages.getInstance(context).sendDataForInitSugo(e);
-                return;
+                try {
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
+                    editor.commit();
+                    Log.e(SUGO_TAG, "sugo init api: " + e.toString());
+                    AnalyticsMessages.sendDataForInitSugo(context, e);
+                } catch (Exception exception) {
+                    Log.e(SUGO_TAG, "run: ", exception);
+                    return;
+                }
+
+            } catch (Exception e) {
+                try {
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
+                    AnalyticsMessages.sendDataForInitSugo(context, e);
+                    return;
+                } catch (Exception exception) {
+                    Log.e(SUGO_TAG, "run: ", exception);
+                    return;
+                }
+
             }
-            try{
-                Message msg =Message.obtain();
-                Map<String,Object> map = new HashMap<>();
-                map.put("context",context);
-                map.put("callback",callback);
+            try {
+                Message msg = Message.obtain();
+                Map<String, Object> map = new HashMap<>();
+                map.put("context", context);
+                map.put("callback", callback);
                 msg.obj = map;
-                msg.what=1;
+                msg.what = 1;
                 SugoInitHandler.sendMessage(msg);
-            }catch (Exception e){
-                AnalyticsMessages.getInstance(context).sendDataForInitSugo(e);
-                SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = preferences.edit();
-                editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
-                editor.commit();
-                return;
+            } catch (Exception e) {
+                try {
+                    AnalyticsMessages.sendDataForInitSugo(context, e);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
+                    editor.commit();
+                    return;
+                } catch (Exception exception) {
+                    Log.e(SUGO_TAG, "run: ", exception);
+                    return;
+                }
+
             }
         }
     }
 
-    private static Handler SugoInitHandler = new Handler(){
+    private static Handler SugoInitHandler = new Handler() {
 
 
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             switch (msg.what) {
-        case 1:
-            try {
-                Map<String, Object> map = (HashMap) msg.obj;
-                Context context = (Context) map.get("context");
-                InitSugoCallback callback = (InitSugoCallback) map.get("callback");
-                SharedPreferences preferences = (context).getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
-                boolean isSugoInitialize = preferences.getBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
-                if (isSugoInitialize) {
-                    SugoAPI.getInstance(context);
-                    if (callback != null) callback.finish();
-                    Log.i("Sugo", "SugoSDK 初始化成功！");
-                }
-            }catch (Exception e){
-
-                return;
+                case 1:
+                    try {
+                        Map<String, Object> map = (HashMap) msg.obj;
+                        Context context = (Context) map.get("context");
+                        InitSugoCallback callback = (InitSugoCallback) map.get("callback");
+                        SharedPreferences preferences = (context).getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
+                        boolean isSugoInitialize = preferences.getBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
+                        if (isSugoInitialize) {
+                            SugoAPI.getInstance(context);
+                            if (callback != null) callback.finish();
+                            Log.i("Sugo", "SugoSDK 初始化成功！");
+                        }
+                    } catch (Exception e) {
+                        try {
+                            AnalyticsMessages.sendDataForInitSugo((Context) ((HashMap) msg.obj).get("context"), e);
+                        } catch (Exception exception) {
+                            return;
+                        }
+                        return;
+                    }
+                    break;
             }
-            break;
-    }
-}
+        }
     };
 
 
@@ -578,7 +615,7 @@ public class SugoAPI {
         return mSessionId;
     }
 
-    public void updateSessionId(){
+    public void updateSessionId() {
         mSessionId = this.generateSessionId();
     }
 
@@ -590,8 +627,8 @@ public class SugoAPI {
             try {
                 SugoPageManager.getInstance().setPageInfos(new JSONArray(storeInfo));
             } catch (JSONException e) {
-                track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 e.printStackTrace();
+                AnalyticsMessages.sendDataForInitSugo(mContext, e);
             }
         }
     }
@@ -604,19 +641,18 @@ public class SugoAPI {
             try {
                 SugoDimensionManager.getInstance().setDimensions(new JSONArray(storeInfo));
             } catch (JSONException e) {
-                track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 e.printStackTrace();
+                AnalyticsMessages.sendDataForInitSugo(mContext, e);
             }
         }
     }
+
     private void restorePositionConfig() {
         final String sharedPrefsName = ViewCrawler.SHARED_PREF_EDITS_FILE + mToken;
         SharedPreferences preferences = mContext.getSharedPreferences(sharedPrefsName, Context.MODE_PRIVATE);
         SGConfig.positionConfig = preferences.getInt(ViewCrawler.POSITION_CONFIG, -1);
         SGConfig.lastReportLoaction = preferences.getLong(ViewCrawler.LAST_REPORT_LOCATION, -1);
     }
-
-
 
 
     /**
@@ -630,7 +666,7 @@ public class SugoAPI {
      * @param original the old distinct_id that alias will be mapped to.
      */
     public void alias(String alias, String original) {
-        if (!SUGO_ENABLE){
+        if (!SUGO_ENABLE) {
             return;
         }
         if (original == null) {
@@ -647,8 +683,8 @@ public class SugoAPI {
             j.put("original", original);
             track(null, "$create_alias", j);
         } catch (final JSONException e) {
-            track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             Log.e(LOGTAG, "Failed to alias", e);
+            AnalyticsMessages.sendDataForInitSugo(mContext, e);
         }
         flush();
     }
@@ -673,7 +709,7 @@ public class SugoAPI {
      *                   value is globally unique for each individual user you intend to track.
      */
     public void identify(String distinctId) {
-        if (!SUGO_ENABLE){
+        if (!SUGO_ENABLE) {
             return;
         }
         synchronized (mPersistentIdentity) {
@@ -702,7 +738,7 @@ public class SugoAPI {
     }
 
     public void timeEvent(@NonNull final String eventName, @NonNull String tag, long offset) {
-        if (!SUGO_ENABLE){
+        if (!SUGO_ENABLE) {
             return;
         }
         final long writeTime = System.currentTimeMillis() + offset;
@@ -728,7 +764,7 @@ public class SugoAPI {
      *                   See also {@link #track(String, JSONObject)}
      */
     public void trackMap(@NonNull String eventName, Map<String, Object> properties) {
-        if (!SUGO_ENABLE){
+        if (!SUGO_ENABLE) {
             return;
         }
         if (null == properties) {
@@ -737,8 +773,8 @@ public class SugoAPI {
             try {
                 track(null, eventName, new JSONObject(properties));
             } catch (NullPointerException e) {
-                track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.w(LOGTAG, "Can't have null keys in the properties of trackMap!");
+                AnalyticsMessages.sendDataForInitSugo(mContext, e);
             }
         }
     }
@@ -765,7 +801,7 @@ public class SugoAPI {
     // (and perhaps document that code here).
     public void track(String eventId, @NonNull String eventName, JSONObject properties) {
         try {
-            if (!SUGO_ENABLE){
+            if (!SUGO_ENABLE) {
                 return;
             }
             if (eventName.trim().equals("")) {
@@ -891,8 +927,8 @@ public class SugoAPI {
             } catch (final JSONException e) {
                 Log.e(LOGTAG, "Exception tracking event " + eventName, e);
             }
-        }catch (Exception e){
-            Log.e(LOGTAG, "track method: "+e.toString());
+        } catch (Exception e) {
+            Log.e(LOGTAG, "track method: " + e.toString());
         }
 
     }
@@ -919,7 +955,7 @@ public class SugoAPI {
      * your main application activity.
      */
     public void flush() {
-        if (!SUGO_ENABLE){
+        if (!SUGO_ENABLE) {
             return;
         }
         mMessages.postToServer();
@@ -932,7 +968,7 @@ public class SugoAPI {
      * and persist beyond the lifetime of your application.
      */
     public JSONObject getSuperProperties() {
-        if (!SUGO_ENABLE){
+        if (!SUGO_ENABLE) {
             return new JSONObject();
         }
         JSONObject ret = new JSONObject();
@@ -949,7 +985,7 @@ public class SugoAPI {
      * @see #identify(String)
      */
     public String getDistinctId() {
-        if (!SUGO_ENABLE){
+        if (!SUGO_ENABLE) {
             return "";
         }
         return mPersistentIdentity.getEventsDistinctId();
@@ -973,7 +1009,7 @@ public class SugoAPI {
      *                        See also {@link #registerSuperProperties(JSONObject)}
      */
     public void registerSuperPropertiesMap(Map<String, Object> superProperties) {
-        if (!SUGO_ENABLE){
+        if (!SUGO_ENABLE) {
             return;
         }
         if (null == superProperties) {
@@ -984,7 +1020,6 @@ public class SugoAPI {
         try {
             registerSuperProperties(new JSONObject(superProperties));
         } catch (NullPointerException e) {
-            track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             Log.w(LOGTAG, "Can't have null keys in the properties of registerSuperPropertiesMap");
         }
     }
@@ -1008,14 +1043,14 @@ public class SugoAPI {
      * @see #clearSuperProperties()
      */
     public void registerSuperProperties(JSONObject superProperties) {
-        if (!SUGO_ENABLE){
+        if (!SUGO_ENABLE) {
             return;
         }
         mPersistentIdentity.registerSuperProperties(superProperties);
     }
 
     public static void setSuperPropertiesBeforeStartSugo(Context context, String key, String value) {
-        if (!SUGO_ENABLE){
+        if (!SUGO_ENABLE) {
             return;
         }
         if (context == null || TextUtils.isEmpty(key)) {
@@ -1031,13 +1066,13 @@ public class SugoAPI {
                 sPreSuperProps.put(key, value);
             }
         } catch (JSONException e) {
-            sInstanceMap.get(context.getApplicationContext()).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
             e.printStackTrace();
+            AnalyticsMessages.sendDataForInitSugo(context, e);
         }
     }
 
     public static void setSuperPropertiesOnceBeforeStartSugo(Context context, String key, String value) {
-        if (!SUGO_ENABLE){
+        if (!SUGO_ENABLE) {
             return;
         }
         if (context == null || TextUtils.isEmpty(key)) {
@@ -1053,8 +1088,8 @@ public class SugoAPI {
                 sPreSuperPropsOnce.put(key, value);
             }
         } catch (JSONException e) {
-            sInstanceMap.get(context.getApplicationContext()).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
             e.printStackTrace();
+            AnalyticsMessages.sendDataForInitSugo(context, e);
         }
     }
 
@@ -1069,7 +1104,7 @@ public class SugoAPI {
      * @see #registerSuperProperties(JSONObject)
      */
     public void unregisterSuperProperty(String superPropertyName) {
-        if (!SUGO_ENABLE){
+        if (!SUGO_ENABLE) {
             return;
         }
         mPersistentIdentity.unregisterSuperProperty(superPropertyName);
@@ -1086,7 +1121,7 @@ public class SugoAPI {
      *                        See also {@link #registerSuperPropertiesOnce(JSONObject)}
      */
     public void registerSuperPropertiesOnceMap(Map<String, Object> superProperties) {
-        if (!SUGO_ENABLE){
+        if (!SUGO_ENABLE) {
             return;
         }
         if (null == superProperties) {
@@ -1098,6 +1133,7 @@ public class SugoAPI {
             registerSuperPropertiesOnce(new JSONObject(superProperties));
         } catch (NullPointerException e) {
             Log.w(LOGTAG, "Can't have null keys in the properties of registerSuperPropertiesOnce!");
+
         }
     }
 
@@ -1111,7 +1147,7 @@ public class SugoAPI {
      * @see #registerSuperProperties(JSONObject)
      */
     public void registerSuperPropertiesOnce(JSONObject superProperties) {
-        if (!SUGO_ENABLE){
+        if (!SUGO_ENABLE) {
             return;
         }
         mPersistentIdentity.registerSuperPropertiesOnce(superProperties);
@@ -1128,7 +1164,7 @@ public class SugoAPI {
      * @see #registerSuperProperties(JSONObject)
      */
     public void clearSuperProperties() {
-        if (!SUGO_ENABLE){
+        if (!SUGO_ENABLE) {
             return;
         }
         mPersistentIdentity.clearSuperProperties();
@@ -1144,7 +1180,7 @@ public class SugoAPI {
      * @param update A function from one set of super properties to another. The update should not return null.
      */
     public void updateSuperProperties(SuperPropertyUpdate update) {
-        if (!SUGO_ENABLE){
+        if (!SUGO_ENABLE) {
             return;
         }
         mPersistentIdentity.updateSuperProperties(update);
@@ -1156,7 +1192,7 @@ public class SugoAPI {
      * Will not clear referrer information.
      */
     public void reset() {
-        if (!SUGO_ENABLE){
+        if (!SUGO_ENABLE) {
             return;
         }
         // Will clear distinct_ids, superProperties, notifications, surveys, experiments,
@@ -1174,7 +1210,7 @@ public class SugoAPI {
      * of the host application, and are guaranteed not to change while the app is running.
      */
     public Map<String, String> getDeviceInfo() {
-        if (!SUGO_ENABLE){
+        if (!SUGO_ENABLE) {
             return new Hashtable<>();
         }
         return mDeviceInfo;
@@ -1461,52 +1497,10 @@ public class SugoAPI {
                 final JSONObject message = records.getJSONObject(i);
                 mMessages.peopleMessage(message);
             } catch (final JSONException e) {
-                track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.e(LOGTAG, "Malformed people record stored pending identity, will not send it.", e);
             }
         }
     }
-
-    private static void registerAppLinksListeners(Context context, final SugoAPI mixpanel) {
-        // Register a BroadcastReceiver to receive com.parse.bolts.measurement_event and track a call to mixpanel
-        try {
-            final Class<?> clazz = Class.forName("android.support.v4.content.LocalBroadcastManager");
-            final Method methodGetInstance = clazz.getMethod("getInstance", Context.class);
-            final Method methodRegisterReceiver = clazz.getMethod("registerReceiver", BroadcastReceiver.class, IntentFilter.class);
-            final Object localBroadcastManager = methodGetInstance.invoke(null, context);
-            methodRegisterReceiver.invoke(localBroadcastManager, new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    final JSONObject properties = new JSONObject();
-                    final Bundle args = intent.getBundleExtra("event_args");
-                    if (args != null) {
-                        for (final String key : args.keySet()) {
-                            try {
-                                properties.put(key, args.get(key));
-                            } catch (final JSONException e) {
-                                SugoAPI.getInstance(context).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
-                                Log.e(APP_LINKS_LOGTAG, "failed to add key \"" + key + "\" to properties for tracking bolts event", e);
-                            }
-                        }
-                    }
-                    mixpanel.track(null, "$" + intent.getStringExtra("event_name"), properties);
-                }
-            }, new IntentFilter("com.parse.bolts.measurement_event"));
-        } catch (final InvocationTargetException e) {
-            SugoAPI.getInstance(context).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
-            Log.d(APP_LINKS_LOGTAG, "Failed to invoke LocalBroadcastManager.registerReceiver() -- App Links tracking will not be enabled due to this exception", e);
-        } catch (final ClassNotFoundException e) {
-            SugoAPI.getInstance(context).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
-            Log.d(APP_LINKS_LOGTAG, "To enable App Links tracking android.support.v4 must be installed: " + e.getMessage());
-        } catch (final NoSuchMethodException e) {
-            SugoAPI.getInstance(context).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
-            Log.d(APP_LINKS_LOGTAG, "To enable App Links tracking android.support.v4 must be installed: " + e.getMessage());
-        } catch (final IllegalAccessException e) {
-            SugoAPI.getInstance(context).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
-            Log.d(APP_LINKS_LOGTAG, "App Links tracking will not be enabled due to this exception: " + e.getMessage());
-        }
-    }
-
 
 
     public void handleWebView(WebView webView) {
@@ -1613,7 +1607,6 @@ public class SugoAPI {
             }
         } catch (JSONException e) {
             e.printStackTrace();
-            track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
         }
         track(eventName, props);
     }
@@ -1631,7 +1624,7 @@ public class SugoAPI {
     private final Map<String, String> mDeviceInfo;
     private final Map<String, Long> mEventTimings;
     private SugoActivityLifecycleCallbacks mSugoActivityLifecycleCallbacks;
-    private final Map<String,String> classAttributeDict;
+    private final Map<String, String> classAttributeDict;
 
     // Maps each token to a singleton SugoAPI instance
     private static final Map<Context, SugoAPI> sInstanceMap = new HashMap<Context, SugoAPI>();
@@ -1650,7 +1643,7 @@ public class SugoAPI {
     private static JSONObject sPreSuperPropsOnce = new JSONObject();
 
 
-    public Map<String,String> getClassAttributeDict(){
+    public Map<String, String> getClassAttributeDict() {
         return classAttributeDict;
     }
 
@@ -1681,11 +1674,11 @@ public class SugoAPI {
                 longitude = location.getLongitude();
             }
         }
-        double[] loc = {longitude , latitude};
+        double[] loc = {longitude, latitude};
         return loc;
     }
 
-    public Context getCurrentContext(){
+    public Context getCurrentContext() {
         return mContext;
     }
 
@@ -1699,7 +1692,7 @@ public class SugoAPI {
             latitude = location.getLatitude();
             longitude = location.getLongitude();
         }
-        double[] loc = {longitude , latitude};
+        double[] loc = {longitude, latitude};
         return loc;
     }
 

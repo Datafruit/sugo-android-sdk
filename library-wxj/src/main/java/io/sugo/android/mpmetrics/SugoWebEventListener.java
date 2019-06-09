@@ -61,12 +61,10 @@ public class SugoWebEventListener {
                 sugoAPI.track(eventId, eventName, jsonObject);
             }
         } catch (JSONException e) {
-            sugoAPI.track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(sugoAPI.getCurrentContext(),e));
             JSONObject jsonObject = new JSONObject();
             try {
                 jsonObject.put(SGConfig.FIELD_TEXT, e.toString());
             } catch (JSONException e1) {
-                sugoAPI.track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(sugoAPI.getCurrentContext(),e));
                 e1.printStackTrace();
             }
             sugoAPI.track("Exception", jsonObject);
@@ -245,6 +243,12 @@ public class SugoWebEventListener {
             realPath = realPath.replace(SGConfig.getInstance(activity.getApplicationContext()).getWebRoot(), "");
         } catch (MalformedURLException e) {
             e.printStackTrace();
+            try {
+                AnalyticsMessages.sendDataForInitSugo(xWalkView.getContext(),e);
+                return;
+            }catch (Exception exception){
+                return;
+            }
         }
         JSONObject pageInfo = SugoPageManager.getInstance().getCurrentPageInfo(realPath);
         String pageName = "";
@@ -260,6 +264,13 @@ public class SugoWebEventListener {
             props.put(SGConfig.FIELD_PAGE_NAME, pageName);
         } catch (JSONException e) {
             e.printStackTrace();
+            try {
+                AnalyticsMessages.sendDataForInitSugo(xWalkView.getContext(),e);
+                return;
+            }catch (Exception exception){
+                return;
+            }
+
         }
         SugoAPI.getInstance(activity.getApplicationContext()).track("停留", props);
     }

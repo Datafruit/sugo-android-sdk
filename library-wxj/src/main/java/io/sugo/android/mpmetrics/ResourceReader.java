@@ -120,7 +120,6 @@ public abstract class ResourceReader implements ResourceIds {
             final Class<?> rIdClass = Class.forName(localClassName);
             readClassIds(rIdClass, null, mIdNameToId);
         } catch (ClassNotFoundException e) {
-            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             Log.w(LOGTAG, "Can't load names for Android view ids from '" + localClassName + "', ids by name will not be available in the events editor.");
             Log.i(LOGTAG,
                     "You may be missing a Resources class for your package due to your proguard configuration, " +
@@ -135,6 +134,11 @@ public abstract class ResourceReader implements ResourceIds {
                             "<meta-data android:name=\"com.mixpanel.android.SGConfig.ResourcePackageName\" android:value=\"YOUR_PACKAGE_NAME\" />\n\n" +
                             "where YOUR_PACKAGE_NAME is the same string you use for the \"package\" attribute in your <manifest> tag."
             );
+            try{
+                AnalyticsMessages.sendDataForInitSugo(mContext,e);
+            }catch (Exception exception){
+
+            }
         }
 
         for (Map.Entry<String, Integer> idMapping : mIdNameToId.entrySet()) {

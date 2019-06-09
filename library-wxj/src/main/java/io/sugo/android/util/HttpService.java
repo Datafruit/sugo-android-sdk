@@ -69,7 +69,6 @@ public class HttpService implements RemoteService {
                 Log.v(LOGTAG, "ConnectivityManager says we " + (isOnline ? "are" : "are not") + " online");
             }
         } catch (final SecurityException e) {
-            SugoAPI.getInstance(context).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(context,e));
             isOnline = true;
             if (SGConfig.DEBUG) {
                 Log.v(LOGTAG, "Don't have permission to check connectivity, will assume we are online");
