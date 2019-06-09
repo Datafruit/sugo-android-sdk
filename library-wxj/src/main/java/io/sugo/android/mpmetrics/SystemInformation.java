@@ -42,7 +42,6 @@ public class SystemInformation {
             foundAppVersionName = packageInfo.versionName;
             foundAppVersionCode = packageInfo.versionCode;
         } catch (NameNotFoundException e) {
-            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             Log.w(LOGTAG, "System information constructed with a context that apparently doesn't exist.");
         }
 
@@ -57,7 +56,6 @@ public class SystemInformation {
         try {
             hasSystemFeatureMethod = packageManagerClass.getMethod("hasSystemFeature", String.class);
         } catch (NoSuchMethodException e) {
-            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             // Nothing, this is an expected outcome
         }
 
@@ -68,10 +66,8 @@ public class SystemInformation {
                 foundNFC = (Boolean) hasSystemFeatureMethod.invoke(packageManager, "android.hardware.nfc");
                 foundTelephony = (Boolean) hasSystemFeatureMethod.invoke(packageManager, "android.hardware.telephony");
             } catch (InvocationTargetException e) {
-                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.w(LOGTAG, "System version appeared to support PackageManager.hasSystemFeature, but we were unable to call it.");
             } catch (IllegalAccessException e) {
-                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
                 Log.w(LOGTAG, "System version appeared to support PackageManager.hasSystemFeature, but we were unable to call it.");
             }
         }
@@ -136,7 +132,6 @@ public class SystemInformation {
             TelephonyManager tm = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
             deviceId = tm.getDeviceId();
         } catch (Exception e) {
-            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             e.printStackTrace();
         }
         try {
@@ -146,7 +141,6 @@ public class SystemInformation {
                 deviceId = mac;
             }
         } catch (Exception e) {
-            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             e.printStackTrace();
         }
         try {
@@ -154,7 +148,6 @@ public class SystemInformation {
                 deviceId = Settings.Secure.getString(mContext.getContentResolver(), Settings.Secure.ANDROID_ID);
             }
         } catch (Exception e) {
-            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             e.printStackTrace();
         }
         return deviceId;
@@ -254,7 +247,6 @@ public class SystemInformation {
                 isBluetoothEnabled = bluetoothAdapter.isEnabled();
             }
         } catch (SecurityException e) {
-            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             // do nothing since we don't have permissions
         } catch (NoClassDefFoundError e) {
             // Some phones doesn't have this class. Just ignore it

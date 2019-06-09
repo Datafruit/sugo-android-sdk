@@ -94,6 +94,12 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                 }
             } catch (final UnintelligibleMessageException e) {
                 Log.e(LOGTAG, e.getMessage(), e);
+                try {
+                    AnalyticsMessages.sendDataForInitSugo(mContext,e);
+                }catch (Exception exception){
+
+                }
+
             }
         }
     }
@@ -158,6 +164,12 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                 parsed = parseApiResponse(responseString);
                 return parsed;
             } catch (final JSONException e) {
+                try {
+                    AnalyticsMessages.sendDataForInitSugo(mContext,e);
+                }catch (Exception e1){
+
+                }
+
                 final String message = "Sugo endpoint returned unparsable result:\n" + responseString;
                 throw new UnintelligibleMessageException(message, e);
             }
@@ -219,7 +231,11 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                 parsed = parseApiResponse(responseString);
                 return parsed;
             } catch (final JSONException e) {
-                SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
+                try {
+                    AnalyticsMessages.sendDataForInitSugo(mContext,e);
+                }catch (Exception e1){
+
+                }
                 final String message = "Sugo dimensions endpoint returned unparsable result:\n" + responseString;
                 throw new UnintelligibleMessageException(message, e);
             }
@@ -288,7 +304,6 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         try {
             token = URLEncoder.encode(token, "utf-8");
         } catch (final UnsupportedEncodingException e) {
-            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             throw new RuntimeException("Sugo library requires utf-8 string encoding to be available", e);
         }
         final StringBuilder queryBuilder = new StringBuilder()
@@ -303,7 +318,6 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         try {
             return new String(response, "UTF-8");
         } catch (final UnsupportedEncodingException e) {
-            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             throw new RuntimeException("UTF not supported on this platform?", e);
         }
     }
@@ -320,7 +334,6 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                 escapedId = null;
             }
         } catch (final UnsupportedEncodingException e) {
-            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             throw new RuntimeException("Sugo library requires utf-8 string encoding to be available", e);
         }
 
@@ -357,7 +370,6 @@ import io.sugo.android.viewcrawler.ViewCrawler;
             queryBuilder.append("&properties=");
             queryBuilder.append(URLEncoder.encode(properties.toString(), "utf-8"));
         } catch (Exception e) {
-            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             Log.e(LOGTAG, "Exception constructing properties JSON", e.getCause());
         }
 
@@ -384,7 +396,6 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         try {
             return new String(response, "UTF-8");
         } catch (final UnsupportedEncodingException e) {
-            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             throw new RuntimeException("UTF not supported on this platform?", e);
         }
     }
@@ -401,7 +412,6 @@ import io.sugo.android.viewcrawler.ViewCrawler;
                 escapedId = null;
             }
         } catch (final UnsupportedEncodingException e) {
-            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             throw new RuntimeException("Sugo library requires utf-8 string encoding to be available", e);
         }
 
@@ -434,7 +444,6 @@ import io.sugo.android.viewcrawler.ViewCrawler;
             queryBuilder.append("&properties=");
             queryBuilder.append(URLEncoder.encode(properties.toString(), "utf-8"));
         } catch (Exception e) {
-            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             Log.e(LOGTAG, "Exception constructing properties JSON", e.getCause());
         }
 
@@ -461,7 +470,6 @@ import io.sugo.android.viewcrawler.ViewCrawler;
         try {
             return new String(response, "UTF-8");
         } catch (final UnsupportedEncodingException e) {
-            SugoAPI.getInstance(mContext).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(mContext,e));
             throw new RuntimeException("UTF not supported on this platform?", e);
         }
     }

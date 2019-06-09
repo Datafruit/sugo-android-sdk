@@ -177,7 +177,6 @@ import io.sugo.android.util.ExceptionInfoUtils;
 
         } catch (final SQLiteException e) {
             Log.e(LOGTAG, "Could not add Mixpanel data to table " + tableName + ". Re-initializing database.", e);
-
             // We assume that in general, the results of a SQL exception are
             // unrecoverable, and could be associated with an oversized or
             // otherwise unusable DB. Better to bomb it and get back on track
@@ -209,7 +208,6 @@ import io.sugo.android.util.ExceptionInfoUtils;
             db.delete(tableName, "_id <= " + last_id, null);
         } catch (final SQLiteException e) {
             Log.e(LOGTAG, "Could not clean sent Mixpanel records from " + tableName + ". Re-initializing database.", e);
-
             // We assume that in general, the results of a SQL exception are
             // unrecoverable, and could be associated with an oversized or
             // otherwise unusable DB. Better to bomb it and get back on track
@@ -233,7 +231,6 @@ import io.sugo.android.util.ExceptionInfoUtils;
             db.delete(tableName, KEY_CREATED_AT + " <= " + time, null);
         } catch (final SQLiteException e) {
             Log.e(LOGTAG, "Could not clean timed-out Mixpanel records from " + tableName + ". Re-initializing database.", e);
-
             // We assume that in general, the results of a SQL exception are
             // unrecoverable, and could be associated with an oversized or
             // otherwise unusable DB. Better to bomb it and get back on track
@@ -413,7 +410,6 @@ import io.sugo.android.util.ExceptionInfoUtils;
             }
         } catch (final SQLiteException e) {
             Log.e(LOGTAG, "Could not pull records for Mixpanel out of database " + tableName + ". Waiting to send.", e);
-
             // We'll dump the DB on write failures, but with reads we can
             // let things ride in hopes the issue clears up.
             // (A bit more likely, since we're opening the DB for read and not write.)

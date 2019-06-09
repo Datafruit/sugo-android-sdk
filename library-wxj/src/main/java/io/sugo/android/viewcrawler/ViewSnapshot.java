@@ -51,6 +51,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import io.sugo.android.mpmetrics.AnalyticsMessages;
 import io.sugo.android.mpmetrics.ResourceIds;
 import io.sugo.android.mpmetrics.SGConfig;
 import io.sugo.android.mpmetrics.SugoAPI;
@@ -273,6 +274,11 @@ import io.sugo.android.mpmetrics.SugoWebNodeReporter;
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
                     Log.e(LOGTAG, e.getMessage());
+                    try {
+                        AnalyticsMessages.sendDataForInitSugo(view.getContext(),e);
+                    }catch (Exception e1){
+
+                    }
                 }
             }
             if (count < max_attempt) {
@@ -309,6 +315,12 @@ import io.sugo.android.mpmetrics.SugoWebNodeReporter;
                         Thread.sleep(100);
                     } catch (InterruptedException e) {
                         Log.e(LOGTAG, e.getMessage());
+                        try {
+                            AnalyticsMessages.sendDataForInitSugo(view.getContext(),e);
+                        }catch (Exception e1){
+
+                        }
+
                     }
                 }
                 if (count < max_attempt) {

@@ -1,13 +1,16 @@
 package io.sugo.heatmap;
 
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -61,6 +64,9 @@ public class SugoHeatMapCallbacks implements Application.ActivityLifecycleCallba
     }
 
     private void addOnclickPointListener(final Activity activity) {
+        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.SYSTEM_ALERT_WINDOW) != PackageManager.PERMISSION_GRANTED){
+            return ;
+        }
         try {
             if (mDummyView == null) {
                 mDummyView = new LinearLayout(activity.getApplication());

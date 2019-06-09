@@ -1,6 +1,7 @@
 package io.sugo.android.util;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.util.Log;
 
 import org.json.JSONException;
@@ -33,18 +34,20 @@ public class ExceptionInfoUtils {
         return obj;
     }
 
-    public static JSONObject ExceptionInfo2(Context mContext, Exception exception) {
+    public static JSONObject ExceptionInfo2(Context mContext, Bundle configBundle, Exception exception) {
         try {
+
             JSONObject props = new JSONObject();
-            SGConfig config = SGConfig.getInstance(mContext);
             SystemInformation mSystemInformation = new SystemInformation(mContext);
-            final String token = config.getToken();
-            final String projectId = config.getProjectId();
+            final String token = configBundle.getString("io.sugo.android.SGConfig.token");
             final String appVersion = mSystemInformation.getAppVersionName();
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
             exception.printStackTrace(pw);
             String text = sw.toString();
+
+
+            String projectId = configBundle.getString("io.sugo.android.SGConfig.ProjectId");
 
             props.put("token", token);
             props.put("projectId", projectId);

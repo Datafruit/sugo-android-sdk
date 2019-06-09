@@ -190,6 +190,7 @@ public abstract class WebSocketClient extends WebSocketAdapter implements Runnab
 			engine.eot();
 		} catch ( IOException e ) {
 			engine.eot();
+
 		} catch ( RuntimeException e ) {
 			// this catch case covers internal errors only and indicates a bug in this websocket implementation
 			onError( e );

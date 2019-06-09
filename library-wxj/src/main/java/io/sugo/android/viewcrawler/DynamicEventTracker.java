@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import io.sugo.android.mpmetrics.AnalyticsMessages;
 import io.sugo.android.mpmetrics.ResourceIds;
 import io.sugo.android.mpmetrics.ResourceReader;
 import io.sugo.android.mpmetrics.SGConfig;
@@ -61,8 +62,13 @@ import io.sugo.android.util.ExceptionInfoUtils;
             properties.put(SGConfig.FIELD_TIME, System.currentTimeMillis());
 
         } catch (JSONException e) {
-            SugoAPI.getInstance(v.getContext()).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(v.getContext(),e));
             Log.e(LOGTAG, "Can't format properties from view due to JSON issue", e);
+            try {
+                AnalyticsMessages.sendDataForInitSugo(v.getContext(),e);
+            }catch (Exception e1){
+
+            }
+
         }
         if (null != classAttr) {
             Iterator it = classAttr.keys();
@@ -85,8 +91,12 @@ import io.sugo.android.util.ExceptionInfoUtils;
                 try {
                     properties.put(key, data);
                 } catch (JSONException e) {
-                    SugoAPI.getInstance(v.getContext()).track(null,ExceptionInfoUtils.EVENTNAME,ExceptionInfoUtils.ExceptionInfo(v.getContext(),e));
                     e.printStackTrace();
+                    try {
+                        AnalyticsMessages.sendDataForInitSugo(v.getContext(),e);
+                    }catch (Exception e1){
+
+                    }
                 }
             }
         }
