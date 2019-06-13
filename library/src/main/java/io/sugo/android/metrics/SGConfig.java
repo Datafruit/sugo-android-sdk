@@ -126,6 +126,7 @@ public class SGConfig {
     public static final String FIELD_EVENT_NAME = "event_name";
     public static final String FIELD_MP_LIB = "sugo_lib";
     public static final String FIELD_TIME = "event_time";
+    private final String mSugoInitializeEndpoint;
     public static final String FIELD_TOKEN = "token";
     public static final String FIELD_PAGE = "path_name";
     public static final String FIELD_DURATION = "duration";
@@ -248,6 +249,7 @@ public class SGConfig {
 
         mDimDecideEndpoint = apiHost + "/api/sdk/decide-dimesion";
         mEventDecideEndpoint = apiHost + "/api/sdk/decide-event";
+        mSugoInitializeEndpoint = apiHost + "/api/sdk/decide-config";
         mHeatMapEndpoint = apiHost + "/api/sdk/heat";
         mFirstLoginEndpoint = apiHost + "/api/sdk/get-first-login-time";
         mFirstInstallEndpoint = apiHost + "/api/sdk/get-first-start-time";
@@ -526,6 +528,10 @@ public class SGConfig {
             webRoot = " ";
         }
         return webRoot;
+    }
+
+    public String getSugoInitializeEndpoint(){
+        return mSugoInitializeEndpoint;
     }
 
 

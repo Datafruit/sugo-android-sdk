@@ -59,6 +59,14 @@ class ApiChecker {
         mUpdatesFromSugo = updatesFromSugo;
     }
 
+    public ApiChecker(final Context context,final SGConfig config,
+                      final SystemInformation systemInformation ){
+        mContext = context;
+        mConfig = config;
+        mSystemInformation = systemInformation;
+        mUpdatesFromSugo = null;
+    }
+
     public void runDecideChecks(final RemoteService poster) throws RemoteService.ServiceUnavailableException {
         final String token = mConfig.getToken();
         final String distinctId = mConfig.getDistinctId();
@@ -101,6 +109,24 @@ class ApiChecker {
 
     private Result runEventApiRequest(final String token, final String distinctId, final RemoteService poster)
             throws RemoteService.ServiceUnavailableException, UnintelligibleMessageException {
+        SharedPreferences pref = mContext.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE + mConfig.getProjectId() , Context.MODE_PRIVATE);
+        boolean isUpdateConfig = pref.getBoolean(ViewCrawler.ISUPDATACONFIG, false);
+        pref = mContext.getSharedPreferences(ViewCrawler.LAESTEVENTBINDINGVERSION , Context.MODE_PRIVATE);
+        long latestEventBindingVersion = pref.getLong(ViewCrawler.LAESTEVENTBINDINGVERSION, -1);
+
+        if (isUpdateConfig){
+            SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + token, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putInt(ViewCrawler.SP_EVENT_BINDING_VERSION, -1);
+            editor.commit();
+        }else{
+            SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + token, Context.MODE_PRIVATE);
+            int oldEventBindingVersion = preferences.getInt(ViewCrawler.SP_EVENT_BINDING_VERSION, -1);
+            if (oldEventBindingVersion == latestEventBindingVersion&&oldEventBindingVersion!=-1){
+                return null;
+            }
+        }
+
         final String responseString = getEventApiResponseFromServer(token, distinctId, poster);
         if (SGConfig.DEBUG) {
             Log.v(LOGTAG, "Sugo decide server response was:\n" + responseString);
@@ -365,6 +391,28 @@ class ApiChecker {
             }
         }
 
+        final byte[] response = getUrls(poster, mContext, urls);
+        if (null == response) {
+            return null;
+        }
+        try {
+            return new String(response, "UTF-8");
+        } catch (final UnsupportedEncodingException e) {
+            throw new RuntimeException("UTF not supported on this platform?", e);
+        }
+    }
+
+    public String getSugoInitializeEndpointFromServer(@NonNull String token,@NonNull String projectId,@NonNull String appVersion,RemoteService poster)throws RemoteService.ServiceUnavailableException{
+        try {
+            token = URLEncoder.encode(token, "utf-8");
+        } catch (final UnsupportedEncodingException e) {
+            throw new RuntimeException("Sugo library requires utf-8 string encoding to be available", e);
+        }
+        final StringBuilder queryBuilder = new StringBuilder()
+                .append("?tokenId=").append(token)
+                .append("&projectId=").append(projectId)
+                .append("&appVersion=").append(appVersion);
+        final String[] urls = new String[]{mConfig.getSugoInitializeEndpoint() + queryBuilder.toString()};
         final byte[] response = getUrls(poster, mContext, urls);
         if (null == response) {
             return null;

@@ -8,7 +8,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
@@ -36,6 +38,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Future;
 
+import io.sugo.android.util.HttpService;
+import io.sugo.android.util.RemoteService;
 import io.sugo.android.viewcrawler.TrackingDebug;
 import io.sugo.android.viewcrawler.UpdatesFromSugo;
 import io.sugo.android.viewcrawler.ViewCrawler;
@@ -174,6 +178,225 @@ public class SugoAPI {
             return instance;
         }
     }
+
+    public static void startSugo(Context context, SGConfig sgConfig,final InitSugoCallback callback) {
+        try {
+            if (null == context) {
+                if (SGConfig.DEBUG) {
+                    Log.e(LOGTAG, "startSugo 失败，context 为空");
+                }
+                return;
+            }
+            synchronized (S_INSTANCE_MAP) {
+                if (S_INSTANCE_MAP.get(context.getApplicationContext()) != null) {
+                    if (SGConfig.DEBUG) {
+                        Log.e(LOGTAG, "Sugo SDK 已经初始化，不能再次初始化");
+                    }
+                    return;
+                }
+            }
+            if (TextUtils.isEmpty(sgConfig.getToken())) {
+                if (SGConfig.DEBUG) {
+                    Log.e(LOGTAG, "未检测到 SugoSDK 的 Token，请正确设置 io.sugo.android.SGConfig.token");
+                }
+                return;
+            }
+            if (TextUtils.isEmpty(sgConfig.getProjectId())) {
+                if (SGConfig.DEBUG) {
+                    Log.e(LOGTAG, "未检测到 SugoSDK 的 ProjectId，请正确设置 io.sugo.android.SGConfig.ProjectId");
+                }
+                return;
+            }
+            new SugoInitThread(context, callback).start();
+        }catch (Exception exception) {
+            try {
+                SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+sgConfig.getProjectId(), Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
+                editor.commit();
+            } catch (Exception e1) {
+                return;
+            }
+
+            return;
+        }
+    }
+
+    public static class SugoInitThread extends Thread {
+
+        private Context context;
+        private final InitSugoCallback callback;
+
+        public void runSdkInitializeRequest() throws RemoteService.ServiceUnavailableException {
+            String responseString = null;
+            try {
+                SystemInformation mSystemInformation = new SystemInformation(context);
+                SGConfig config = SGConfig.getInstance(context);
+                final String token = config.getToken();
+                final String projectId = config.getProjectId();
+                final String appVersion = mSystemInformation.getAppVersionName();
+                ApiChecker decideChecker = new ApiChecker(context, config, mSystemInformation);
+                responseString = decideChecker.getSugoInitializeEndpointFromServer(token, projectId, appVersion, new HttpService());
+                if (SGConfig.DEBUG) {
+                    Log.v(LOGTAG, "Sugo decide server response was:\n" + responseString);
+                }
+
+                if (TextUtils.isEmpty(responseString)) {
+                    //TODO 添加没有数据返回处理，把所有字段设置为false
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+projectId, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
+                    editor.commit();
+                    return;
+                }
+            } catch (Exception e) {
+                try {
+                    SGConfig config = SGConfig.getInstance(context);
+                    final String projectId = config.getProjectId();
+                    //TODO 添加没有数据返回处理，把所有字段设置为false
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+projectId, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
+                    editor.commit();
+                }catch (Exception excepiton){
+                    return;
+                }
+
+            }
+            try {
+                SGConfig config = SGConfig.getInstance(context);
+                final String projectId = config.getProjectId();
+                JSONObject response = new JSONObject(responseString);
+                if (response.has("isSugoInitialize")) {
+                    boolean isSugoInitialize = response.optBoolean("isSugoInitialize", false);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+projectId, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, isSugoInitialize);
+                    editor.commit();
+                }
+                if (response.has("isHeatMapFunc")) {
+                    boolean isHeatMapFunc = response.optBoolean("isHeatMapFunc", false);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+projectId, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putBoolean(ViewCrawler.ISHEATMAPFUNC, isHeatMapFunc);
+                    editor.commit();
+                }
+                if (response.has("uploadLocation")) {
+                    int uploadLocation = response.optInt("uploadLocation", 0);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+projectId, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putInt(ViewCrawler.UPLOADLOCATION, uploadLocation);
+                    editor.commit();
+                }
+                if (response.has("isUpdateConfig")) {
+                    boolean isUpdateConfig = response.optBoolean("isUpdateConfig", false);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+projectId, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putBoolean(ViewCrawler.ISUPDATACONFIG, isUpdateConfig);
+                    editor.commit();
+
+                }
+                if (response.has("latestEventBindingVersion")) {
+                    Long laestEventBindingVersion = response.optLong("latestEventBindingVersion", -1);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+projectId, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putLong(ViewCrawler.LAESTEVENTBINDINGVERSION, laestEventBindingVersion);
+                    editor.commit();
+                }
+                if (response.has("latestDimensionVersion")) {
+                    Long laestDimensionVersion = response.optLong("latestDimensionVersion", -1);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+projectId, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putLong(ViewCrawler.LAESTDIMENSIONVERSION, laestDimensionVersion);
+                    editor.commit();
+                }
+            } catch (JSONException e) {
+                return;
+            }
+        }
+
+        public SugoInitThread(Context context, final InitSugoCallback callback) {
+            this.context = context;
+            this.callback = callback;
+        }
+
+        @Override
+        public void run() {
+            super.run();
+            try {
+                runSdkInitializeRequest();
+            } catch (RemoteService.ServiceUnavailableException e) {
+                try {
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
+                    editor.commit();
+                } catch (Exception exception) {
+                    return;
+                }
+
+            } catch (Exception e) {
+                try {
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
+                    return;
+                } catch (Exception exception) {
+                    return;
+                }
+
+            }
+            try {
+                Message msg = Message.obtain();
+                Map<String, Object> map = new HashMap<>();
+                map.put("context", context);
+                map.put("callback", callback);
+                msg.obj = map;
+                msg.what = 1;
+                SugoInitHandler.sendMessage(msg);
+            } catch (Exception e) {
+                try {
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
+                    editor.commit();
+                    return;
+                } catch (Exception exception) {
+                    return;
+                }
+
+            }
+        }
+    }
+
+    private static Handler SugoInitHandler = new Handler() {
+
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case 1:
+                    try {
+                        Map<String, Object> map = (HashMap) msg.obj;
+                        Context context = (Context) map.get("context");
+                        SGConfig sgConfig = SGConfig.getInstance(context);
+                        InitSugoCallback callback = (InitSugoCallback) map.get("callback");
+                        SharedPreferences preferences = (context).getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+sgConfig.getProjectId(), Context.MODE_PRIVATE);
+                        boolean isSugoInitialize = preferences.getBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
+                        if (isSugoInitialize) {
+                            SugoAPI.getInstance(context);
+                            if (callback != null) callback.finish();
+                            Log.i("Sugo", "SugoSDK 初始化成功！");
+                        }
+                    } catch (Exception e) {
+                        return;
+                    }
+                    break;
+            }
+        }
+    };
+
 
     public static void startSugo(Context context, SGConfig sgConfig) {
         if (null == context) {
