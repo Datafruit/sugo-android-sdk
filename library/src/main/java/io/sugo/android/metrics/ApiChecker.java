@@ -109,9 +109,8 @@ class ApiChecker {
 
     private Result runEventApiRequest(final String token, final String distinctId, final RemoteService poster)
             throws RemoteService.ServiceUnavailableException, UnintelligibleMessageException {
-        SharedPreferences pref = mContext.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE + mConfig.getProjectId() , Context.MODE_PRIVATE);
+        SharedPreferences pref = mContext.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE +token , Context.MODE_PRIVATE);
         boolean isUpdateConfig = pref.getBoolean(ViewCrawler.ISUPDATACONFIG, false);
-        pref = mContext.getSharedPreferences(ViewCrawler.LAESTEVENTBINDINGVERSION , Context.MODE_PRIVATE);
         long latestEventBindingVersion = pref.getLong(ViewCrawler.LAESTEVENTBINDINGVERSION, -1);
 
         if (isUpdateConfig){
@@ -168,6 +167,25 @@ class ApiChecker {
 
     private Result runDimApiRequest(final String token, final String distinctId, final RemoteService poster)
             throws RemoteService.ServiceUnavailableException, UnintelligibleMessageException {
+        //Determine whether to force an update
+        SharedPreferences pref = mContext.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE + token , Context.MODE_PRIVATE);
+        boolean isUpdateConfig = pref.getBoolean(ViewCrawler.ISUPDATACONFIG, false);
+        long latestDimensionVersion = pref.getLong(ViewCrawler.LAESTDIMENSIONVERSION, -1);
+
+        if (isUpdateConfig){
+            SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + token, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putLong(ViewCrawler.SP_DIMENSION_VERSION, -1);
+            editor.commit();
+        }else{
+            SharedPreferences preferences = mContext.getSharedPreferences(ViewCrawler.SHARED_PREF_EDITS_FILE + token, Context.MODE_PRIVATE);
+            long oldEventBindingVersion = preferences.getLong(ViewCrawler.SP_DIMENSION_VERSION, -1);
+            if (oldEventBindingVersion == latestDimensionVersion&&oldEventBindingVersion!=-1){
+                return null;
+            }
+        }
+
+
         final String responseString = getDimApiResponseFromServer(token, distinctId, poster);
         if (SGConfig.DEBUG) {
             Log.v(LOGTAG, "Sugo dimensions response was:\n" + responseString);

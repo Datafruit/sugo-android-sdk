@@ -243,7 +243,7 @@ public class SugoAPI {
 
                 if (TextUtils.isEmpty(responseString)) {
                     //TODO 添加没有数据返回处理，把所有字段设置为false
-                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+projectId, Context.MODE_PRIVATE);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+token, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
                     editor.commit();
@@ -252,9 +252,9 @@ public class SugoAPI {
             } catch (Exception e) {
                 try {
                     SGConfig config = SGConfig.getInstance(context);
-                    final String projectId = config.getProjectId();
+                    final String token = config.getToken();
                     //TODO 添加没有数据返回处理，把所有字段设置为false
-                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+projectId, Context.MODE_PRIVATE);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+token, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
                     editor.commit();
@@ -265,32 +265,32 @@ public class SugoAPI {
             }
             try {
                 SGConfig config = SGConfig.getInstance(context);
-                final String projectId = config.getProjectId();
+                final String token = config.getToken();
                 JSONObject response = new JSONObject(responseString);
                 if (response.has("isSugoInitialize")) {
                     boolean isSugoInitialize = response.optBoolean("isSugoInitialize", false);
-                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+projectId, Context.MODE_PRIVATE);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+token, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, isSugoInitialize);
                     editor.commit();
                 }
                 if (response.has("isHeatMapFunc")) {
                     boolean isHeatMapFunc = response.optBoolean("isHeatMapFunc", false);
-                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+projectId, Context.MODE_PRIVATE);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+token, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putBoolean(ViewCrawler.ISHEATMAPFUNC, isHeatMapFunc);
                     editor.commit();
                 }
                 if (response.has("uploadLocation")) {
                     int uploadLocation = response.optInt("uploadLocation", 0);
-                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+projectId, Context.MODE_PRIVATE);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+token, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putInt(ViewCrawler.UPLOADLOCATION, uploadLocation);
                     editor.commit();
                 }
                 if (response.has("isUpdateConfig")) {
                     boolean isUpdateConfig = response.optBoolean("isUpdateConfig", false);
-                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+projectId, Context.MODE_PRIVATE);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+token, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putBoolean(ViewCrawler.ISUPDATACONFIG, isUpdateConfig);
                     editor.commit();
@@ -298,14 +298,14 @@ public class SugoAPI {
                 }
                 if (response.has("latestEventBindingVersion")) {
                     Long laestEventBindingVersion = response.optLong("latestEventBindingVersion", -1);
-                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+projectId, Context.MODE_PRIVATE);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+token, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putLong(ViewCrawler.LAESTEVENTBINDINGVERSION, laestEventBindingVersion);
                     editor.commit();
                 }
                 if (response.has("latestDimensionVersion")) {
                     Long laestDimensionVersion = response.optLong("latestDimensionVersion", -1);
-                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+projectId, Context.MODE_PRIVATE);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+token, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putLong(ViewCrawler.LAESTDIMENSIONVERSION, laestDimensionVersion);
                     editor.commit();
@@ -325,26 +325,16 @@ public class SugoAPI {
             super.run();
             try {
                 runSdkInitializeRequest();
-            } catch (RemoteService.ServiceUnavailableException e) {
+            } catch (Exception e) {
                 try {
-                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+SGConfig.getInstance(context).getToken(), Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
                     editor.commit();
-                } catch (Exception exception) {
-                    return;
-                }
-
-            } catch (Exception e) {
-                try {
-                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
-                    SharedPreferences.Editor editor = preferences.edit();
-                    editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
                     return;
                 } catch (Exception exception) {
                     return;
                 }
-
             }
             try {
                 Message msg = Message.obtain();
@@ -356,7 +346,7 @@ public class SugoAPI {
                 SugoInitHandler.sendMessage(msg);
             } catch (Exception e) {
                 try {
-                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.ISSUGOINITIALIZE, Context.MODE_PRIVATE);
+                    SharedPreferences preferences = context.getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+SGConfig.getInstance(context).getToken(), Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
                     editor.commit();
@@ -382,7 +372,7 @@ public class SugoAPI {
                         Context context = (Context) map.get("context");
                         SGConfig sgConfig = SGConfig.getInstance(context);
                         InitSugoCallback callback = (InitSugoCallback) map.get("callback");
-                        SharedPreferences preferences = (context).getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+sgConfig.getProjectId(), Context.MODE_PRIVATE);
+                        SharedPreferences preferences = (context).getSharedPreferences(ViewCrawler.SUGO_INIT_CACHE+sgConfig.getToken(), Context.MODE_PRIVATE);
                         boolean isSugoInitialize = preferences.getBoolean(ViewCrawler.ISSUGOINITIALIZE, false);
                         if (isSugoInitialize) {
                             SugoAPI.getInstance(context);
