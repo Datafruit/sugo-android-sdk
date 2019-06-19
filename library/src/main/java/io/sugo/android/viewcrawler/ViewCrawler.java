@@ -332,17 +332,18 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
 
         @Override
         public void onActivityStopped(Activity activity) {
-
+            SugoWebEventListener.cleanUnuseWebView(activity,false);
         }
 
         @Override
         public void onActivitySaveInstanceState(Activity activity, Bundle bundle) {
+
         }
 
         @Override
         public void onActivityDestroyed(Activity activity) {
             mBindingState.destroyBindings(activity);
-            SugoWebEventListener.cleanUnuseWebView(activity);
+            SugoWebEventListener.cleanUnuseWebView(activity,true);
             if (mXWalkViewListener != null) {
                 mXWalkViewListener.recyclerXWalkView(activity);
             }

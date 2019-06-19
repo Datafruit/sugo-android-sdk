@@ -66,7 +66,6 @@ public class SugoWebEventListener {
             }
             sugoAPI.track("Exception", jsonObject);
         }
-
     }
 
     @JavascriptInterface

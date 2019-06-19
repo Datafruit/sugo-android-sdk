@@ -177,7 +177,7 @@ public class SugoWebEventListener {
     /**
      * 移除 webview 引用，即移除对 Activity 的引用，避免内存泄漏
      */
-    public static void cleanUnuseWebView(Activity deadActivity) {
+    public static void cleanUnuseWebView(Activity deadActivity,boolean isRemoveWV) {
         Iterator<WebView> webViewIterator = sCurrentWebView.iterator();
         WebView webView = null;
         List<WebView> removeWebViews = new ArrayList<>();
@@ -190,8 +190,10 @@ public class SugoWebEventListener {
             }
         }
         for (WebView removeWV : removeWebViews) {
-            sCurrentWebView.remove(removeWV);
-            sugoWNReporter.remove(removeWV);
+            if (isRemoveWV){
+                sCurrentWebView.remove(removeWV);
+                sugoWNReporter.remove(removeWV);
+            }
             if (SGConfig.getInstance(removeWV.getContext()).isEnablePageEvent()) {
                 removeWV.loadUrl("javascript:" + sStayScript);
             }
