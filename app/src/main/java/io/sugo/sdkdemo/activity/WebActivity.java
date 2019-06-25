@@ -3,6 +3,8 @@ package io.sugo.sdkdemo.activity;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -36,6 +38,7 @@ public class WebActivity extends AppCompatActivity {
     private void initWebView() {
         mWebView.getSettings().setJavaScriptEnabled(true);
         SugoAPI.getInstance(this).addWebViewJavascriptInterface(mWebView);
+
         mWebView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
@@ -59,7 +62,7 @@ public class WebActivity extends AppCompatActivity {
                 super.onReceivedTitle(view, title);
             }
         });
-        mWebView.loadUrl(mUrl == null ? "https://m.jd.com/" : mUrl);
+        mWebView.loadUrl(mUrl == null ? "http://search.m.dangdang.com/ddcategory.php" : mUrl);
     }
 
 

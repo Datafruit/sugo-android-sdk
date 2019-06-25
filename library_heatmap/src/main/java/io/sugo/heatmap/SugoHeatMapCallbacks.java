@@ -17,13 +17,17 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.WebView;
 import android.widget.LinearLayout;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+
+import org.xwalk.core.XWalkView;
 
 import io.sugo.android.mpmetrics.SugoAPI;
 import io.sugo.android.mpmetrics.SugoPageManager;
@@ -100,10 +104,27 @@ public class SugoHeatMapCallbacks implements Application.ActivityLifecycleCallba
                                 Map<String, Object> values = new HashMap<String, Object>();
                                 values.put("onclick_point", serialNum);//对应底部按钮标签名
                                 String activityname = null;
-                                if (SugoWebEventListener.webViewUrl != null) {
-                                    activityname = SugoWebEventListener.webViewUrl;
-                                } else {
-                                    activityname = activity.getClass().getName();
+                                activityname = activity.getClass().getName();
+                                if (SugoWebEventListener.sCurrentWebView.size()>0){
+                                    for (WebView value :SugoWebEventListener.sCurrentWebView ) {
+                                        if (value.getVisibility() == View.VISIBLE){
+                                            int hashcode = value.hashCode();
+                                            if(SugoWebEventListener.webViewUrlMap.containsKey(hashcode)){
+                                                activityname = SugoWebEventListener.webViewUrlMap.get(hashcode);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }else if (SugoWebEventListener.sCurrentXWalkView.size()>0){
+                                    for (XWalkView value :SugoWebEventListener.sCurrentXWalkView){
+                                        if (value.getVisibility() == View.VISIBLE){
+                                            int hashcode = value.hashCode();
+                                            if(SugoWebEventListener.webViewUrlMap.containsKey(hashcode)){
+                                                activityname = SugoWebEventListener.webViewUrlMap.get(hashcode);
+                                                break;
+                                            }
+                                        }
+                                    }
                                 }
 
                                 values.put("path_name", activityname);

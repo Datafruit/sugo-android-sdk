@@ -40,6 +40,7 @@
         <activity android:name=".activity.NativeActivity" />
         <activity android:name=".activity.DescriptionActivity" />
         <activity android:name=".activity.WebActivity" />
+        <activity android:name=".activity.WebViewMoreActivity"/>
         <activity
             android:name="com.journeyapps.barcodescanner.CaptureActivity"
             android:screenOrientation="portrait"
@@ -91,6 +92,7 @@
 
 
         <activity android:name=".activity.PrivateFuncActivity" />
+
         <activity android:name=".activity.DebugViewPagerActivity" />
         <activity android:name=".activity.DebugFragmentsActivity" />
         <activity android:name=".activity.TestViewActivity" />

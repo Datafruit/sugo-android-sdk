@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.text.TextUtils;
+import android.util.Log;
+import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -43,7 +45,7 @@ public class SugoWebViewClient extends WebViewClient {
         Context context = view.getContext();
 
         Activity activity = (Activity) context;
-        String script = getInjectScript(activity, url);
+        String script = getInjectScript(activity,view.hashCode(), url);
         view.loadUrl("javascript:" + script);
 
         SugoWebEventListener.addCurrentWebView(view);
@@ -52,18 +54,18 @@ public class SugoWebViewClient extends WebViewClient {
     public static void handlePageFinished(XWalkView view, String url) {
         Context context = view.getContext();
         Activity activity = (Activity) context;
-        String script = getInjectScript(activity, url);
+        String script = getInjectScript(activity,view.hashCode(), url);
         view.load("javascript:" + script, "");
 
         SugoWebEventListener.addCurrentXWalkView(view);
     }
 
     public static void handlePageFinished(WebViewDelegate delegate, Activity activity, String url) {
-        String script = getInjectScript(activity, url);
+        String script = getInjectScript(activity,-1,url);
         delegate.loadUrl("javascript:" + script);
     }
 
-    public static String getInjectScript(Activity activity, String url) {
+    public static String getInjectScript(Activity activity,int hashCode, String url) {
         SugoAPI sugoAPI = SugoAPI.getInstance(activity);
 
         String webRoot = sugoAPI.getConfig().getWebRoot();
@@ -100,6 +102,7 @@ public class SugoWebViewClient extends WebViewClient {
         tempTrackJS = tempTrackJS.replace("$sugo_page_name$", SGConfig.FIELD_PAGE_NAME);
         tempTrackJS = tempTrackJS.replace("$sugo_page_category_key$", SGConfig.FIELD_PAGE_CATEGORY);
         tempTrackJS = tempTrackJS.replace("$sugo_h5_event_bindings$", bindingEvents);
+        tempTrackJS = tempTrackJS.replace("$sugo_hashcode$",hashCode+"");
 
         StringBuffer scriptBuf = new StringBuffer();
         scriptBuf.append(FileUtils.getAssetsFileContent(activity,"SugoCss.js",true));

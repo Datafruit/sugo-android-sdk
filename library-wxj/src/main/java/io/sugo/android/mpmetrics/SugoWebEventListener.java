@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 
@@ -32,10 +33,10 @@ import io.sugo.android.viewcrawler.SugoHeatMap;
 
 public class SugoWebEventListener {
     private final SugoAPI sugoAPI;
-    public static  String webViewUrl;
+    public static HashMap<Integer,String> webViewUrlMap = new HashMap<>();
     private static Map<String, JSONArray> eventBindingsMap = new HashMap<String, JSONArray>();
-    protected static HashSet<WebView> sCurrentWebView = new HashSet<>();
-    protected static HashSet<XWalkView> sCurrentXWalkView = new HashSet<>();
+    public static HashSet<WebView> sCurrentWebView = new HashSet<>();
+    public static HashSet<XWalkView> sCurrentXWalkView = new HashSet<>();
     public static Map<Object, SugoWebNodeReporter> sugoWNReporter = new HashMap<Object, SugoWebNodeReporter>();
 
     protected static final String sStayScript =
@@ -45,6 +46,7 @@ public class SugoWebEventListener {
 
     SugoWebEventListener(SugoAPI sugoAPI) {
         this.sugoAPI = sugoAPI;
+
     }
 
     @JavascriptInterface
@@ -74,8 +76,8 @@ public class SugoWebEventListener {
 
     @JavascriptInterface
     @org.xwalk.core.JavascriptInterface
-    public void registerPathName(String pathName){
-        SugoWebEventListener.webViewUrl=pathName;
+    public void registerPathName(String pathName,int hashcode){
+        webViewUrlMap.put(hashcode,pathName);
     }
 
     @JavascriptInterface
@@ -113,6 +115,20 @@ public class SugoWebEventListener {
 
 
     public static void addCurrentWebView(WebView currentWebView) {
+        if (!sCurrentWebView.contains(currentWebView)){
+            currentWebView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+                @Override
+                public void onViewAttachedToWindow(View v) {
+
+                }
+
+                @Override
+                public void onViewDetachedFromWindow(View v) {
+                    int hashCode = v.hashCode();
+                    SugoWebEventListener.webViewUrlMap.remove(hashCode);
+                }
+            });
+        }
         sCurrentWebView.add(currentWebView);
         if (SGConfig.DEBUG) {
             Log.d("SugoWebEventListener", "addCurrentWebView : " + currentWebView.toString());
@@ -121,6 +137,19 @@ public class SugoWebEventListener {
     }
 
     public static void addCurrentXWalkView(XWalkView currentXWalkView) {
+        if (!sCurrentXWalkView.contains(currentXWalkView)){
+            currentXWalkView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+                @Override
+                public void onViewAttachedToWindow(View v) {
+                }
+
+                @Override
+                public void onViewDetachedFromWindow(View v) {
+                    int hashCode = v.hashCode();
+                    SugoWebEventListener.webViewUrlMap.remove(hashCode);
+                }
+            });
+        }
         sCurrentXWalkView.add(currentXWalkView);
         webEnterTime = System.currentTimeMillis();
         if (SGConfig.DEBUG) {
@@ -136,6 +165,7 @@ public class SugoWebEventListener {
             if (webView == null) {
                 return;
             }
+
             ((Activity) webView.getContext()).runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -187,6 +217,8 @@ public class SugoWebEventListener {
         for (WebView removeWebView : removeWebViews) {
             sCurrentWebView.remove(removeWebView);
             sugoWNReporter.remove(removeWebView);
+            int hashcode = removeWebView.hashCode();
+            SugoWebEventListener.webViewUrlMap.remove(hashcode);
             if (SGConfig.DEBUG) {
                 Log.d("SugoWebEventListener", "removeWebViewReference : " + removeWebView.toString());
             }
@@ -205,6 +237,8 @@ public class SugoWebEventListener {
         for (XWalkView removeXWalkView : removeXWalkViews) {
             sCurrentXWalkView.remove(removeXWalkView);
             sugoWNReporter.remove(removeXWalkView);
+            int hashcode = removeXWalkView.hashCode();
+            SugoWebEventListener.webViewUrlMap.remove(hashcode);
             if (SGConfig.DEBUG) {
                 Log.d("SugoWebEventListener", "removeXWalkViewReference : " + removeXWalkView.toString());
             }

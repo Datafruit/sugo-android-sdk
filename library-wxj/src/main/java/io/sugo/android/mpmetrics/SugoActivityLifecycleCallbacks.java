@@ -65,7 +65,7 @@ import io.sugo.android.util.ExceptionInfoUtils;
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
         //当activity重新载入时，清除url路径
-        SugoWebEventListener.webViewUrl = null;
+//        SugoWebEventListener.webViewUrl = null;
     }
 
     @Override
@@ -212,7 +212,7 @@ import io.sugo.android.util.ExceptionInfoUtils;
 
     @Override
     public void onActivityDestroyed(Activity activity) {
-        SugoWebEventListener.webViewUrl = null;
+//        SugoWebEventListener.webViewUrl = null;
         mDisableActivities.remove(activity);
 //         // 无限极使用了 代码埋点 ，所以这里注释掉
 //        String runningPage = SugoPageManager.getInstance().getCurrentPage(activity.getApplicationContext());
