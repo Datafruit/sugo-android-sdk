@@ -71,6 +71,7 @@
 
     sugo.current_page = '$sugo_activity_name$::' + sugo.relative_path;
     sugo.h5_event_bindings = $sugo_h5_event_bindings$;
+    sugo.sugo_hashcode = $sugo_hashcode$;
     sugo.current_event_bindings = {};
     for (var i = 0; i < sugo.h5_event_bindings.length; i++) {
         var b_event = sugo.h5_event_bindings[i];
@@ -246,7 +247,7 @@
         } else {
             props.path_name = sugo.relative_path;
         }
-        window.sugoEventListener.registerPathName(props.path_name);
+        window.sugoEventListener.registerPathName(props.path_name, sugo.sugo_hashcode);
     };
 
     sugo.registerPathName();
