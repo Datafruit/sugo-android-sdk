@@ -68,9 +68,6 @@ public class SugoHeatMapCallbacks implements Application.ActivityLifecycleCallba
     }
 
     private void addOnclickPointListener(final Activity activity) {
-        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.SYSTEM_ALERT_WINDOW) != PackageManager.PERMISSION_GRANTED){
-            return ;
-        }
         try {
             if (mDummyView == null) {
                 mDummyView = new LinearLayout(activity.getApplication());

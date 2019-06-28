@@ -6,7 +6,7 @@
 **通过 Gradle 集成**   
 ```Groovy   
 dependencies {
-    compile 'io.sugo.android:sugo-android-sdk:2.3.5'
+    compile 'io.sugo.android:sugo-android-sdk:2.7.3'
 }
 ```
 
@@ -36,7 +36,7 @@ dependencies {
 
 ## 2. SDK 配置   
 
-> 请先登录您的【数果星盘】管理台，在数据管理-埋点项目-新建项目-新建应用中，创建您的应用，以获取对应的 Token 等。   
+> 请先登录您的【行为分析平台】管理台，在数据管理-埋点项目-新建项目-新建应用中，创建您的应用，以获取对应的 Token 等。   
 
 ![image](doc/img/create_app.png)   
 
@@ -194,7 +194,14 @@ dependencies {
         @Override
         public void onCreate() {
             super.onCreate();
-            SugoAPI.startSugo(this, SGConfig.getInstance(this));
+            SugoAPI.startSugo(this, SGConfig.getInstance(this).setSugoEnable(true).logConfig(), new InitSugoCallback() {
+                @Override
+                public void finish() {
+                    SugoHeatMapManager manager =    SugoHeatMapManager.getInstance(App.this);//假设在Application中初始化
+                    manager.bindingHeatMapFunction();
+                
+                }
+            });
         }
     
     }
