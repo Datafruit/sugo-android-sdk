@@ -835,7 +835,7 @@ public class SugoAPI {
                 messageProps.put(SGConfig.SESSION_ID, getCurrentSessionId());
                 messageProps.put(SGConfig.FIELD_PAGE, SugoPageManager.getInstance().getCurrentPage(mContext));
                 String path_name = messageProps.getString(SGConfig.FIELD_PAGE);
-                if (!properties.getString(SGConfig.FIELD_PAGE).isEmpty()){
+                if (properties.has(SGConfig.FIELD_PAGE)){
                     path_name = properties.getString(SGConfig.FIELD_PAGE);
                 }
                 messageProps.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance().getCurrentPageName(path_name));
