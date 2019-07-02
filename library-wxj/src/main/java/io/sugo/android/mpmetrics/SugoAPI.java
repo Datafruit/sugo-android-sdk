@@ -834,7 +834,11 @@ public class SugoAPI {
 
                 messageProps.put(SGConfig.SESSION_ID, getCurrentSessionId());
                 messageProps.put(SGConfig.FIELD_PAGE, SugoPageManager.getInstance().getCurrentPage(mContext));
-                messageProps.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance().getCurrentPageName(mContext));
+                String path_name = messageProps.getString(SGConfig.FIELD_PAGE);
+                if (properties.has(SGConfig.FIELD_PAGE)){
+                    path_name = properties.getString(SGConfig.FIELD_PAGE);
+                }
+                messageProps.put(SGConfig.FIELD_PAGE_NAME, SugoPageManager.getInstance().getCurrentPageName(path_name));
                 messageProps.put(SGConfig.FIELD_PAGE_CATEGORY, SugoPageManager.getInstance().getCurrentPageCategory(mContext));
 
                 final Map<String, String> referrerProperties = mPersistentIdentity.getReferrerProperties();
