@@ -194,7 +194,18 @@ public class SGConfig {
         synchronized (sInstanceLock) {
             if (null == sInstance) {
                 final Context appContext = context.getApplicationContext();
-                sInstance = readConfig(appContext);
+                sInstance = readConfig(appContext,null,null,null,null,null);
+            }
+        }
+
+        return sInstance;
+    }
+
+    public static SGConfig getInstance(Context context,String ownToken,String ownProjectId,String ownAPIHost,String ownEditHost,String ownEventHost){
+        synchronized (sInstanceLock) {
+            if (null == sInstance) {
+                final Context appContext = context.getApplicationContext();
+                sInstance = readConfig(appContext,ownToken,ownProjectId,ownAPIHost,ownEditHost,ownEventHost);
             }
         }
 
@@ -204,7 +215,7 @@ public class SGConfig {
     /**
      * Package access for testing only- do not call directly in library code
      */
-    static SGConfig readConfig(Context appContext) {
+    static SGConfig readConfig(Context appContext,String ownToken,String ownProjectId,String ownAPIHost,String ownEditHost,String ownEventHost) {
         final String packageName = appContext.getPackageName();
         try {
             final ApplicationInfo appInfo = appContext.getPackageManager().getApplicationInfo(packageName, PackageManager.GET_META_DATA);
@@ -212,13 +223,13 @@ public class SGConfig {
             if (null == configBundle) {
                 configBundle = new Bundle();
             }
-            return new SGConfig(configBundle, appContext);
+            return new SGConfig(configBundle, appContext,ownToken,ownProjectId,ownAPIHost,ownEditHost,ownEventHost);
         } catch (final NameNotFoundException e) {
             throw new RuntimeException("Can't configure Sugo with package name " + packageName, e);
         }
     }
 
-    SGConfig(Bundle metaData, Context context) {
+    SGConfig(Bundle metaData, Context context,String ownToken,String ownProjectId,String ownAPIHost,String ownEditHost,String ownEventHost) {
 
         // By default, we use a clean, FACTORY default SSLSocket. In general this is the right
         // thing to do, and some other third party libraries change the
@@ -240,11 +251,11 @@ public class SGConfig {
 
         mTestMode = metaData.getBoolean("io.sugo.android.SGConfig.TestMode", false);
 
-        mToken = metaData.getString("io.sugo.android.SGConfig.token");
-        mProjectId = metaData.getString("io.sugo.android.SGConfig.ProjectId");
-        String apiHost = metaData.getString("io.sugo.android.SGConfig.APIHost");
-        String eventsHost = metaData.getString("io.sugo.android.SGConfig.EventsHost");
-        String editorHost = metaData.getString("io.sugo.android.SGConfig.EditorHost");
+        mToken = metaData.getString("io.sugo.android.SGConfig.token",ownToken);
+        mProjectId = metaData.getString("io.sugo.android.SGConfig.ProjectId",ownProjectId);
+        String apiHost = metaData.getString("io.sugo.android.SGConfig.APIHost", ownAPIHost);
+        String eventsHost = metaData.getString("io.sugo.android.SGConfig.EventsHost",ownEventHost);
+        String editorHost = metaData.getString("io.sugo.android.SGConfig.EditorHost",ownEditHost);
 
         mDimDecideEndpoint = apiHost + "/api/sdk/decide-dimesion";
         mEventDecideEndpoint = apiHost + "/api/sdk/decide-event";
