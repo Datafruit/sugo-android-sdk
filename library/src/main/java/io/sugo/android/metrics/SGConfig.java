@@ -99,7 +99,7 @@ public class SGConfig {
      * we can't rely on BuildConfig.SUGO_VERSION existing, so this must
      * be hard-coded both in our gradle files and here in code.
      */
-    public static final String VERSION = "2.7.5";
+    public static final String VERSION = "2.8.0";
 
     public static final String FIELD_APP_BUILD_NUMBER = "app_build_number";
     public static final String FIELD_APP_VERSION_STRING = "app_version";
@@ -126,6 +126,7 @@ public class SGConfig {
     public static final String FIELD_EVENT_NAME = "event_name";
     public static final String FIELD_MP_LIB = "sugo_lib";
     public static final String FIELD_TIME = "event_time";
+    private final String mSugoInitializeEndpoint;
     public static final String FIELD_TOKEN = "token";
     public static final String FIELD_PAGE = "path_name";
     public static final String FIELD_DURATION = "duration";
@@ -201,10 +202,25 @@ public class SGConfig {
         return sInstance;
     }
 
+    public static SGConfig getInstance(Context context,String ownToken,String ownProjectId,String ownAPIHost,String ownEditHost,String ownEventHost){
+        synchronized (sInstanceLock) {
+            if (null == sInstance) {
+                final Context appContext = context.getApplicationContext();
+                sInstance = readConfig(appContext,ownToken,ownProjectId,ownAPIHost,ownEditHost,ownEventHost);
+            }
+        }
+
+        return sInstance;
+    }
+
+    static SGConfig readConfig(Context appContext) {
+        return readConfig(appContext,null,null,null,null,null);
+    }
+
     /**
      * Package access for testing only- do not call directly in library code
      */
-    static SGConfig readConfig(Context appContext) {
+    static SGConfig readConfig(Context appContext,String ownToken,String ownProjectId,String ownAPIHost,String ownEditHost,String ownEventHost) {
         final String packageName = appContext.getPackageName();
         try {
             final ApplicationInfo appInfo = appContext.getPackageManager().getApplicationInfo(packageName, PackageManager.GET_META_DATA);
@@ -212,13 +228,13 @@ public class SGConfig {
             if (null == configBundle) {
                 configBundle = new Bundle();
             }
-            return new SGConfig(configBundle, appContext);
+            return new SGConfig(configBundle, appContext,ownToken,ownProjectId,ownAPIHost,ownEditHost,ownEventHost);
         } catch (final NameNotFoundException e) {
             throw new RuntimeException("Can't configure Sugo with package name " + packageName, e);
         }
     }
 
-    SGConfig(Bundle metaData, Context context) {
+    SGConfig(Bundle metaData, Context context,String ownToken,String ownProjectId,String ownAPIHost,String ownEditHost,String ownEventHost) {
 
         // By default, we use a clean, FACTORY default SSLSocket. In general this is the right
         // thing to do, and some other third party libraries change the
@@ -240,14 +256,15 @@ public class SGConfig {
 
         mTestMode = metaData.getBoolean("io.sugo.android.SGConfig.TestMode", false);
 
-        mToken = metaData.getString("io.sugo.android.SGConfig.token");
-        mProjectId = metaData.getString("io.sugo.android.SGConfig.ProjectId");
-        String apiHost = metaData.getString("io.sugo.android.SGConfig.APIHost");
-        String eventsHost = metaData.getString("io.sugo.android.SGConfig.EventsHost");
-        String editorHost = metaData.getString("io.sugo.android.SGConfig.EditorHost");
+        mToken = metaData.getString("io.sugo.android.SGConfig.token",ownToken);
+        mProjectId = metaData.getString("io.sugo.android.SGConfig.ProjectId",ownProjectId);
+        String apiHost = metaData.getString("io.sugo.android.SGConfig.APIHost", ownAPIHost);
+        String eventsHost = metaData.getString("io.sugo.android.SGConfig.EventsHost",ownEventHost);
+        String editorHost = metaData.getString("io.sugo.android.SGConfig.EditorHost",ownEditHost);
 
         mDimDecideEndpoint = apiHost + "/api/sdk/decide-dimesion";
         mEventDecideEndpoint = apiHost + "/api/sdk/decide-event";
+        mSugoInitializeEndpoint = apiHost + "/api/sdk/decide-config";
         mHeatMapEndpoint = apiHost + "/api/sdk/heat";
         mFirstLoginEndpoint = apiHost + "/api/sdk/get-first-login-time";
         mFirstInstallEndpoint = apiHost + "/api/sdk/get-first-start-time";
@@ -526,6 +543,10 @@ public class SGConfig {
             webRoot = " ";
         }
         return webRoot;
+    }
+
+    public String getSugoInitializeEndpoint(){
+        return mSugoInitializeEndpoint;
     }
 
 
