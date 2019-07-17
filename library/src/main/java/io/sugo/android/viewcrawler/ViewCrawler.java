@@ -76,6 +76,13 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
     public static final String SP_EVENT_BINDING_VERSION = "sugo.event_bindings_version";
     public static final String SP_DIMENSION_VERSION = "sugo.dimension_version";
     public static final String SP_EVENT_BINDINGS_APP_VERSION = "sugo.event_bindings_app_version";
+    public static final String SUGO_INIT_CACHE="sugo_init_cache";
+    public static final String ISSUGOINITIALIZE = "sugo_isSugoInitialize";
+    public static final String ISHEATMAPFUNC = "sugo_isHeatMapFunc";
+    public static final String UPLOADLOCATION= "sugo_isuploadLocation";
+    public static final String ISUPDATACONFIG = "sugo_isUpdateConfig";
+    public static final String LAESTEVENTBINDINGVERSION = "sugo_latestEventBindingVersion";
+    public static final String LAESTDIMENSIONVERSION = "sugo_latestDimensionVersion";
 
     private static final int MESSAGE_INITIALIZE_CHANGES = 0;
     private static final int MESSAGE_CONNECT_TO_EDITOR = 1;
