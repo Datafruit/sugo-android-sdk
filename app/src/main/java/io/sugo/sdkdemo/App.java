@@ -3,7 +3,9 @@ package io.sugo.sdkdemo;
 import android.annotation.TargetApi;
 import android.app.Application;
 import android.os.Build;
+import android.util.Log;
 
+import io.sugo.android.metrics.InitSugoCallback;
 import io.sugo.android.metrics.SGConfig;
 import io.sugo.android.metrics.SugoAPI;
 
@@ -20,8 +22,12 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
 
-        SugoAPI.startSugo(this, SGConfig.getInstance(this).setSugoEnable(true).logConfig());
+        SugoAPI.startSugo(this, SGConfig.getInstance(this).setSugoEnable(true).logConfig(), new InitSugoCallback() {
+            @Override
+            public void finish() {
 
+            }
+        });
     }
 
 }
