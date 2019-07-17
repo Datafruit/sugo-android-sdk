@@ -389,37 +389,7 @@ public class SugoAPI {
 
 
     public static void startSugo(Context context, SGConfig sgConfig) {
-        if (null == context) {
-            if (SGConfig.DEBUG) {
-                Log.e(LOGTAG, "startSugo 失败，context 为空");
-            }
-            return;
-        }
-        synchronized (S_INSTANCE_MAP) {
-            if (S_INSTANCE_MAP.get(context.getApplicationContext()) != null) {
-                if (SGConfig.DEBUG) {
-                    Log.e(LOGTAG, "Sugo SDK 已经初始化，不能再次初始化");
-                }
-                return;
-            }
-        }
-        if (TextUtils.isEmpty(sgConfig.getToken())) {
-            if (SGConfig.DEBUG) {
-                Log.e(LOGTAG, "未检测到 SugoSDK 的 Token，请正确设置 io.sugo.android.SGConfig.token");
-            }
-            return;
-        }
-        if (TextUtils.isEmpty(sgConfig.getProjectId())) {
-            if (SGConfig.DEBUG) {
-                Log.e(LOGTAG, "未检测到 SugoSDK 的 ProjectId，请正确设置 io.sugo.android.SGConfig.ProjectId");
-            }
-            return;
-        }
-
-        SugoAPI.getInstance(context);
-        if (SGConfig.DEBUG) {
-            Log.i("Sugo", "SugoSDK 初始化成功！");
-        }
+        startSugo(context,sgConfig,null);
     }
 
     private String generateSessionId() {

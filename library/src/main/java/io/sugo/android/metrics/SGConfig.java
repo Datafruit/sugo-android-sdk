@@ -195,7 +195,7 @@ public class SGConfig {
         synchronized (sInstanceLock) {
             if (null == sInstance) {
                 final Context appContext = context.getApplicationContext();
-                sInstance = readConfig(appContext,null,null,null,null,null);
+                sInstance = readConfig(appContext);
             }
         }
 
@@ -211,6 +211,10 @@ public class SGConfig {
         }
 
         return sInstance;
+    }
+
+    static SGConfig readConfig(Context appContext) {
+        return readConfig(appContext,null,null,null,null,null);
     }
 
     /**
