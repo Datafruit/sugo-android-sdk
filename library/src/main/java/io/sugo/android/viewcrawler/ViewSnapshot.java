@@ -73,6 +73,7 @@ class ViewSnapshot {
     private final Handler mMainThreadHandler;
     private final ResourceIds mResourceIds;
     private XWalkViewListener mXWalkViewListener;
+    private X5Listener mX5Listener;
     private static final int MAX_CLASS_NAME_CACHE_SIZE = 255;
 
     ViewSnapshot(List<PropertyDescription> properties, ResourceIds resourceIds) {
@@ -374,6 +375,10 @@ class ViewSnapshot {
             mXWalkViewListener.snapshotSpecialView(j, view);
         }
 
+        if (mX5Listener !=null){
+            mX5Listener.snapshotSpecialView(j,view);
+        }
+
         j.name("subviews");
         j.beginArray();
         if (view instanceof ViewGroup) {
@@ -534,6 +539,10 @@ class ViewSnapshot {
 
     public void setXWalkViewListener(XWalkViewListener XWalkViewListener) {
         mXWalkViewListener = XWalkViewListener;
+    }
+
+    public void setmX5Listener (X5Listener listener){
+        mX5Listener = listener;
     }
 
     private static class ClassNameCache extends LruCache<Class<?>, String> {

@@ -43,6 +43,7 @@ import io.sugo.android.util.RemoteService;
 import io.sugo.android.viewcrawler.TrackingDebug;
 import io.sugo.android.viewcrawler.UpdatesFromSugo;
 import io.sugo.android.viewcrawler.ViewCrawler;
+import io.sugo.android.viewcrawler.X5Listener;
 import io.sugo.android.viewcrawler.XWalkViewListener;
 
 /**
@@ -1016,6 +1017,11 @@ public class SugoAPI {
         }
 
         @Override
+        public void setX5Listener(X5Listener listener) {
+
+        }
+
+        @Override
         public boolean sendConnectEditor(Uri data) {
             return false;
         }
@@ -1068,6 +1074,11 @@ public class SugoAPI {
 
     public void setSnapshotViewListener(XWalkViewListener XWalkViewListener) {
         mUpdatesFromSugo.setXWalkViewListener(XWalkViewListener);
+    }
+
+
+    public void setSnapshotViewListener(X5Listener listener){
+        mUpdatesFromSugo.setX5Listener(listener);
     }
 
     /**
