@@ -87,7 +87,7 @@ public class SugoXWalkViewSupport {
                 }
             });
         } else {
-            sugoAPI.setSnapshotViewListener(null);
+            sugoAPI.setSnapshotViewListener((XWalkViewListener) null);
         }
     }
 

@@ -113,6 +113,7 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
     private final ViewCrawlerHandler mMessageThreadHandler;
     private final float mScaledDensity;
     private XWalkViewListener mXWalkViewListener;
+    private X5Listener x5Listener;
 
     public ViewCrawler(Context context, String token, SugoAPI sugo, XWalkViewListener XWalkViewListener) {
         this(context, token, sugo);
@@ -237,6 +238,11 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
     }
 
     @Override
+    public void setX5Listener(X5Listener listener) {
+        x5Listener = listener;
+    }
+
+    @Override
     public void reportTrack(String eventName) {
         final Message m = mMessageThreadHandler.obtainMessage();
         m.what = MESSAGE_SEND_EVENT_TRACKED;
@@ -353,6 +359,9 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
             SugoWebEventListener.cleanUnuseWebView(activity,true);
             if (mXWalkViewListener != null) {
                 mXWalkViewListener.recyclerXWalkView(activity);
+            }
+            if (x5Listener != null){
+                x5Listener.recyclerx5View(activity);
             }
         }
 
@@ -726,6 +735,13 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                     } else {
                         mSnapshot.setXWalkViewListener(null);
                     }
+
+                    if (x5Listener !=null){
+                        mSnapshot.setmX5Listener(x5Listener);
+                    }else{
+                        mSnapshot.setmX5Listener(null);
+                    }
+
                     if (SGConfig.DEBUG) {
                         Log.v(LOGTAG, "Initializing snapshot with configuration");
                     }
@@ -933,6 +949,9 @@ public class ViewCrawler implements UpdatesFromSugo, TrackingDebug, ViewVisitor.
                 SugoWebEventListener.bindEvents(mToken, h5EventBindings);
                 if (mXWalkViewListener != null) {
                     mXWalkViewListener.bindEvents(mToken, eventBindings);
+                }
+                if (x5Listener !=null){
+                    x5Listener.bindEvents(mToken,eventBindings);
                 }
                 if (dimensionsBindings != null) {
                     SugoDimensionManager.getInstance().setDimensions(dimensionsBindings);

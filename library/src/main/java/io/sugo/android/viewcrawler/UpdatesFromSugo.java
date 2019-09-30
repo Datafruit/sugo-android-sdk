@@ -21,6 +21,8 @@ public interface UpdatesFromSugo {
 
     void setXWalkViewListener(XWalkViewListener XWalkViewListener);
 
+    void setX5Listener(X5Listener listener);
+
     boolean sendConnectEditor(Uri data);
 
 }
